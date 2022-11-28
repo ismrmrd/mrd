@@ -1,0 +1,11 @@
+ImageData<Y>: !array
+  items: Y
+  dimensions:
+    channel:
+    z:
+    y:
+    x:
+
+Image<T>: !record
+  fields:
+    data: ImageData<T>

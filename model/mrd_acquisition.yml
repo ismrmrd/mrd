@@ -1,0 +1,27 @@
+AcquisitionFlags: !enum
+  values:
+    firstInEncodeStep1: 0x1
+    lastInEncodeStep1: 0x2
+
+AcquisitionData: !array
+  items: complexfloat
+  dimensions:
+    coils:
+    samples:
+
+EncodingCounters: !record
+  fields:
+    e1: uint32?
+    e2: uint32?
+    slice: uint32?
+    repetition: uint32?
+
+Acquisition: !record
+  fields:
+    flags: !vector
+      items: AcquisitionFlags
+    idx: EncodingCounters
+    data: AcquisitionData
+  computedFields:
+    coils: size(data, "coils")
+    samples: size(data, "samples")

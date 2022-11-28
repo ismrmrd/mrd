@@ -1,0 +1,27 @@
+SubjectInformation: !record
+  fields:
+    subjectId: string
+    subjectName: string?
+    subjectWeightKg: float?
+    subjectHeightM: float?
+    subjectBirthdate: datetime?
+
+Space: !record
+  fields:
+    matrixSize: !vector
+      length: 3
+      items: uint64
+    fieldOfView: !vector
+      length: 3
+      items: float
+
+EncodingSpace: !record
+  fields:
+    encoded: Space
+    recon: Space
+
+Header: !record
+  fields:
+    subjectInformation: SubjectInformation
+    encoding: !vector
+      items: EncodingSpace

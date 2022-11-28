@@ -1,0 +1,7 @@
+StreamItem: [Acquisition, Image<float>, Image<complexfloat>]
+
+Mrd: !protocol
+  sequence:
+    header: Header
+    data: !stream
+      items: StreamItem
