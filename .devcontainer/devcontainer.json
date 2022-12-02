@@ -69,7 +69,11 @@
         },
 
         "gcovViewer.gcovBinary": "/opt/conda/envs/mrd/bin/x86_64-conda-linux-gnu-gcov",
-        "gcovViewer.buildDirectories": ["${workspaceFolder}/cpp/build"]
+        "gcovViewer.buildDirectories": ["${workspaceFolder}/cpp/build"],
+        "search.useIgnoreFiles": false,
+        "search.exclude": {
+          "**/cpp/build": true
+        }
       },
 
       // Add the IDs of extensions you want installed when the container is created.
