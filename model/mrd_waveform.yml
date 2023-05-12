@@ -1,0 +1,19 @@
+WaveformSamples<T>: !array
+  items: T
+  dimensions:
+    - channels
+    - samples
+
+Waveform<T>: !record
+  fields:
+    flags: !vector
+      items: uint # There are currently no flags defined.
+    measurementUid: uint # Remove?
+    scanCounter: uint
+    timeStamp: uint
+    sampleTimeUs: float
+    waveformId: uint
+    data: WaveformSamples<T>
+  computedFields:
+    channels: size(data, "channels")
+    numberOfSamples: size(data, "samples")

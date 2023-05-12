@@ -1,27 +1,315 @@
-SubjectInformation: !record
-  fields:
-    subjectId: string
-    subjectName: string?
-    subjectWeightKg: float?
-    subjectHeightM: float?
-    subjectBirthdate: datetime?
+PatientGender: !enum
+    values:
+    - m
+    - f
+    - o
 
-Space: !record
+SubjectInformationType: !record
   fields:
-    matrixSize: !vector
-      length: 3
-      items: uint64
-    fieldOfView: !vector
-      length: 3
-      items: float
+    patientName: string?
+    patientWeightkg: float?
+    patientHeightm: float?
+    patientID: string?
+    patientBirthdate: date?
+    patientGender: PatientGender?
 
-EncodingSpace: !record
+StudyInformationType: !record
   fields:
-    encoded: Space
-    recon: Space
+    studyDate: date?
+    studyTime: datetime?
+    studyID: string?
+    accessionNumber: long?
+    referringPhysicianName: string?
+    studyDescription: string?
+    studyInstanceUID: string?
+    bodyPartExamined: string?
+
+PatientPosition: !enum
+    values:
+    - hFP
+    - hFS
+    - hFDR
+    - hFDL
+    - fFP
+    - fFS
+    - fFDR
+    - fFDL
+
+ThreeDimensionalFloat: !record
+  fields:
+    x: float
+    y: float
+    z: float
+
+MeasurementDependencyType: !record
+  fields:
+    dependencyType: string
+    measurementID: string
+
+ReferencedImageSequenceType: !record
+  fields:
+    referencedSOPInstanceUID: string?
+
+MeasurementInformationType: !record
+  fields:
+    measurementID: string?
+    seriesDate: date?
+    seriesTime: datetime?
+    patientPosition: PatientPosition
+    relativeTablePosition: ThreeDimensionalFloat?
+    initialSeriesNumber: long?
+    protocolName: string?
+    sequenceName: string?
+    seriesDescription: string?
+    measurementDependency: !vector
+      items: MeasurementDependencyType
+    seriesInstanceUIDRoot: string?
+    frameOfReferenceUID: string?
+    referencedImageSequence: ReferencedImageSequenceType?
+
+CoilLabelType: !record
+  fields:
+    coilNumber: uint
+    coilName: string
+
+AcquisitionSystemInformationType: !record
+  fields:
+    systemVendor: string?
+    systemModel: string?
+    systemFieldStrengthT: float?
+    relativeReceiverNoiseBandwidth: float?
+    receiverChannels: uint?
+    coilLabel: !vector
+      items: CoilLabelType
+    institutionName: string?
+    stationName: string?
+    deviceID: string?
+    deviceSerialNumber: string?
+
+ExperimentalConditionsType: !record
+  fields:
+    h1resonanceFrequencyHz: long
+
+MatrixSizeType: !record
+  fields:
+    x: uint
+    y: uint
+    z: uint
+
+FieldOfViewmm: !record
+  fields:
+    x: float
+    y: float
+    z: float
+
+EncodingSpaceType: !record
+  fields:
+    matrixSize: MatrixSizeType
+    fieldOfViewmm: FieldOfViewmm
+
+LimitType: !record
+  fields:
+    minimum: uint
+    maximum: uint
+    center: uint
+
+EncodingLimitsType: !record
+  fields:
+    kspaceencodingstep0: LimitType?
+    kspaceencodingstep1: LimitType?
+    kspaceencodingstep2: LimitType?
+    average: LimitType?
+    slice: LimitType?
+    contrast: LimitType?
+    phase: LimitType?
+    repetition: LimitType?
+    set: LimitType?
+    segment: LimitType?
+    user0: LimitType?
+    user1: LimitType?
+    user2: LimitType?
+    user3: LimitType?
+    user4: LimitType?
+    user5: LimitType?
+    user6: LimitType?
+    user7: LimitType?
+
+Trajectory: !enum
+    values:
+    - cartesian
+    - epi
+    - radial
+    - goldenangle
+    - spiral
+    - other
+
+UserParameterLongType: !record
+  fields:
+    name: string
+    value: long
+
+UserParameterDoubleType: !record
+  fields:
+    name: string
+    value: double
+
+UserParameterStringType: !record
+  fields:
+    name: string
+    value: string
+
+TrajectoryDescriptionType: !record
+  fields:
+    identifier: string
+    userParameterLong: !vector
+      items: UserParameterLongType
+    userParameterDouble: !vector
+      items: UserParameterDoubleType
+    userParameterString: !vector
+      items: UserParameterStringType
+    comment: string?
+
+AccelerationFactorType: !record
+  fields:
+    kspaceencodingstep1: uint
+    kspaceencodingstep2: uint
+
+CalibrationMode: !enum
+    values:
+    - embedded
+    - interleaved
+    - separate
+    - external
+    - other
+
+InterleavingDimension: !enum
+    values:
+    - phase
+    - repetition
+    - contrast
+    - average
+    - other
+
+MultibandSpacingType: !record
+  fields:
+    dZ: float
+
+Calibration: !enum
+    values:
+    - separable2D
+    - full3D
+    - other
+
+MultibandType: !record
+  fields:
+    spacing: !vector
+      items: MultibandSpacingType
+    deltaKz: float
+    multibandfactor: uint
+    calibration: Calibration
+    calibrationencoding: uint64
+
+ParallelImagingType: !record
+  fields:
+    accelerationFactor: AccelerationFactorType
+    calibrationMode: CalibrationMode?
+    interleavingDimension: InterleavingDimension?
+    multiband: MultibandType?
+
+EncodingType: !record
+  fields:
+    encodedSpace: EncodingSpaceType
+    reconSpace: EncodingSpaceType
+    encodingLimits: EncodingLimitsType
+    trajectory: Trajectory
+    trajectoryDescription: TrajectoryDescriptionType?
+    parallelImaging: ParallelImagingType?
+    echoTrainLength: long?
+
+DiffusionDimension: !enum
+    values:
+    - average
+    - contrast
+    - phase
+    - repetition
+    - set
+    - segment
+    - user0
+    - user1
+    - user2
+    - user3
+    - user4
+    - user5
+    - user6
+    - user7
+
+GradientDirectionType: !record
+  fields:
+    rl: float
+    ap: float
+    fh: float
+
+DiffusionType: !record
+  fields:
+    gradientDirection: GradientDirectionType
+    bvalue: float
+
+SequenceParametersType: !record
+  fields:
+    tR: float?
+    tE: float?
+    tI: float?
+    flipAngledeg: float?
+    sequencetype: string?
+    echospacing: float?
+    diffusionDimension: DiffusionDimension?
+    diffusion: !vector
+      items: DiffusionType
+    diffusionScheme: string?
+
+UserParameterBase64Type: !record
+  fields:
+    name: string
+    value: string
+
+UserParametersType: !record
+  fields:
+    userParameterLong: !vector
+      items: UserParameterLongType
+    userParameterDouble: !vector
+      items: UserParameterDoubleType
+    userParameterString: !vector
+      items: UserParameterStringType
+    userParameterBase64: !vector
+      items: UserParameterBase64Type
+
+WaveformType: !enum
+    values:
+    - ecg
+    - pulse
+    - respiratory
+    - trigger
+    - gradientwaveform
+    - other
+
+WaveformInformationType: !record
+  fields:
+    waveformName: string
+    waveformType: WaveformType
+    userParameters: UserParametersType
 
 Header: !record
   fields:
-    subjectInformation: SubjectInformation
+    version: long?
+    subjectInformation: SubjectInformationType?
+    studyInformation: StudyInformationType?
+    measurementInformation: MeasurementInformationType?
+    acquisitionSystemInformation: AcquisitionSystemInformationType?
+    experimentalConditions: ExperimentalConditionsType
     encoding: !vector
-      items: EncodingSpace
+      items: EncodingType
+    sequenceParameters: SequenceParametersType?
+    userParameters: UserParametersType?
+    waveformInformation: !vector
+      items: WaveformInformationType
+

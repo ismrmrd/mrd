@@ -1,4 +1,4 @@
-StreamItem: [Acquisition, Image<float>, Image<complexfloat>]
+StreamItem: [Acquisition, Waveform<float>, Waveform<complexfloat>, Image<float>, Image<complexfloat>]
 
 Mrd: !protocol
   sequence:

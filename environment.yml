@@ -13,11 +13,13 @@ dependencies:
   - hdf5=1.12.1
   - howardhinnant_date=3.0.1
   - jupyter=1.0.0
+  - just=1.5.0
   - ninja=1.11.0
   - matplotlib=3.6.2
   - nlohmann_json=3.10.5
   - python=3.10.5
   - shellcheck=0.8.0
   - valgrind=3.18.1
+  - xmlschema=2.2.3
   - xtensor=0.24.2
   - xtensor-fftw=0.2.5

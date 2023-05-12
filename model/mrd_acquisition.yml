@@ -1,7 +1,51 @@
 AcquisitionFlags: !enum
+  base: uint64
   values:
     firstInEncodeStep1: 0x1
     lastInEncodeStep1: 0x2
+    firstInEncodeStep2: 0x4
+    lastInEncodeStep2: 0x8
+    firstInAverage: 0x10
+    lastInAverage: 0x20
+    firstInSlice: 0x40
+    lastInSlice: 0x80
+    firstInContrast: 0x100
+    lastInContrast: 0x200
+    firstInPhase: 0x400
+    lastInPhase: 0x800
+    firstInRepetition: 0x1000
+    lastInRepetition: 0x2000
+    firstInSet: 0x4000
+    lastInSet: 0x8000
+    firstInSegment: 0x10000
+    lastInSegment: 0x20000
+    isNoiseMeasurement: 0x40000
+    isParallelCalibration: 0x80000
+    isParallelCalibrationAndImaging: 0x100000
+    isReverse: 0x200000
+    isNavigationData: 0x400000
+    isPhasecorrData: 0x800000
+    lastInMeasurement: 0x1000000
+    isHpfeedbackData: 0x2000000
+    isDummyscanData: 0x4000000
+    isRtfeedbackData: 0x8000000
+    isSurfacecoilcorrectionscanData: 0x10000000
+    isPhaseStabilizationReference: 0x20000000
+    isPhaseStabilization: 0x40000000
+
+EncodingCounters: !record
+  fields:
+    kspaceEncodeStep1: uint?
+    kspaceEncodeStep2: uint?
+    average: uint?
+    slice: uint?
+    contrast: uint?
+    phase: uint?
+    repetition: uint?
+    set: uint?
+    segment: uint?
+    user: !vector
+      items: uint
 
 AcquisitionData: !array
   items: complexfloat
@@ -9,19 +53,52 @@ AcquisitionData: !array
     coils:
     samples:
 
-EncodingCounters: !record
-  fields:
-    e1: uint32?
-    e2: uint32?
-    slice: uint32?
-    repetition: uint32?
+TrajectoryData: !array
+  items: float
+  dimensions:
+    basis:
+    samples:
 
 Acquisition: !record
   fields:
-    flags: !vector
-      items: AcquisitionFlags
+    flags: uint64
     idx: EncodingCounters
+    measurementUid: uint # remove?
+    scanCounter: uint?
+    acquisitionTimeStamp: uint?
+    physiologyTimeStamp: !vector
+      items: uint
+    channelOrder: !vector
+      items: uint
+    discardPre: uint?
+    discardPost: uint?
+    centerSample: uint?
+    encodingSpaceRef: uint?
+    sampleTimeUs: float?
+    position: !array
+      items: float
+      dimensions: [3]
+    readDir: !array
+      items: float
+      dimensions: [3]
+    phaseDir: !array
+      items: float
+      dimensions: [3]
+    sliceDir: !array
+      items: float
+      dimensions: [3]
+    patientTablePosition: !array
+      items: float
+      dimensions: [3]
+    userInt: !vector
+      items: int
+    userFloat: !vector
+      items: float
     data: AcquisitionData
+    trajectory: TrajectoryData
   computedFields:
     coils: size(data, "coils")
     samples: size(data, "samples")
+    activeChannels: size(channelOrder)
+    trajectoryDimensions: size(trajectory, "basis")
+    tracjectorySamples: size(trajectory, "samples")

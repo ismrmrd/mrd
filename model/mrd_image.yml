@@ -1,3 +1,28 @@
+ImageFlags: !enum
+  base: uint64
+  values:
+    isNavigationData: 0x1
+    firstInAverage: 0x10
+    lastInAverage: 0x20
+    firstInSlice: 0x40
+    lastInSlice: 0x80
+    firstInContrast: 0x100
+    lastInContrast: 0x200
+    firstInPhase: 0x400
+    lastInPhase: 0x800
+    firstInRepetition: 0x1000
+    lastInRepetition: 0x2000
+    firstInSet: 0x4000
+    lastInSet: 0x8000
+
+ImageType: !enum
+  values:
+    magnitude: 1
+    phase: 2
+    real: 3
+    imag: 4
+    complex: 5
+
 ImageData<Y>: !array
   items: Y
   dimensions:
@@ -6,6 +31,56 @@ ImageData<Y>: !array
     y:
     x:
 
+ImageMetaData: !record
+  fields:
+    name: string
+    value: string
+
 Image<T>: !record
   fields:
+    flags: uint64
+    measurementUid: uint #Remove?
+    fieldOfView: !array
+      items: float
+      dimensions: [3]
+    position: !array
+      items: float
+      dimensions: [3]
+    colDir: !array
+      items: float
+      dimensions: [3]
+    lineDir: !array
+      items: float
+      dimensions: [3]
+    sliceDir: !array
+      items: float
+      dimensions: [3]
+    patientTablePosition: !array
+      items: float
+      dimensions: [3]
+    average: uint?
+    slice: uint?
+    contrast: uint?
+    phase: uint
+    repetition: uint?
+    set: uint?
+    acquisitionTimeStamp: uint?
+    physiologyTimeStamp: !array
+      items: uint
+      dimensions: [3]
+    imageType: ImageType
+    imageIndex: uint?
+    imageSeriesIndex: uint?
+    userInt: !vector
+      items: int
+    userFloat: !vector
+      items: float
     data: ImageData<T>
+    #h5py does not like the HDF5 that comes out of the nested variable length string.
+    #meta: !vector
+    #  items: ImageMetaData
+  computedFields:
+    channels: size(data, "channel")
+    slices: size(data, "z")
+    rows: size(data, "y")
+    cols: size(data, "x")
