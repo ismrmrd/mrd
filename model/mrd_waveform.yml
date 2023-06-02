@@ -6,8 +6,7 @@ WaveformSamples<T>: !array
 
 Waveform<T>: !record
   fields:
-    flags: !vector
-      items: uint # There are currently no flags defined.
+    flags: uint64 # Currently unused
     measurementUid: uint # Remove?
     scanCounter: uint
     timeStamp: uint

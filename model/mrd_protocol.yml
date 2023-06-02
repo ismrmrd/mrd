@@ -1,7 +1,7 @@
-StreamItem: [Acquisition, Waveform<float>, Waveform<complexfloat>, Image<float>, Image<complexfloat>]
+StreamItem: [Acquisition, Waveform<uint32>, Image<uint16>, Image<int16>, Image<uint>, Image<int>, Image<float>, Image<double>, Image<complexfloat>, Image<complexdouble>]
 
 Mrd: !protocol
   sequence:
-    header: Header
+    header: Header?
     data: !stream
       items: StreamItem

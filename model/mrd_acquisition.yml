@@ -1,4 +1,4 @@
-AcquisitionFlags: !enum
+AcquisitionFlags: !flags
   base: uint64
   values:
     firstInEncodeStep1: 0x1
@@ -44,8 +44,7 @@ EncodingCounters: !record
     repetition: uint?
     set: uint?
     segment: uint?
-    user: !vector
-      items: uint
+    user: uint*
 
 AcquisitionData: !array
   items: complexfloat
@@ -61,39 +60,25 @@ TrajectoryData: !array
 
 Acquisition: !record
   fields:
-    flags: uint64
+    flags: AcquisitionFlags
     idx: EncodingCounters
     measurementUid: uint # remove?
     scanCounter: uint?
     acquisitionTimeStamp: uint?
-    physiologyTimeStamp: !vector
-      items: uint
-    channelOrder: !vector
-      items: uint
+    physiologyTimeStamp: uint*
+    channelOrder: uint*
     discardPre: uint?
     discardPost: uint?
     centerSample: uint?
     encodingSpaceRef: uint?
     sampleTimeUs: float?
-    position: !array
-      items: float
-      dimensions: [3]
-    readDir: !array
-      items: float
-      dimensions: [3]
-    phaseDir: !array
-      items: float
-      dimensions: [3]
-    sliceDir: !array
-      items: float
-      dimensions: [3]
-    patientTablePosition: !array
-      items: float
-      dimensions: [3]
-    userInt: !vector
-      items: int
-    userFloat: !vector
-      items: float
+    position: float[3]
+    readDir: float[3]
+    phaseDir: float[3]
+    sliceDir: float[3]
+    patientTablePosition: float[3]
+    userInt: int*
+    userFloat: float*
     data: AcquisitionData
     trajectory: TrajectoryData
   computedFields:

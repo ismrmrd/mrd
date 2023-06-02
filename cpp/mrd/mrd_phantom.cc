@@ -180,11 +180,11 @@ int main(int argc, char **argv)
 
   EncodingSpaceType e;
   e.matrix_size = {2 * matrix, matrix, 1};
-  e.field_of_viewmm = {2 * fov, fov, slice_thickness};
+  e.field_of_view_mm = {2 * fov, fov, slice_thickness};
 
   EncodingSpaceType r;
   r.matrix_size = {matrix, matrix, 1};
-  r.field_of_viewmm = {fov, fov, slice_thickness};
+  r.field_of_view_mm = {fov, fov, slice_thickness};
 
   EncodingType enc;
   enc.trajectory = Trajectory::kCartesian;

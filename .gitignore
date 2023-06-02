@@ -1,3 +1,5 @@
 yardl
 cpp/generated/
 cpp/build/
+.vscode/
+*.ipynb

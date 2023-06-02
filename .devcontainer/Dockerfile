@@ -46,14 +46,16 @@ RUN script=$(curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode-dev-
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
-# Based on https://github.com/ContinuumIO/docker-images/blob/master/miniconda3/debian/Dockerfile.
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh \
-    && mkdir -p /opt \
-    && bash miniconda.sh -b -p /opt/conda \
-    && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
-    && find /opt/conda/ -follow -type f -name '*.a' -delete \
-    && find /opt/conda/ -follow -type f -name '*.js.map' -delete \
-    && /opt/conda/bin/conda clean -afy \
+ARG MAMBAFORGE_VERSION=22.9.0-2
+
+# Based on https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
+RUN wget --no-hsts --quiet https://github.com/conda-forge/miniforge/releases/download/${MAMBAFORGE_VERSION}/Mambaforge-${MAMBAFORGE_VERSION}-Linux-$(uname -m).sh -O /tmp/miniforge.sh \
+    && /bin/bash /tmp/miniforge.sh -b -p /opt/conda \
+    && rm /tmp/miniforge.sh \
+    && /opt/conda/bin/conda clean --tarballs --index-cache --packages --yes \
+    && find /opt/conda -follow -type f -name '*.a' -delete \
+    && find /opt/conda -follow -type f -name '*.pyc' -delete \
+    && /opt/conda/bin/conda clean --force-pkgs-dirs --all --yes  \
     && groupadd -r conda --gid ${CONDA_GID} \
     && usermod -aG conda ${USERNAME} \
     && chown -R :conda /opt/conda \
@@ -63,8 +65,8 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 # Create a conda environment from the environment file in the repo root.
 COPY --from=file-normalizer --chown=$USER_UID:conda /data/environment.yml /tmp/build/
 RUN umask 0002 \
-    && /opt/conda/bin/conda env create -f /tmp/build/environment.yml \
-    && /opt/conda/bin/conda clean -fy \
+    && /opt/conda/bin/mamba env create -f /tmp/build/environment.yml \
+    && /opt/conda/bin/mamba clean -fy \
     && sudo chown -R :conda /opt/conda/envs
 
 # Add a file that is to be sourced from .bashrc and from the devops pipeline stages
@@ -83,11 +85,11 @@ ENV CMAKE_GENERATOR=Ninja
 
 # Create a kits file for the VSCode CMake Tools extension, so you are not prompted for which kit to select whenever you open VSCode
 RUN mkdir -p /home/vscode/.local/share/CMakeTools \
-    && echo '[{"name":"GCC-10","compilers":{"C":"/opt/conda/envs/mrd/bin/x86_64-conda_cos6-linux-gnu-gcc","CXX":"/opt/conda/envs/mrd/bin/x86_64-conda_cos6-linux-gnu-g++"}}]' > /home/vscode/.local/share/CMakeTools/cmake-tools-kits.json \
+    && echo '[{"name":"GCC","compilers":{"C":"/opt/conda/envs/mrd/bin/x86_64-conda_cos6-linux-gnu-gcc","CXX":"/opt/conda/envs/mrd/bin/x86_64-conda_cos6-linux-gnu-g++"}}]' > /home/vscode/.local/share/CMakeTools/cmake-tools-kits.json \
     && chown vscode:conda /home/vscode/.local/share/CMakeTools/cmake-tools-kits.json
 
 # Install the yardl tool
-ARG YARDL_VERSION=0.1.1
+ARG YARDL_VERSION=0.2.1
 RUN wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz" \
     && tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz" \
     && mv yardl "/opt/conda/envs/${CONDA_ENVIRONMENT_NAME}/bin/" \

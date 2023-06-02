@@ -16,8 +16,16 @@ int main()
   mrd::binary::MrdReader r(std::cin);
   mrd::binary::MrdWriter w(std::cout);
 
-  mrd::Header h;
-  r.ReadHeader(h);
+  std::optional<mrd::Header> ho;
+  r.ReadHeader(ho);
+
+  if (!ho)
+  {
+    std::cerr << "Failed to read header" << std::endl;
+    return 1;
+  }
+
+  auto h = ho.value();
 
   // Just copy the header
   w.WriteHeader(h);
@@ -31,7 +39,7 @@ int main()
     {
       auto a = std::get<mrd::Acquisition>(v);
       // if this is the first line, we need to allocate the buffer
-      if (a.flags & static_cast<uint64_t>(mrd::AcquisitionFlags::kFirstInEncodeStep1))
+      if (a.flags.HasFlags(mrd::AcquisitionFlags::kFirstInEncodeStep1) || a.flags.HasFlags(mrd::AcquisitionFlags::kFirstInSlice))
       {
         std::array<size_t, 4> shape = {a.data.shape()[0], h.encoding[0].recon_space.matrix_size.z, h.encoding[0].recon_space.matrix_size.y, h.encoding[0].recon_space.matrix_size.x};
         buffer = xt::zeros<std::complex<float>>(shape);
@@ -59,7 +67,7 @@ int main()
       xt::view(buffer, xt::all(), a.idx.kspace_encode_step2.value(), a.idx.kspace_encode_step1.value(), xt::all()) = xt::xarray<std::complex<float>>(a.data);
 
       // if this is the last line, we need to write the buffer
-      if (a.flags & static_cast<uint64_t>(mrd::AcquisitionFlags::kLastInEncodeStep1))
+      if (a.flags.HasFlags(mrd::AcquisitionFlags::kLastInEncodeStep1) || a.flags.HasFlags(mrd::AcquisitionFlags::kLastInSlice))
       {
         buffer = fftshift(buffer);
         for (unsigned int c = 0; c < buffer.shape()[0]; c++)
@@ -73,6 +81,7 @@ int main()
         auto pixel_data = xt::sqrt(xt::abs(xt::sum(buffer * xt::conj(buffer), 0)));
         mrd::Image<float> im;
         im.data = xt::zeros<float>(image_shape);
+        im.image_type = mrd::ImageType::kMagnitude;
         xt::view(im.data, 0, xt::all(), xt::all(), xt::all()) = pixel_data;
         w.WriteData(im);
       }

@@ -1,6 +1,7 @@
 name: mrd
 channels:
   - conda-forge
+  - ismrmrd
   - defaults
 dependencies:
   - bash-completion=2.11
@@ -9,15 +10,17 @@ dependencies:
   - gcc_linux-64=11.2.0
   - gdb=11.2
   - gxx_linux-64=11.2.0
-  - h5py=3.7.0
-  - hdf5=1.12.1
+  - h5py=3.2.1
+  - hdf5=1.10.6
+  - imagemagick=7.0.11_13
+  - ipykernel=6.23.1
+  - ismrmrd=1.13.4
   - howardhinnant_date=3.0.1
-  - jupyter=1.0.0
   - just=1.5.0
-  - ninja=1.11.0
   - matplotlib=3.6.2
-  - nlohmann_json=3.10.5
-  - python=3.10.5
+  - ninja=1.11.0
+  - nlohmann_json=3.11.2
+  - python=3.9.15
   - shellcheck=0.8.0
   - valgrind=3.18.1
   - xmlschema=2.2.3

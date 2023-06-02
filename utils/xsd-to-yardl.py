@@ -6,12 +6,14 @@ from io import StringIO
 import string
 
 def to_pascal_case(s: str):
-    res = s.replace("_", " ").replace(" ", "")
+    temp = s.split('_')
+    res = temp[0] + ''.join(ele.title() for ele in temp[1:])
     res = res[0].upper() + res[1:]
     return res
 
 def to_camel_case(s: str):
-    res = s.replace("_", " ").replace(" ", "")
+    temp = s.split('_')
+    res = temp[0] + ''.join(ele.title() for ele in temp[1:])
     res = res[0].lower() + res[1:]
     return res
 
@@ -40,15 +42,14 @@ def render_record(element: xmlschema.XsdElement, records: Dict[str, str] = {}):
     for field in element:
         is_optional = "?" if field.min_occurs == 0 else ""
 
+        if field.max_occurs is None or field.max_occurs > 1:
+            is_optional = "*"
+
         if field.type.is_complex():
             if to_pascal_case(field.type.local_name) not in records:
                 render_record(field, records)
 
-            if field.max_occurs is None or field.max_occurs > 1:
-                outp.write("    " + to_camel_case(field.local_name) + ": !vector\n")
-                outp.write("      items: " + to_pascal_case(field.type.local_name) + "\n")
-            else:
-                outp.write("    " + to_camel_case(field.local_name) + ": " + to_pascal_case(field.type.local_name) + is_optional + "\n")
+            outp.write("    " + to_camel_case(field.local_name) + ": " + to_pascal_case(field.type.local_name) + is_optional + "\n")
         elif field.type.is_atomic() and not field.type.is_restriction():
             if field.type.local_name == "long":
                 outp.write("    " +  to_camel_case(field.local_name) + ": long" + is_optional + "\n")
@@ -67,7 +68,7 @@ def render_record(element: xmlschema.XsdElement, records: Dict[str, str] = {}):
             elif field.type.local_name == "date":
                 outp.write("    " +  to_camel_case(field.local_name) + ": date" + is_optional + "\n")
             elif field.type.local_name == "time":
-                outp.write("    " +  to_camel_case(field.local_name) + ": datetime" + is_optional + "\n")
+                outp.write("    " +  to_camel_case(field.local_name) + ": time" + is_optional + "\n")
             elif field.type.local_name == "base64Binary":
                 outp.write("    " +  to_camel_case(field.local_name) + ": string" + is_optional + "\n")
             else:
