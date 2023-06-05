@@ -374,19 +374,19 @@ ISMRMRD::EncodingLimits convert(mrd::EncodingLimitsType &encodingLimit)
 {
     ISMRMRD::EncodingLimits el;
 
-    if (encodingLimit.kspace_encoding_step0)
+    if (encodingLimit.kspace_encoding_step_0)
     {
-        el.kspace_encoding_step_0 = convert(*encodingLimit.kspace_encoding_step0);
+        el.kspace_encoding_step_0 = convert(*encodingLimit.kspace_encoding_step_0);
     }
 
-    if (encodingLimit.kspace_encoding_step1)
+    if (encodingLimit.kspace_encoding_step_1)
     {
-        el.kspace_encoding_step_1 = convert(*encodingLimit.kspace_encoding_step1);
+        el.kspace_encoding_step_1 = convert(*encodingLimit.kspace_encoding_step_1);
     }
 
-    if (encodingLimit.kspace_encoding_step2)
+    if (encodingLimit.kspace_encoding_step_2)
     {
-        el.kspace_encoding_step_2 = convert(*encodingLimit.kspace_encoding_step2);
+        el.kspace_encoding_step_2 = convert(*encodingLimit.kspace_encoding_step_2);
     }
 
     if (encodingLimit.average)
@@ -424,44 +424,44 @@ ISMRMRD::EncodingLimits convert(mrd::EncodingLimitsType &encodingLimit)
         el.segment = convert(*encodingLimit.segment);
     }
 
-    if (encodingLimit.user0)
+    if (encodingLimit.user_0)
     {
-        el.user[0] = convert(*encodingLimit.user0);
+        el.user[0] = convert(*encodingLimit.user_0);
     }
 
-    if (encodingLimit.user1)
+    if (encodingLimit.user_1)
     {
-        el.user[1] = convert(*encodingLimit.user1);
+        el.user[1] = convert(*encodingLimit.user_1);
     }
 
-    if (encodingLimit.user2)
+    if (encodingLimit.user_2)
     {
-        el.user[2] = convert(*encodingLimit.user2);
+        el.user[2] = convert(*encodingLimit.user_2);
     }
 
-    if (encodingLimit.user3)
+    if (encodingLimit.user_3)
     {
-        el.user[3] = convert(*encodingLimit.user3);
+        el.user[3] = convert(*encodingLimit.user_3);
     }
 
-    if (encodingLimit.user4)
+    if (encodingLimit.user_4)
     {
-        el.user[4] = convert(*encodingLimit.user4);
+        el.user[4] = convert(*encodingLimit.user_4);
     }
 
-    if (encodingLimit.user5)
+    if (encodingLimit.user_5)
     {
-        el.user[5] = convert(*encodingLimit.user5);
+        el.user[5] = convert(*encodingLimit.user_5);
     }
 
-    if (encodingLimit.user6)
+    if (encodingLimit.user_6)
     {
-        el.user[6] = convert(*encodingLimit.user6);
+        el.user[6] = convert(*encodingLimit.user_6);
     }
 
-    if (encodingLimit.user7)
+    if (encodingLimit.user_7)
     {
-        el.user[7] = convert(*encodingLimit.user7);
+        el.user[7] = convert(*encodingLimit.user_7);
     }
 
     return el;
@@ -527,8 +527,8 @@ ISMRMRD::TrajectoryDescription convert(mrd::TrajectoryDescriptionType &t)
 ISMRMRD::AccelerationFactor convert(mrd::AccelerationFactorType &a)
 {
     ISMRMRD::AccelerationFactor accelerationFactor;
-    accelerationFactor.kspace_encoding_step_1 = a.kspace_encoding_step1;
-    accelerationFactor.kspace_encoding_step_2 = a.kspace_encoding_step2;
+    accelerationFactor.kspace_encoding_step_1 = a.kspace_encoding_step_1;
+    accelerationFactor.kspace_encoding_step_2 = a.kspace_encoding_step_2;
     return accelerationFactor;
 }
 
@@ -829,7 +829,7 @@ ISMRMRD::UserParameters convert(mrd::UserParametersType &u)
         userParameters.userParameterString.push_back(convert(p));
     }
 
-    for (auto &p : u.user_parameter_base64)
+    for (auto &p : u.user_parameter_base_64)
     {
         userParameters.userParameterBase64.push_back(convert_userbase64(p));
     }
@@ -946,18 +946,18 @@ ISMRMRD::IsmrmrdHeader convert(mrd::Header &hdr)
 ISMRMRD::EncodingCounters convert(mrd::EncodingCounters &e)
 {
     ISMRMRD::EncodingCounters encodingCounters;
-    if (e.kspace_encode_step1)
+    if (e.kspace_encode_step_1)
     {
-        encodingCounters.kspace_encode_step_1 = *e.kspace_encode_step1;
+        encodingCounters.kspace_encode_step_1 = *e.kspace_encode_step_1;
     }
     else
     {
         encodingCounters.kspace_encode_step_1 = 0;
     }
 
-    if (e.kspace_encode_step2)
+    if (e.kspace_encode_step_2)
     {
-        encodingCounters.kspace_encode_step_2 = *e.kspace_encode_step2;
+        encodingCounters.kspace_encode_step_2 = *e.kspace_encode_step_2;
     }
     else
     {
@@ -1090,8 +1090,8 @@ ISMRMRD::Acquisition convert(mrd::Acquisition &acq)
     hdr.patient_table_position[0] = acq.patient_table_position[0];
     hdr.patient_table_position[1] = acq.patient_table_position[1];
     hdr.patient_table_position[2] = acq.patient_table_position[2];
-    hdr.idx.kspace_encode_step_1 = acq.idx.kspace_encode_step1 ? *acq.idx.kspace_encode_step1 : 0;
-    hdr.idx.kspace_encode_step_2 = acq.idx.kspace_encode_step2 ? *acq.idx.kspace_encode_step2 : 0;
+    hdr.idx.kspace_encode_step_1 = acq.idx.kspace_encode_step_1 ? *acq.idx.kspace_encode_step_1 : 0;
+    hdr.idx.kspace_encode_step_2 = acq.idx.kspace_encode_step_2 ? *acq.idx.kspace_encode_step_2 : 0;
     hdr.idx.average = acq.idx.average ? *acq.idx.average : 0;
     hdr.idx.slice = acq.idx.slice ? *acq.idx.slice : 0;
     hdr.idx.contrast = acq.idx.contrast ? *acq.idx.contrast : 0;

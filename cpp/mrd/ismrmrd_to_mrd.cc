@@ -392,17 +392,17 @@ mrd::EncodingLimitsType convert(ISMRMRD::EncodingLimits &e)
 
     if (e.kspace_encoding_step_0)
     {
-        encodingLimits.kspace_encoding_step0 = convert(*e.kspace_encoding_step_0);
+        encodingLimits.kspace_encoding_step_0 = convert(*e.kspace_encoding_step_0);
     }
 
     if (e.kspace_encoding_step_1)
     {
-        encodingLimits.kspace_encoding_step1 = convert(*e.kspace_encoding_step_1);
+        encodingLimits.kspace_encoding_step_1 = convert(*e.kspace_encoding_step_1);
     }
 
     if (e.kspace_encoding_step_2)
     {
-        encodingLimits.kspace_encoding_step2 = convert(*e.kspace_encoding_step_2);
+        encodingLimits.kspace_encoding_step_2 = convert(*e.kspace_encoding_step_2);
     }
 
     if (e.average)
@@ -442,42 +442,42 @@ mrd::EncodingLimitsType convert(ISMRMRD::EncodingLimits &e)
 
     if (e.user[0])
     {
-        encodingLimits.user0 = convert(*e.user[0]);
+        encodingLimits.user_0 = convert(*e.user[0]);
     }
 
     if (e.user[1])
     {
-        encodingLimits.user1 = convert(*e.user[1]);
+        encodingLimits.user_1 = convert(*e.user[1]);
     }
 
     if (e.user[2])
     {
-        encodingLimits.user2 = convert(*e.user[2]);
+        encodingLimits.user_2 = convert(*e.user[2]);
     }
 
     if (e.user[3])
     {
-        encodingLimits.user3 = convert(*e.user[3]);
+        encodingLimits.user_3 = convert(*e.user[3]);
     }
 
     if (e.user[4])
     {
-        encodingLimits.user4 = convert(*e.user[4]);
+        encodingLimits.user_4 = convert(*e.user[4]);
     }
 
     if (e.user[5])
     {
-        encodingLimits.user5 = convert(*e.user[5]);
+        encodingLimits.user_5 = convert(*e.user[5]);
     }
 
     if (e.user[6])
     {
-        encodingLimits.user6 = convert(*e.user[6]);
+        encodingLimits.user_6 = convert(*e.user[6]);
     }
 
     if (e.user[7])
     {
-        encodingLimits.user7 = convert(*e.user[7]);
+        encodingLimits.user_7 = convert(*e.user[7]);
     }
 
     return encodingLimits;
@@ -543,8 +543,8 @@ mrd::TrajectoryDescriptionType convert(ISMRMRD::TrajectoryDescription &t)
 mrd::AccelerationFactorType convert(ISMRMRD::AccelerationFactor &a)
 {
     mrd::AccelerationFactorType accelerationFactor;
-    accelerationFactor.kspace_encoding_step1 = a.kspace_encoding_step_1;
-    accelerationFactor.kspace_encoding_step2 = a.kspace_encoding_step_2;
+    accelerationFactor.kspace_encoding_step_1 = a.kspace_encoding_step_1;
+    accelerationFactor.kspace_encoding_step_2 = a.kspace_encoding_step_2;
     return accelerationFactor;
 }
 
@@ -878,7 +878,7 @@ mrd::UserParametersType convert(ISMRMRD::UserParameters &u)
 
     for (auto &p : u.userParameterBase64)
     {
-        userParameters.user_parameter_base64.push_back(convert_userbase64(p));
+        userParameters.user_parameter_base_64.push_back(convert_userbase64(p));
     }
 
     return userParameters;
@@ -985,8 +985,8 @@ mrd::Header convert(ISMRMRD::IsmrmrdHeader &hdr)
 mrd::EncodingCounters convert(ISMRMRD::EncodingCounters &e)
 {
     mrd::EncodingCounters encodingCounters;
-    encodingCounters.kspace_encode_step1 = e.kspace_encode_step_1;
-    encodingCounters.kspace_encode_step2 = e.kspace_encode_step_2;
+    encodingCounters.kspace_encode_step_1 = e.kspace_encode_step_1;
+    encodingCounters.kspace_encode_step_2 = e.kspace_encode_step_2;
     encodingCounters.average = e.average;
     encodingCounters.slice = e.slice;
     encodingCounters.contrast = e.contrast;

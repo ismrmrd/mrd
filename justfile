@@ -1,13 +1,15 @@
 set shell := ['bash', '-ceuo', 'pipefail']
 
-ensure-build-dir:
+@default: test
+
+@ensure-build-dir:
     mkdir -p cpp/build
 
-configure: ensure-build-dir
+@configure: ensure-build-dir
     cd cpp/build; \
     cmake -GNinja  ..
 
-build: configure
+@build: configure
     cd cpp/build && ninja
 
 @convert-xsd:
@@ -15,7 +17,7 @@ build: configure
     python utils/xsd-to-yardl.py ismrmrd.xsd > model/mrd_header.yml
     rm ismrmrd.xsd
 
-generate:
+@generate:
     cd model && yardl generate
 
 @converter-roundtrip-test:
@@ -32,4 +34,4 @@ generate:
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
     diff direct.bin roundtrip.bin & diff recon_direct.bin recon_rountrip.bin
 
-test: generate build converter-roundtrip-test
+@test: generate build converter-roundtrip-test

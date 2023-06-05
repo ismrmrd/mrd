@@ -212,8 +212,8 @@ int main(int argc, char **argv)
       {
         a.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
       }
-      a.idx.kspace_encode_step1 = line;
-      a.idx.kspace_encode_step2 = 0;
+      a.idx.kspace_encode_step_1 = line;
+      a.idx.kspace_encode_step_2 = 0;
       a.idx.slice = 0;
       a.idx.repetition = r;
       a.data = xt::view(kspace, xt::all(), 0, line, xt::all());
