@@ -14,14 +14,13 @@ dependencies:
   - hdf5=1.10.6
   - imagemagick=7.0.11_13
   - ipykernel=6.23.1
-  - ismrmrd=1.13.4
+  - ismrmrd=1.13.7
   - howardhinnant_date=3.0.1
   - just=1.5.0
   - matplotlib=3.6.2
   - ninja=1.11.0
   - nlohmann_json=3.11.2
   - python=3.9.15
-  - pugixml=1.11.4=h9c3ff4c_0
   - shellcheck=0.8.0
   - valgrind=3.18.1
   - xmlschema=2.2.3
