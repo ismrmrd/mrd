@@ -4,23 +4,24 @@ channels:
   - ismrmrd
   - defaults
 dependencies:
+  - boost=1.80.0
   - bash-completion=2.11
   - cmake=3.21.3
   - fmt=8.1.1
   - gcc_linux-64=11.2.0
   - gdb=11.2
   - gxx_linux-64=11.2.0
-  - h5py=3.2.1
-  - hdf5=1.10.6
-  - imagemagick=7.0.11_13
-  - ipykernel=6.23.1
-  - ismrmrd=1.13.7
+  - h5py=3.9.0
+  - hdf5=1.14.1
   - howardhinnant_date=3.0.1
+  - imagemagick=7.0.11_13
+  - ipykernel=6.19.2
   - just=1.5.0
-  - matplotlib=3.6.2
+  - matplotlib=3.7.2
   - ninja=1.11.0
   - nlohmann_json=3.11.2
-  - python=3.9.15
+  - pugixml=1.13
+  - python=3.11.3
   - shellcheck=0.8.0
   - valgrind=3.18.1
   - xmlschema=2.2.3
