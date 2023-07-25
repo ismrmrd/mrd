@@ -17,7 +17,7 @@ def stream_item_sink(input: Iterable[Union[mrd.Acquisition, mrd.Image[np.float32
         if isinstance(item, mrd.Acquisition):
             yield ('Acquisition', item)
         elif isinstance(item, mrd.Image) and item.data.dtype == np.float32:
-            yield ('Image<float32>', item)
+            yield ('ImageFloat', item)
         else:
             raise ValueError("Unknown item type")
 
@@ -50,8 +50,18 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
         eNy = enc.encoded_space.matrix_size.y
         eNz = enc.encoded_space.matrix_size.z
         rNx = enc.recon_space.matrix_size.x
+        rNy = enc.recon_space.matrix_size.y
+        rNz = enc.recon_space.matrix_size.z
     else:
         raise Exception('Required encoding information not found in header')
+
+    # Field of view
+    if enc.recon_space and enc.recon_space.field_of_view_mm:
+        rFOVx = enc.recon_space.field_of_view_mm.x
+        rFOVy = enc.recon_space.field_of_view_mm.y
+        rFOVz = enc.recon_space.field_of_view_mm.z if enc.recon_space.field_of_view_mm.z else 1
+    else:
+        raise Exception('Required field of view information not found in header')
 
     # Number of Slices, Reps, Contrasts, etc.
     ncoils = 1
@@ -75,7 +85,6 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
     current_rep = -1
     reference_acquisition = None
     buffer = None
-    mask = None
 
     def produce_image(buffer: np.ndarray, ref_acq: mrd.Acquisition) -> Iterable[mrd.Image[np.float32]]:
         if buffer.shape[-3] > 1:
@@ -85,9 +94,35 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
 
         for contrast in range(img.shape[0]):
             for islice in range(img.shape[1]):
-                img_combined = np.sqrt(np.abs(np.sum(img[contrast, islice] * np.conj(img[contrast, islice]), axis=0)).astype('float32'))
+                img_combined = np.squeeze(np.sqrt(np.abs(np.sum(img[contrast, islice] * np.conj(img[contrast, islice]), axis=0)).astype('float32')))
+
+                xoffset = int((img_combined.shape[0] + 1)/2) - int((rNx+1)/2)
+                yoffset = int((img_combined.shape[1] + 1)/2) - int((rNy+1)/2)
+                if len(img_combined.shape) == 3:
+                    zoffset = int((img_combined.shape[2] + 1)/2) - int((rNz+1)/2)
+                    img_combined = img_combined[xoffset:(xoffset+rNx), yoffset:(yoffset+rNy), zoffset:(zoffset+rNz)]
+                elif len(img_combined.shape) == 2:
+                    img_combined = img_combined[xoffset:(xoffset+rNx), yoffset:(yoffset+rNy)]
+                else:
+                    raise Exception('Array img_bytes should have 2 or 3 dimensions')
                 img_combined = np.reshape(img_combined, (1,1,img_combined.shape[-2], img_combined.shape[-1]))
                 mrd_image = mrd.Image[np.float32](image_type=mrd.ImageType.MAGNITUDE, data=img_combined)
+                mrd_image.field_of_view[0] = rFOVx
+                mrd_image.field_of_view[1] = rFOVy
+                mrd_image.field_of_view[2] = rFOVz/rNz
+                mrd_image.position = ref_acq.position
+                mrd_image.col_dir = ref_acq.read_dir
+                mrd_image.line_dir = ref_acq.phase_dir
+                mrd_image.slice_dir = ref_acq.slice_dir
+                mrd_image.patient_table_position = ref_acq.patient_table_position
+                mrd_image.acquisition_time_stamp = ref_acq.acquisition_time_stamp
+                mrd_image.physiology_time_stamp = np.array(ref_acq.physiology_time_stamp).astype('uint32')
+                mrd_image.slice = ref_acq.idx.slice
+                mrd_image.contrast = contrast
+                mrd_image.repetition = ref_acq.idx.repetition
+                mrd_image.phase = ref_acq.idx.phase
+                mrd_image.average = ref_acq.idx.average
+                mrd_image.set = ref_acq.idx.set
                 yield mrd_image
 
     for acq in input:
