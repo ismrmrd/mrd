@@ -2,3 +2,6 @@ namespace: Mrd
 
 cpp:
   sourcesOutputDir: ../cpp/generated
+
+python:
+  outputDir: ../python/

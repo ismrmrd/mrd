@@ -30,6 +30,7 @@ set shell := ['bash', '-ceuo', 'pipefail']
     ismrmrd_generate_cartesian_shepp_logan -o roundtrip.h5; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin; \
+    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd > mrd_testdata.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
     diff direct.bin roundtrip.bin & diff recon_direct.bin recon_rountrip.bin

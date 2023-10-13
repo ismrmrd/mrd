@@ -21,6 +21,7 @@ dependencies:
   - ninja=1.11.0
   - nlohmann_json=3.11.2
   - python=3.9.15
+  - pyfftw=0.13.1
   - shellcheck=0.8.0
   - valgrind=3.18.1
   - xmlschema=2.2.3
