@@ -829,7 +829,7 @@ ISMRMRD::UserParameters convert(mrd::UserParametersType &u)
         userParameters.userParameterString.push_back(convert(p));
     }
 
-    for (auto &p : u.user_parameter_base_64)
+    for (auto &p : u.user_parameter_base64)
     {
         userParameters.userParameterBase64.push_back(convert_userbase64(p));
     }
