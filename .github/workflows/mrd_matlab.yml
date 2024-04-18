@@ -1,0 +1,46 @@
+name: Matlab
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 0 * * 3" # 00:00 every Wednesday
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: R2023b
+        cache: true
+
+    - name: Run MATLAB tests
+      uses: matlab-actions/run-build@v2
+      with:
+        tasks: check test
+        startup-options: -sd ./matlab/
+
+    # - name: Package MATLAB toolbox
+    #   uses: matlab-actions/run-build@v2
+    #   with:
+    #     tasks: packageToolbox
+    #     startup-options: -sd ./matlab/
+
+    # - name: Upload MATLAB toolbox
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: matlab-toolbox
+    #     path: ./matlab/release/*.mltbx
+    #     if-no-files-found: error
+    #     compression-level: 0
+    #     overwrite: true

@@ -85,12 +85,13 @@
         "JacquesLucke.gcov-viewer",
         "jinliming2.vscode-go-template",
         "matepek.vscode-catch2-test-adapter",
+        "mathworks.language-matlab",
         "mhutchie.git-graph",
-        "sclu1034.justfile",
         "ms-python.python",
         "ms-toolsai.jupyter",
         "ms-vscode.cmake-tools",
         "ms-vscode.cpptools",
+        "sclu1034.justfile",
         "timonwong.shellcheck",
         "twxs.cmake"
       ]

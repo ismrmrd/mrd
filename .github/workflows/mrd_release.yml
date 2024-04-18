@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: R2023b
+        cache: true
+
+    - name: Package MATLAB toolbox
+      uses: matlab-actions/run-build@v2
+      with:
+        tasks: packageToolbox
+        startup-options: -sd ./matlab/
+
+    - name: Publish Artifacts
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          matlab/release/*.mltbx
+          LICENSE
+        fail_on_unmatched_files: true
+        body: |
+          Release notes for ${{ github.ref }}
+          See also:
+          - [Conda]()
+          - [PyPi]()
+        append_body: true
