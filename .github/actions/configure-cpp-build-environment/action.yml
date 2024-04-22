@@ -11,8 +11,8 @@ runs:
     - name: Install Yardl
       shell: bash
       run: |
-        mkdir -p "yardl_${YARDL_VERSION}_linux_x86_64"
-        cd "yardl_${YARDL_VERSION}_linux_x86_64"
+        mkdir -p "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
+        cd "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
         wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
         tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
         pwd >> $GITHUB_PATH
