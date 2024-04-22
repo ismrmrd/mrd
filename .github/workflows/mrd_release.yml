@@ -4,10 +4,14 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout
@@ -33,7 +37,6 @@ jobs:
           LICENSE
         fail_on_unmatched_files: true
         body: |
-          Release notes for ${{ github.ref }}
           See also:
           - [Conda]()
           - [PyPi]()

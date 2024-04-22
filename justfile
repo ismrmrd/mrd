@@ -1,5 +1,7 @@
 set shell := ['bash', '-ceuo', 'pipefail']
 
+cpp_version := "17"
+
 @default: test
 
 @ensure-build-dir:
@@ -7,7 +9,7 @@ set shell := ['bash', '-ceuo', 'pipefail']
 
 @configure: ensure-build-dir
     cd cpp/build; \
-    cmake -GNinja  ..
+    cmake -GNinja -D CMAKE_CXX_STANDARD={{ cpp_version }} ..
 
 @build: configure
     cd cpp/build && ninja
@@ -36,3 +38,15 @@ set shell := ['bash', '-ceuo', 'pipefail']
     diff direct.bin roundtrip.bin & diff recon_direct.bin recon_rountrip.bin
 
 @test: generate build converter-roundtrip-test
+
+@validate: test
+
+validate-with-no-changes: validate
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    if [[ `git status --porcelain` ]]; then
+      echo "ERROR: Found uncommitted changes:"
+      git status --porcelain
+      exit 1
+    fi

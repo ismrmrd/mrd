@@ -1,2 +1,4 @@
-mrd/
 __pycache__
+
+dist/
+*.egg-info/

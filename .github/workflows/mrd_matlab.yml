@@ -1,4 +1,4 @@
-name: Test MRD Matlab
+name: Matlab
 
 on:
   push:
@@ -6,12 +6,11 @@ on:
     tags: ["v*.*.*"]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: "0 0 * * 3" # 00:00 every Wednesday
   workflow_dispatch:
 
 jobs:
   test:
+    name: Test MATLAB SDK
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
