@@ -1,4 +1,4 @@
-#include "generated/binary/protocols.h"
+#include "mrd/binary/protocols.h"
 #include <filesystem>
 #include <iostream>
 #include <exception>
@@ -1061,9 +1061,12 @@ ISMRMRD::Acquisition convert(mrd::Acquisition &acq)
         throw std::runtime_error("Too many physiology time stamps");
     }
 
-    for (size_t i = 0; i < 3; i++)
+    for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++)
     {
-        hdr.physiology_time_stamp[i] = acq.physiology_time_stamp[i];
+        if (acq.physiology_time_stamp.size() > i)
+        {
+            hdr.physiology_time_stamp[i] = acq.physiology_time_stamp[i];
+        }
     }
 
     hdr.number_of_samples = acq.data.shape()[1];

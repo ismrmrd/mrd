@@ -1,10 +1,10 @@
 #include <filesystem>
 #include <iostream>
 
-#include "generated/binary/protocols.h"
-#include "generated/hdf5/protocols.h"
-#include "generated/protocols.h"
-#include "generated/types.h"
+#include "mrd/binary/protocols.h"
+#include "mrd/hdf5/protocols.h"
+#include "mrd/protocols.h"
+#include "mrd/types.h"
 #include "shepp_logan_phantom.h"
 #include <random>
 #include <xtensor-fftw/basic.hpp>

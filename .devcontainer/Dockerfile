@@ -46,28 +46,30 @@ RUN script=$(curl -fsSL "https://raw.githubusercontent.com/microsoft/vscode-dev-
 ENTRYPOINT [ "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]
 
-ARG MAMBAFORGE_VERSION=22.9.0-2
+ARG MINIFORGE_NAME=Miniforge3
+ARG MINIFORGE_VERSION=24.3.0-0
+ARG CONDA_DIR=/opt/conda
 
 # Based on https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
-RUN wget --no-hsts --quiet https://github.com/conda-forge/miniforge/releases/download/${MAMBAFORGE_VERSION}/Mambaforge-${MAMBAFORGE_VERSION}-Linux-$(uname -m).sh -O /tmp/miniforge.sh \
-    && /bin/bash /tmp/miniforge.sh -b -p /opt/conda \
+RUN wget --no-hsts --quiet https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/${MINIFORGE_NAME}-${MINIFORGE_VERSION}-Linux-$(uname -m).sh -O /tmp/miniforge.sh \
+    && /bin/bash /tmp/miniforge.sh -b -p ${CONDA_DIR} \
     && rm /tmp/miniforge.sh \
-    && /opt/conda/bin/conda clean --tarballs --index-cache --packages --yes \
-    && find /opt/conda -follow -type f -name '*.a' -delete \
-    && find /opt/conda -follow -type f -name '*.pyc' -delete \
-    && /opt/conda/bin/conda clean --force-pkgs-dirs --all --yes  \
+    && ${CONDA_DIR}/bin/conda clean --tarballs --index-cache --packages --yes \
+    && find ${CONDA_DIR} -follow -type f -name '*.a' -delete \
+    && find ${CONDA_DIR} -follow -type f -name '*.pyc' -delete \
+    && ${CONDA_DIR}/bin/conda clean --force-pkgs-dirs --all --yes  \
     && groupadd -r conda --gid ${CONDA_GID} \
     && usermod -aG conda ${USERNAME} \
-    && chown -R :conda /opt/conda \
-    && chmod -R g+w /opt/conda \
+    && chown -R :conda ${CONDA_DIR} \
+    && chmod -R g+w ${CONDA_DIR} \
     && find /opt -type d | xargs -n 1 chmod g+s
 
 # Create a conda environment from the environment file in the repo root.
 COPY --from=file-normalizer --chown=$USER_UID:conda /data/environment.yml /tmp/build/
 RUN umask 0002 \
-    && /opt/conda/bin/mamba env create -f /tmp/build/environment.yml \
-    && /opt/conda/bin/mamba clean -fy \
-    && sudo chown -R :conda /opt/conda/envs
+    && ${CONDA_DIR}/bin/mamba env create -f /tmp/build/environment.yml \
+    && ${CONDA_DIR}/bin/mamba clean -fy \
+    && sudo chown -R :conda ${CONDA_DIR}/envs
 
 # Add a file that is to be sourced from .bashrc and from the devops pipeline stages
 COPY --from=file-normalizer /data/devcontainer.bashrc /opt/devcontainer/

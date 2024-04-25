@@ -1,6 +1,6 @@
-#include "generated/binary/protocols.h"
-#include "generated/protocols.h"
-#include "generated/types.h"
+#include "mrd/binary/protocols.h"
+#include "mrd/protocols.h"
+#include "mrd/types.h"
 #include <xtensor-fftw/basic.hpp>
 #include <xtensor-fftw/helper.hpp>
 #include <xtensor/xstrided_view.hpp>

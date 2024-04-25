@@ -1,4 +1,4 @@
-#include "generated/binary/protocols.h"
+#include "mrd/binary/protocols.h"
 #include <filesystem>
 #include <iostream>
 #include <exception>

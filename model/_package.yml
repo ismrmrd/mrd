@@ -1,7 +1,10 @@
 namespace: Mrd
 
 cpp:
-  sourcesOutputDir: ../cpp/generated
+  sourcesOutputDir: ../cpp/mrd
 
 python:
   outputDir: ../python/
+
+# matlab:
+#   outputDir: ../matlab/toolbox

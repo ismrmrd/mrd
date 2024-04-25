@@ -1,0 +1,41 @@
+{% set repo = 'https://github.com/ismrmrd/mrd-experimental' %}
+
+package:
+  name: mrd-python
+  version: 2.0.0a2
+
+source:
+  path: ../
+
+build:
+  noarch: python
+
+requirements:
+  build:
+    - python
+    - pip
+  run:
+    - python
+    - numpy>=1.22.0
+
+test:
+  imports:
+    - mrd
+  # source_files:
+  #   - tests
+  # commands:
+  #   - pip check
+  #   - nosetests
+  # requires:
+  #   - pip
+  #   - nose
+
+about:
+  home: {{ repo }}
+  license: MIT
+  summary: 'Python SDK for the ISMRM Raw Data Format (MRD)'
+  description: |
+    Python interface and utilities for working with ISMRM Raw Data.
+  dev_url: {{ repo }}
+  doc_url: {{ repo }}
+  doc_source_url: {{repo}}/blob/main/README.md

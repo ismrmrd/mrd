@@ -2,7 +2,7 @@ name: mrd
 channels:
   - conda-forge
   - ismrmrd
-  - defaults
+  - nodefaults
 dependencies:
   - bash-completion=2.11
   - boost=1.80.0
