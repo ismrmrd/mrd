@@ -19,7 +19,6 @@ jobs:
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          # python-version: 3.11
           auto-activate-base: true
           activate-environment: ""
           miniforge-variant: Miniforge3
@@ -29,18 +28,19 @@ jobs:
         shell: bash -l {0}
         working-directory: python/conda
         run: |
-          conda install conda-build conda-verify anaconda-client
-          ./package.sh
-          echo "Packages built: $(find build_pkg -name ismrmrd*.tar.bz2)"
+          mamba install conda-build conda-verify anaconda-client
+          ../../utils/conda/package.sh
+          echo "Packages built: $(find build_pkg -name mrd-python*.tar.bz2)"
 
-      # - name: Push conda package
-      #   shell: bash -l {0}
-      #   if: ${{ github.event_name == 'release' }}
-      #   env:
-      #     ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-      #   working-directory: conda
-      #   run: |
-      #     for p in $(find build_pkg -name ismrmrd*.tar.bz2)
-      #     do
-      #       ./publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
-      #     done
+      - name: Push conda package
+        shell: bash -l {0}
+        if: ${{ github.event_name == 'release' }}
+        env:
+          ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+        working-directory: python/conda
+        run: |
+          for p in $(find build_pkg -name mrd-python*.tar.bz2)
+          do
+            # ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
+            echo "*Would* publish $p"
+          done

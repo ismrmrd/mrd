@@ -38,6 +38,13 @@ int main()
     if (std::holds_alternative<mrd::Acquisition>(v))
     {
       auto a = std::get<mrd::Acquisition>(v);
+
+      // Currently ignoring noise scans
+      if (a.flags.HasFlags(mrd::AcquisitionFlags::kIsNoiseMeasurement))
+      {
+        continue;
+      }
+
       // if this is the first line, we need to allocate the buffer
       if (a.flags.HasFlags(mrd::AcquisitionFlags::kFirstInEncodeStep1) || a.flags.HasFlags(mrd::AcquisitionFlags::kFirstInSlice))
       {

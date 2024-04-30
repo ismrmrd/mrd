@@ -1,23 +1,28 @@
-import argparse
-from typing import BinaryIO, Iterable, Union
 import sys
-import mrd
+import argparse
 import numpy as np
-from transform import k2i
+from typing import BinaryIO, Iterable, Union
+
+import mrd
+from mrd.tools.transform import kspace_to_image
+
 
 def acquisition_reader(input: Iterable[mrd.StreamItem]) -> Iterable[mrd.Acquisition]:
     for item in input:
-        _, item_data = item
-        if not isinstance(item_data, mrd.Acquisition):
+        if not isinstance(item, mrd.StreamItem.Acquisition):
+            # Skip non-acquisition items
             continue
-        yield item_data
+        if item.value.flags & mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT:
+            # Currently ignoring noise scans
+            continue
+        yield item.value
 
 def stream_item_sink(input: Iterable[Union[mrd.Acquisition, mrd.Image[np.float32]]]) -> Iterable[mrd.StreamItem]:
     for item in input:
         if isinstance(item, mrd.Acquisition):
-            yield ('Acquisition', item)
+            yield mrd.StreamItem.Acquisition(item)
         elif isinstance(item, mrd.Image) and item.data.dtype == np.float32:
-            yield ('ImageFloat', item)
+            yield mrd.StreamItem.ImageFloat(item)
         else:
             raise ValueError("Unknown item type")
 
@@ -32,13 +37,12 @@ def remove_oversampling(head: mrd.Header,input: Iterable[mrd.Acquisition]) -> It
 
     for acq in input:
         if eNx != rNx and acq.samples() == eNx:
-            xline = k2i(acq.data, [1])
-            x0 = int((eNx - rNx) / 2)
-            x1 = int((eNx - rNx) / 2 + rNx)
+            xline = kspace_to_image(acq.data, [1])
+            x0 = (eNx - rNx) // 2
+            x1 = x0 + rNx
             xline = xline[:, x0:x1]
-            acq.center_sample = int(rNx/2)
+            acq.center_sample = rNx // 2
             acq.data = xline.astype('complex64')  # Keep it in image space
-
         yield acq
 
 def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterable[mrd.Image[np.float32]]:
@@ -68,19 +72,17 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
     if head.acquisition_system_information and head.acquisition_system_information.receiver_channels:
         ncoils = head.acquisition_system_information.receiver_channels
 
+    nslices = 1
     if enc.encoding_limits and enc.encoding_limits.slice != None:
         nslices = enc.encoding_limits.slice.maximum + 1
-    else:
-        nslices = 1
 
     ncontrasts = 1
     if enc.encoding_limits and enc.encoding_limits.contrast != None:
         ncontrasts = enc.encoding_limits.contrast.maximum + 1
 
+    ky_offset = 0
     if enc.encoding_limits and enc.encoding_limits.kspace_encoding_step_1 != None:
         ky_offset = int((eNy+1)/2) - enc.encoding_limits.kspace_encoding_step_1.center
-    else:
-        ky_offset = 0
 
     current_rep = -1
     reference_acquisition = None
@@ -88,9 +90,9 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
 
     def produce_image(buffer: np.ndarray, ref_acq: mrd.Acquisition) -> Iterable[mrd.Image[np.float32]]:
         if buffer.shape[-3] > 1:
-            img = k2i(buffer, dim=[-2, -3])  # Assuming FFT in x-direction has happened upstream
+            img = kspace_to_image(buffer, dim=[-2, -3])  # Assuming FFT in x-direction has happened upstream
         else:
-            img = k2i(buffer, dim=[-2])  # Assuming FFT in x-direction has happened upstream
+            img = kspace_to_image(buffer, dim=[-2])  # Assuming FFT in x-direction has happened upstream
 
         for contrast in range(img.shape[0]):
             for islice in range(img.shape[1]):
@@ -116,7 +118,7 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
                 mrd_image.slice_dir = ref_acq.slice_dir
                 mrd_image.patient_table_position = ref_acq.patient_table_position
                 mrd_image.acquisition_time_stamp = ref_acq.acquisition_time_stamp
-                mrd_image.physiology_time_stamp = np.array(ref_acq.physiology_time_stamp).astype('uint32')
+                # mrd_image.physiology_time_stamp = np.array(ref_acq.physiology_time_stamp).astype('uint32')
                 mrd_image.slice = ref_acq.idx.slice
                 mrd_image.contrast = contrast
                 mrd_image.repetition = ref_acq.idx.repetition

@@ -16,19 +16,14 @@ requirements:
     - pip
   run:
     - python
-    - numpy>=1.22.0
+    - numpy >=1.22.0
+    - pillow >=9.2.0
 
 test:
   imports:
     - mrd
-  # source_files:
-  #   - tests
-  # commands:
-  #   - pip check
-  #   - nosetests
-  # requires:
-  #   - pip
-  #   - nose
+    - mrd.tools.phantom
+    - mrd.tools.stream_recon
 
 about:
   home: {{ repo }}

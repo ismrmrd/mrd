@@ -119,7 +119,7 @@ struct Acquisition {
     return trajectory.shape(0);
   }
 
-  yardl::Size TracjectorySamples() const {
+  yardl::Size TrajectorySamples() const {
     return trajectory.shape(1);
   }
 

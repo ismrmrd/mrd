@@ -86,4 +86,4 @@ Acquisition: !record
     samples: size(data, "samples")
     activeChannels: size(channelOrder)
     trajectoryDimensions: size(trajectory, "basis")
-    tracjectorySamples: size(trajectory, "samples")
+    trajectorySamples: size(trajectory, "samples")

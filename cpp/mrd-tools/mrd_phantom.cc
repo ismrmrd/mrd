@@ -177,6 +177,11 @@ int main(int argc, char **argv)
   SubjectInformationType subject;
   subject.patient_id = "1234BGVF";
   subject.patient_name = "John Doe";
+  h.subject_information = subject;
+
+  AcquisitionSystemInformationType acquisition;
+  acquisition.receiver_channels = ncoils;
+  h.acquisition_system_information = acquisition;
 
   EncodingSpaceType e;
   e.matrix_size = {2 * matrix, matrix, 1};
@@ -201,6 +206,7 @@ int main(int argc, char **argv)
   {
     auto noise = generate_noise(phan.shape(), noise_sigma);
     auto kspace = xt::xtensor<std::complex<float>, 4>(phan) + noise;
+
     for (size_t line = 0; line < matrix; line++)
     {
       Acquisition a;

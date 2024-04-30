@@ -10,7 +10,7 @@ Publishes a conda package.
 Usage: $0 [options]
 
 Options:
-  -p|--package_path <path>               Path to the package (tar.gz) to push
+  -p|--package_path <path>               Path to the package (tar.bz2) to push
   -u|--user <user>                       Anaconda.org channeluser or organization
   -t|--token <token>                     Token for uploading to anaconda.org
   -f|--force                             Force push even if package exists

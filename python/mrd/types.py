@@ -205,7 +205,7 @@ class Acquisition:
     def trajectory_dimensions(self) -> yardl.Size:
         return self.trajectory.shape[0]
 
-    def tracjectory_samples(self) -> yardl.Size:
+    def trajectory_samples(self) -> yardl.Size:
         return self.trajectory.shape[1]
 
     def __eq__(self, other: object) -> bool:
