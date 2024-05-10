@@ -65,3 +65,6 @@ validate-with-no-changes: validate
 
 build-conda-packages:
     bash -il ./utils/conda/mrd_package_all.sh
+
+build-matlab-toolbox:
+    matlab -sd ./matlab -batch "buildtool"
