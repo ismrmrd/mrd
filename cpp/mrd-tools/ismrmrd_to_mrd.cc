@@ -1136,9 +1136,9 @@ mrd::Image<T> convert(ISMRMRD::Image<T> &im)
     image.repetition = im.getRepetition();
     image.set = im.getSet();
     image.acquisition_time_stamp = im.getAcquisitionTimeStamp();
-    image.physiology_time_stamp[0] = im.getPhysiologyTimeStamp(0);
-    image.physiology_time_stamp[1] = im.getPhysiologyTimeStamp(1);
-    image.physiology_time_stamp[2] = im.getPhysiologyTimeStamp(2);
+    image.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(0));
+    image.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(1));
+    image.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(2));
 
     if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_COMPLEX)
     {

@@ -16,12 +16,12 @@ To get started:
 4. Perform example reconstruction:
     ```bash
     cd cpp/build
-    ./mrd_phantom -s | ./mrd_stream_recon | ./mrd_stream_to_hdf5 images.h5
+    ./mrd_phantom | ./mrd_stream_recon | ./mrd_stream_to_hdf5 images.h5
     ```
 5. To inspect images, you can use the MRD image stream to PNG converter:
     ```bash
     cd cpp/build
-    ./mrd_phantom -s | ./mrd_stream_recon | ./mrd_image_stream_to_png
+    ./mrd_phantom | ./mrd_stream_recon | ./mrd_image_stream_to_png
     ```
 
 ## ISMRMRD -> MRD converter

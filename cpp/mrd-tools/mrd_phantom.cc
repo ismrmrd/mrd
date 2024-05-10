@@ -11,6 +11,7 @@
 #include <xtensor-fftw/helper.hpp>
 #include <xtensor/xio.hpp>
 #include <xtensor/xview.hpp>
+#include <xtensor/xrandom.hpp>
 
 using namespace mrd;
 
@@ -19,32 +20,29 @@ xt::xtensor<std::complex<float>, 4> fftshift(xt::xtensor<std::complex<float>, 4>
   return xt::roll(xt::roll(x, x.shape(3) / 2, 3), x.shape(2) / 2, 2);
 }
 
-xt::xtensor<std::complex<float>, 4> generate_noise(std::array<size_t, 4> shape, float sigma, float mean = 0.0)
+template <std::size_t N>
+xt::xtensor<std::complex<float>, N> generate_noise(std::array<size_t, N> shape, float sigma, float mean = 0.0)
 {
-  xt::xtensor<std::complex<float>, 4> noise = xt::zeros<std::complex<float>>(shape);
-  std::random_device rd{};
-  std::mt19937 gen;
-  gen.seed(rd());
-  std::normal_distribution<> d{mean, sigma};
-  std::generate(noise.begin(), noise.end(), [&d, &gen]()
-                { return std::complex<float>(d(gen), d(gen)); });
-  return noise;
+  using namespace std::complex_literals;
+  return xt::random::randn(shape, mean, sigma) + 1.0i * xt::random::randn(shape, mean, sigma);
 }
 
-// This is a quick and dirty implementation. Unnecessary copies, etc.
-mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t ncoils, bool zero_pad = true)
+mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t ncoils, uint32_t oversampling)
 {
   xt::xtensor<std::complex<float>, 4> phan = shepp_logan_phantom(matrix);
   xt::xtensor<std::complex<float>, 4> coils = generate_birdcage_sensitivities(matrix, ncoils, 1.5);
   coils = phan * coils;
-  if (zero_pad)
+
+  if (oversampling > 1)
   {
     std::array<size_t, 4> padded_shape = coils.shape();
-    padded_shape[3] *= 2;
+    padded_shape[3] *= oversampling;
     xt::xtensor<std::complex<float>, 4> padded = xt::zeros<std::complex<float>>(padded_shape);
-    xt::view(padded, xt::all(), xt::all(), xt::all(), xt::range(matrix / 2, matrix / 2 + matrix)) = coils;
+    auto pad = (oversampling - 1) * matrix / 2;
+    xt::view(padded, xt::all(), xt::all(), xt::all(), xt::range(pad, pad + matrix)) = coils;
     coils = padded;
   }
+
   coils = fftshift(coils);
   for (unsigned int c = 0; c < ncoils; c++)
   {
@@ -62,7 +60,7 @@ void print_usage(std::string program_name)
   std::cerr << "  -c|--coils       <number of coils>" << std::endl;
   std::cerr << "  -m|--matrix      <matrix size>" << std::endl;
   std::cerr << "  -r|--repetitions <number of repetitions>" << std::endl;
-  std::cerr << "  -s|--stdout" << std::endl;
+  std::cerr << "  -s|--oversampling <oversampling>" << std::endl;
   std::cerr << "  -h|--help" << std::endl;
 }
 
@@ -71,9 +69,10 @@ int main(int argc, char **argv)
   uint32_t matrix = 256;
   uint32_t ncoils = 8;
   uint32_t repetitions = 1;
+  uint32_t oversampling = 2;
   float noise_sigma = 0.05;
   std::string filename = "mrd_testdata.h5";
-  bool use_stdout = false;
+  bool use_stdout = true;
 
   std::vector<std::string> args(argv, argv + argc);
   auto current_arg = args.begin() + 1;
@@ -94,6 +93,7 @@ int main(int argc, char **argv)
         return 1;
       }
       filename = *current_arg;
+      use_stdout = false;
       current_arg++;
     }
     else if (*current_arg == "--coils" || *current_arg == "-c")
@@ -132,6 +132,18 @@ int main(int argc, char **argv)
       repetitions = std::stoi(*current_arg);
       current_arg++;
     }
+    else if (*current_arg == "--oversampling" || *current_arg == "-s")
+    {
+      current_arg++;
+      if (current_arg == args.end())
+      {
+        std::cerr << "Missing oversampling factor" << std::endl;
+        print_usage(args[0]);
+        return 1;
+      }
+      oversampling = std::stoi(*current_arg);
+      current_arg++;
+    }
     else if (*current_arg == "--noise-sigma" || *current_arg == "-n")
     {
       current_arg++;
@@ -144,11 +156,6 @@ int main(int argc, char **argv)
       noise_sigma = std::stof(*current_arg);
       current_arg++;
     }
-    else if (*current_arg == "--stdout" || *current_arg == "-s")
-    {
-      use_stdout = true;
-      current_arg++;
-    }
     else
     {
       std::cerr << "Unknown argument: " << *current_arg << std::endl;
@@ -156,10 +163,6 @@ int main(int argc, char **argv)
       return 1;
     }
   }
-
-  // Parameters
-  float fov = 300;
-  float slice_thickness = 5;
 
   std::remove(filename.c_str());
   std::unique_ptr<MrdWriterBase> w;
@@ -173,57 +176,117 @@ int main(int argc, char **argv)
     w = std::make_unique<mrd::hdf5::MrdWriter>(filename);
   }
 
+  // Parameters
+  auto nx = matrix;
+  auto ny = matrix;
+  auto nkx = oversampling * matrix;
+  auto nky = ny;
+  float fov = 300;
+  float slice_thickness = 5;
+
   Header h;
   SubjectInformationType subject;
   subject.patient_id = "1234BGVF";
   subject.patient_name = "John Doe";
   h.subject_information = subject;
 
-  AcquisitionSystemInformationType acquisition;
-  acquisition.receiver_channels = ncoils;
-  h.acquisition_system_information = acquisition;
+  ExperimentalConditionsType exp;
+  exp.h1resonance_frequency_hz = 128000000;
+  h.experimental_conditions = exp;
+
+  AcquisitionSystemInformationType sys;
+  sys.receiver_channels = ncoils;
+  h.acquisition_system_information = sys;
 
   EncodingSpaceType e;
-  e.matrix_size = {2 * matrix, matrix, 1};
-  e.field_of_view_mm = {2 * fov, fov, slice_thickness};
+  e.matrix_size = {nkx, nky, 1};
+  e.field_of_view_mm = {oversampling * fov, fov, slice_thickness};
 
   EncodingSpaceType r;
-  r.matrix_size = {matrix, matrix, 1};
+  r.matrix_size = {nx, ny, 1};
   r.field_of_view_mm = {fov, fov, slice_thickness};
+
+  LimitType limits1;
+  limits1.minimum = 0;
+  limits1.center = std::round(ny / 2.0);
+  limits1.maximum = ny - 1;
+
+  LimitType limits_rep;
+  limits_rep.minimum = 0;
+  limits_rep.center = std::round(repetitions / 2.0);
+  limits_rep.maximum = repetitions - 1;
+
+  EncodingLimitsType limits;
+  limits.kspace_encoding_step_1 = limits1;
+  limits.repetition = limits_rep;
 
   EncodingType enc;
   enc.trajectory = Trajectory::kCartesian;
   enc.encoded_space = e;
   enc.recon_space = r;
+  enc.encoding_limits = limits;
   h.encoding.push_back(enc);
 
   w->WriteHeader(h);
 
-  // phantom k-space
-  auto phan = generate_coil_kspace(matrix, ncoils);
+  // We will reuse this Acquisition object
+  Acquisition acq;
+
+  std::array<size_t, 2> acq_shape = {ncoils, nkx};
+  acq.data.resize(acq_shape);
+  for (unsigned int c = 0; c < ncoils; c++)
+  {
+    acq.channel_order.push_back(c);
+  }
+  acq.center_sample = std::round(nkx / 2.0);
+  acq.read_dir[0] = 1.0;
+  acq.phase_dir[1] = 1.0;
+  acq.slice_dir[1] = 1.0;
+
+  uint32_t scan_counter = 0;
+
+  // Write a few noise scans
+  for (unsigned int n = 0; n < 32; n++)
+  {
+    std::array<size_t, 2> noise_shape = {ncoils, nkx};
+    auto noise = generate_noise(noise_shape, noise_sigma);
+    acq.scan_counter = scan_counter++;
+    acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsNoiseMeasurement);
+    xt::view(acq.data, xt::all(), xt::all()) = noise;
+    w->WriteData(acq);
+  }
+
+  // Generate phantom k-space
+  auto phan = generate_coil_kspace(matrix, ncoils, oversampling);
 
   for (unsigned int r = 0; r < repetitions; r++)
   {
     auto noise = generate_noise(phan.shape(), noise_sigma);
     auto kspace = xt::xtensor<std::complex<float>, 4>(phan) + noise;
 
-    for (size_t line = 0; line < matrix; line++)
+    for (size_t line = 0; line < nky; line++)
     {
-      Acquisition a;
+      acq.flags.Clear();
+      acq.scan_counter = scan_counter++;
+
       if (line == 0)
       {
-        a.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
+        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
+        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
+        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
       }
       if (line == matrix - 1)
       {
-        a.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
+        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
+        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
+        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
       }
-      a.idx.kspace_encode_step_1 = line;
-      a.idx.kspace_encode_step_2 = 0;
-      a.idx.slice = 0;
-      a.idx.repetition = r;
-      a.data = xt::view(kspace, xt::all(), 0, line, xt::all());
-      w->WriteData(a);
+      acq.idx.kspace_encode_step_1 = line;
+      acq.idx.kspace_encode_step_2 = 0;
+      acq.idx.slice = 0;
+      acq.idx.repetition = r;
+      acq.data = xt::view(kspace, xt::all(), 0, line, xt::all());
+      w->WriteData(acq);
     }
   }
   w->EndData();

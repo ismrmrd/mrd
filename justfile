@@ -20,7 +20,8 @@ cpp_version := "17"
     rm ismrmrd.xsd
 
 @generate:
-    cd model && yardl generate
+    # cd model && yardl generate
+    cd model && ../yardl generate
 
 @conda-cpp-test: build
     cd cpp/build; \
@@ -46,6 +47,8 @@ cpp_version := "17"
     diff direct.bin roundtrip.bin & diff recon_direct.bin recon_rountrip.bin
 
 @test: generate build converter-roundtrip-test conda-cpp-test conda-python-test
+    cd test; \
+    ./test.sh
 
 @validate: test
 

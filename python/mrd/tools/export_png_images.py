@@ -6,7 +6,7 @@ from PIL import Image
 import mrd
 
 
-def generate_images(input, output):
+def export(input, output):
     with mrd.BinaryMrdReader(input) as r:
         header = r.read_header()
         image_count = 0
@@ -36,4 +36,4 @@ if __name__ == "__main__":
 
     input = open(args.input, "rb") if args.input is not None else sys.stdin.buffer
 
-    generate_images(input, args.output_prefix)
+    export(input, args.output_prefix)

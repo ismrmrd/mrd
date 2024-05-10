@@ -861,7 +861,7 @@ struct Image {
   std::optional<uint32_t> repetition{};
   std::optional<uint32_t> set{};
   std::optional<uint32_t> acquisition_time_stamp{};
-  yardl::FixedNDArray<uint32_t, 3> physiology_time_stamp{};
+  std::vector<uint32_t> physiology_time_stamp{};
   mrd::ImageType image_type{};
   std::optional<uint32_t> image_index{};
   std::optional<uint32_t> image_series_index{};

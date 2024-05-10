@@ -22,7 +22,7 @@ def generate_phantom(matrix_size, ellipses):
         Size of imaging matrix in pixels
 
     ellipses: list of PhantomEllipse
-        Custom set of ellipses to use. These should be in the form:
+        Custom set of ellipses to use.
 
     Returns
     -------
@@ -49,15 +49,15 @@ def generate_phantom(matrix_size, ellipses):
     out = np.zeros(shape, dtype=np.complex64)
     for e in ellipses:
         for y in range(matrix_size):
-            y_co = (float(y) - (matrix_size / 2))  / (matrix_size / 2)
+            y_co = (float(y) - (matrix_size >> 1))  / (matrix_size >> 1)
             for x in range(matrix_size):
-                x_co = (float(x) - (matrix_size / 2))  / (matrix_size / 2)
+                x_co = (float(x) - (matrix_size >> 1))  / (matrix_size >> 1)
                 if e.is_inside(x_co, y_co):
                     out[0, 0, y, x] += e.get_amplitude() + 0.j
     return out
 
 def generate_birdcage_sensitivities(matrix_size, ncoils, relative_radius=1.5) -> np.ndarray:
-    """Generates birdcage coil sensitivites.
+    """Generates birdcage coil sensitivities.
 
     This function is heavily inspired by the mri_birdcage.m Matlab script in
     Jeff Fessler's IRT package: http://web.eecs.umich.edu/~fessler/code/
@@ -83,9 +83,9 @@ def generate_birdcage_sensitivities(matrix_size, ncoils, relative_radius=1.5) ->
         coily = relative_radius * np.sin(c * (2 * np.pi / ncoils))
         coil_phase = -1.0 * c * (2 * np.pi / ncoils)
         for y in range(matrix_size):
-            y_co = (float(y) - (matrix_size / 2)) / (matrix_size / 2) - coily
+            y_co = (float(y) - (matrix_size >> 1)) / (matrix_size >> 1) - coily
             for x in range(matrix_size):
-                x_co = (float(x) - (matrix_size / 2)) / (matrix_size / 2) - coilx
+                x_co = (float(x) - (matrix_size >> 1)) / (matrix_size >> 1) - coilx
                 rr = np.sqrt(x_co * x_co + y_co * y_co)
                 phi = np.arctan2(x_co, -y_co) + coil_phase
                 out[c, 0, y, x] = complex(1 / rr * np.cos(phi), 1 / rr * np.sin(phi))

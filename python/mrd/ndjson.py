@@ -2431,7 +2431,7 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
         self._repetition_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._set_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._acquisition_time_stamp_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
-        self._physiology_time_stamp_converter = _ndjson.FixedNDArrayConverter(_ndjson.uint32_converter, (3,))
+        self._physiology_time_stamp_converter = _ndjson.VectorConverter(_ndjson.uint32_converter)
         self._image_type_converter = _ndjson.EnumConverter(ImageType, np.int32, image_type_name_to_value_map, image_type_value_to_name_map)
         self._image_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._image_series_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)

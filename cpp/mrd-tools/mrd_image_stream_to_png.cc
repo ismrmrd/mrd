@@ -40,6 +40,8 @@ int main(int argc, char **argv)
         img.data *= 1.0 / max_value;
 
         Magick::Image image(img.Cols(), img.Rows(), "I", Magick::FloatPixel, img.data.data());
+        image.defineValue("png", "color-type", "0");
+        image.defineValue("png", "bit-depth", "8");
 
         // Use fmt to generate filename from prefix and increment with 6 digits (e.g. prefix_000001.png)
         std::string filename = fmt::format("{}{:06d}.png", prefix, image_count++);

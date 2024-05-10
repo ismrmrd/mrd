@@ -53,7 +53,7 @@ Image<T>: !record
     repetition: uint?
     set: uint?
     acquisitionTimeStamp: uint?
-    physiologyTimeStamp: uint[3]
+    physiologyTimeStamp: uint*
     imageType: ImageType
     imageIndex: uint?
     imageSeriesIndex: uint?

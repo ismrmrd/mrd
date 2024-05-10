@@ -11,14 +11,35 @@ xt::xtensor<std::complex<float>, 4> fftshift(xt::xtensor<std::complex<float>, 4>
   return xt::roll(xt::roll(x, x.shape(3) / 2, 3), x.shape(2) / 2, 2);
 }
 
-int main()
+void remove_oversampling(mrd::Acquisition &acq, const mrd::EncodingType &enc)
+{
+  auto new_shape = acq.data.shape();
+
+  auto eNx = enc.encoded_space.matrix_size.x;
+  auto rNx = enc.recon_space.matrix_size.x;
+  new_shape[1] = rNx;
+  auto x_pad = (eNx - rNx) / 2;
+  xt::xtensor<std::complex<float>, 2> new_data = xt::zeros<std::complex<float>>(new_shape);
+  for (size_t c = 0; c < acq.Coils(); c++)
+  {
+    auto ft_line = xt::xarray<std::complex<float>>(xt::view(acq.data, c, xt::all()));
+    ft_line = xt::fftw::fftshift(xt::fftw::ifft(xt::fftw::ifftshift(ft_line)));
+    ft_line *= std::sqrt(1.0f * ft_line.size());
+    ft_line = xt::view(ft_line, xt::range(x_pad, rNx + x_pad));
+    ft_line = xt::fftw::fftshift(xt::fftw::fft(xt::fftw::ifftshift(ft_line)));
+    ft_line /= std::sqrt(1.0f * ft_line.size());
+    xt::view(new_data, c, xt::all()) = ft_line;
+  }
+  acq.data = new_data;
+}
+
+int main(void)
 {
   mrd::binary::MrdReader r(std::cin);
   mrd::binary::MrdWriter w(std::cout);
 
   std::optional<mrd::Header> ho;
   r.ReadHeader(ho);
-
   if (!ho)
   {
     std::cerr << "Failed to read header" << std::endl;
@@ -26,71 +47,139 @@ int main()
   }
 
   auto h = ho.value();
-
   // Just copy the header
   w.WriteHeader(h);
 
+  auto enc = h.encoding[0];
+
+  auto eNx = enc.encoded_space.matrix_size.x;
+  auto eNy = enc.encoded_space.matrix_size.y;
+  auto eNz = enc.encoded_space.matrix_size.z;
+  auto rNx = enc.recon_space.matrix_size.x;
+  auto rNy = enc.recon_space.matrix_size.y;
+  auto rNz = enc.recon_space.matrix_size.z;
+  auto rFOVx = enc.recon_space.field_of_view_mm.x;
+  auto rFOVy = enc.recon_space.field_of_view_mm.y;
+  auto rFOVz = enc.recon_space.field_of_view_mm.z;
+  if (rFOVz == 0)
+  {
+    rFOVz = 1;
+  }
+
+  uint32_t ncoils = 1;
+  if (h.acquisition_system_information && h.acquisition_system_information->receiver_channels)
+  {
+    ncoils = h.acquisition_system_information->receiver_channels.value();
+  }
+
+  uint32_t nslices = 1;
+  if (enc.encoding_limits.slice.has_value())
+  {
+    nslices = enc.encoding_limits.slice->maximum + 1;
+  }
+
+  uint32_t ncontrasts = 1;
+  if (enc.encoding_limits.contrast.has_value())
+  {
+    ncontrasts = enc.encoding_limits.contrast->maximum + 1;
+  }
+
+  uint32_t ky_offset = 0;
+  if (enc.encoding_limits.kspace_encoding_step_1.has_value())
+  {
+    ky_offset = ((eNy + 1) / 2) - enc.encoding_limits.kspace_encoding_step_1->center;
+  }
+
   // When we have aliased types, we will use that.
   mrd::StreamItem v;
-  xt::xtensor<std::complex<float>, 4> buffer;
+  xt::xtensor<std::complex<float>, 6> buffer;
+  mrd::Acquisition ref_acq;
   while (r.ReadData(v))
   {
-    if (std::holds_alternative<mrd::Acquisition>(v))
+    if (!std::holds_alternative<mrd::Acquisition>(v))
     {
-      auto a = std::get<mrd::Acquisition>(v);
+      continue;
+    }
+    auto acq = std::get<mrd::Acquisition>(v);
 
-      // Currently ignoring noise scans
-      if (a.flags.HasFlags(mrd::AcquisitionFlags::kIsNoiseMeasurement))
-      {
-        continue;
-      }
+    // Currently ignoring noise scans
+    if (acq.flags.HasFlags(mrd::AcquisitionFlags::kIsNoiseMeasurement))
+    {
+      continue;
+    }
 
-      // if this is the first line, we need to allocate the buffer
-      if (a.flags.HasFlags(mrd::AcquisitionFlags::kFirstInEncodeStep1) || a.flags.HasFlags(mrd::AcquisitionFlags::kFirstInSlice))
-      {
-        std::array<size_t, 4> shape = {a.data.shape()[0], h.encoding[0].recon_space.matrix_size.z, h.encoding[0].recon_space.matrix_size.y, h.encoding[0].recon_space.matrix_size.x};
-        buffer = xt::zeros<std::complex<float>>(shape);
-      }
+    // Remove oversampling
+    if (eNx != rNx && acq.Samples() == eNx)
+    {
+      remove_oversampling(acq, enc);
+    }
 
-      // Remove oversampling
-      if (a.Samples() > h.encoding[0].recon_space.matrix_size.x)
+    // If this is the first line, we need to allocate the buffer
+    if (acq.flags.HasFlags(mrd::AcquisitionFlags::kFirstInEncodeStep1) || acq.flags.HasFlags(mrd::AcquisitionFlags::kFirstInSlice))
+    {
+      uint32_t readout_length = acq.Samples();
+      std::array<size_t, 6> shape = {ncontrasts, nslices, ncoils, eNz, eNy, readout_length};
+      buffer = xt::zeros<std::complex<float>>(shape);
+      ref_acq = acq;
+    }
+
+    // Copy the data into the buffer
+    auto contrast = acq.idx.contrast ? acq.idx.contrast.value() : 0;
+    auto slice = acq.idx.slice ? acq.idx.slice.value() : 0;
+    auto k1 = acq.idx.kspace_encode_step_1 ? acq.idx.kspace_encode_step_1.value() : 0;
+    auto k2 = acq.idx.kspace_encode_step_2 ? acq.idx.kspace_encode_step_2.value() : 0;
+    xt::view(buffer, contrast, slice, xt::all(), k2, k1 + ky_offset, xt::all()) = xt::xarray<std::complex<float>>(acq.data);
+
+    // If this is the last line, we need to write the buffer
+    if (acq.flags.HasFlags(mrd::AcquisitionFlags::kLastInEncodeStep1) || acq.flags.HasFlags(mrd::AcquisitionFlags::kLastInSlice))
+    {
+      for (unsigned int c = 0; c < buffer.shape(0); c++)
       {
-        auto new_shape = a.data.shape();
-        new_shape[1] = h.encoding[0].recon_space.matrix_size.x;
-        auto x_pad = (a.data.shape()[1] - h.encoding[0].recon_space.matrix_size.x) / 2;
-        xt::xtensor<std::complex<float>, 2> new_data = xt::zeros<std::complex<float>>(new_shape);
-        for (size_t c = 0; c < a.Coils(); c++)
+        for (unsigned int s = 0; s < buffer.shape(1); s++)
         {
-          auto ft_line = xt::xarray<std::complex<float>>(xt::view(a.data, c, xt::all()));
-          ft_line = xt::fftw::fftshift(xt::fftw::ifft(xt::fftw::ifftshift(ft_line)));
-          ft_line = xt::view(ft_line, xt::range(x_pad, h.encoding[0].recon_space.matrix_size.x + x_pad));
-          ft_line = xt::fftw::fftshift(xt::fftw::fft(xt::fftw::ifftshift(ft_line)));
-          xt::view(new_data, c, xt::all()) = ft_line;
+          auto slice = xt::view(buffer, c, s, xt::all(), xt::all(), xt::all(), xt::all());
+          slice = fftshift(slice);
+          for (unsigned int coil = 0; coil < slice.shape(0); coil++)
+          {
+            auto tmp1 = xt::fftw::ifft2(xt::xarray<std::complex<float>>(xt::view(slice, coil, 0, xt::all(), xt::all())));
+            tmp1 *= std::sqrt(1.0f * tmp1.size());
+            xt::view(slice, coil, 0, xt::all(), xt::all()) = tmp1;
+          }
+          slice = fftshift(slice);
+
+          std::array<size_t, 4> image_shape = {1, slice.shape(1), slice.shape(2), slice.shape(3)};
+          auto pixel_data = xt::sqrt(xt::abs(xt::sum(slice * xt::conj(slice), 0)));
+
+          auto xoffset = (slice.shape(3) + 1) / 2 - (rNx + 1) / 2;
+          auto yoffset = (slice.shape(2) + 1) / 2 - (rNy + 1) / 2;
+          auto zoffset = (slice.shape(1) + 1) / 2 - (rNz + 1) / 2;
+          auto combined = xt::view(pixel_data,
+                                   xt::range(zoffset, zoffset + rNz),
+                                   xt::range(yoffset, yoffset + rNy),
+                                   xt::range(xoffset, xoffset + rNx));
+
+          mrd::Image<float> im;
+          im.data = xt::zeros<float>(image_shape);
+          im.image_type = mrd::ImageType::kMagnitude;
+          xt::view(im.data, 0, xt::all(), xt::all(), xt::all()) = combined;
+
+          im.field_of_view[0] = rFOVx;
+          im.field_of_view[1] = rFOVy;
+          im.field_of_view[2] = rFOVz;
+          im.position = ref_acq.position;
+          im.col_dir = ref_acq.read_dir;
+          im.line_dir = ref_acq.phase_dir;
+          im.slice_dir = ref_acq.slice_dir;
+          im.patient_table_position = ref_acq.patient_table_position;
+          im.acquisition_time_stamp = ref_acq.acquisition_time_stamp;
+          im.physiology_time_stamp = ref_acq.physiology_time_stamp;
+          im.slice = ref_acq.idx.slice;
+          im.repetition = ref_acq.idx.repetition;
+          im.phase = ref_acq.idx.phase;
+          im.average = ref_acq.idx.average;
+          im.set = ref_acq.idx.set;
+          w.WriteData(im);
         }
-        a.data = new_data;
-      }
-
-      // copy the data into the buffer
-      xt::view(buffer, xt::all(), a.idx.kspace_encode_step_2.value(), a.idx.kspace_encode_step_1.value(), xt::all()) = xt::xarray<std::complex<float>>(a.data);
-
-      // if this is the last line, we need to write the buffer
-      if (a.flags.HasFlags(mrd::AcquisitionFlags::kLastInEncodeStep1) || a.flags.HasFlags(mrd::AcquisitionFlags::kLastInSlice))
-      {
-        buffer = fftshift(buffer);
-        for (unsigned int c = 0; c < buffer.shape()[0]; c++)
-        {
-          auto tmp1 = xt::fftw::ifft2(xt::xarray<std::complex<float>>(xt::view(buffer, c, 0, xt::all(), xt::all())));
-          xt::view(buffer, c, 0, xt::all(), xt::all()) = tmp1;
-        }
-        buffer = fftshift(buffer);
-
-        std::array<size_t, 4> image_shape = {1, buffer.shape()[1], buffer.shape()[2], buffer.shape()[3]};
-        auto pixel_data = xt::sqrt(xt::abs(xt::sum(buffer * xt::conj(buffer), 0)));
-        mrd::Image<float> im;
-        im.data = xt::zeros<float>(image_shape);
-        im.image_type = mrd::ImageType::kMagnitude;
-        xt::view(im.data, 0, xt::all(), xt::all(), xt::all()) = pixel_data;
-        w.WriteData(im);
       }
     }
   }

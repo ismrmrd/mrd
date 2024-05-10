@@ -1,4 +1,3 @@
-import os
 import sys
 import argparse
 import numpy as np
@@ -14,8 +13,6 @@ def generate(output_file, matrix, coils, oversampling, repetitions, noise_level)
     output = sys.stdout.buffer
     if output_file is not None:
         output = output_file
-        if os.path.isfile(output):
-            os.remove(output)
 
     nx = matrix
     ny = matrix
@@ -47,17 +44,18 @@ def generate(output_file, matrix, coils, oversampling, repetitions, noise_level)
     r.matrix_size = mrd.MatrixSizeType(x=nx, y=ny, z=1)
     r.field_of_view_mm = mrd.FieldOfViewMm(x=fov, y=fov, z=slice_thickness)
 
-    limits = mrd.EncodingLimitsType()
     limits1 = mrd.LimitType()
     limits1.minimum = 0
     limits1.center = round(ny / 2)
     limits1.maximum = ny - 1
-    limits.kspace_encoding_step_1 = limits1
 
     limits_rep = mrd.LimitType()
     limits_rep.minimum = 0
     limits_rep.center = round(repetitions / 2)
     limits_rep.maximum = repetitions - 1
+
+    limits = mrd.EncodingLimitsType()
+    limits.kspace_encoding_step_1 = limits1
     limits.repetition = limits_rep
 
     enc = mrd.EncodingType()
@@ -115,8 +113,8 @@ def generate(output_file, matrix, coils, oversampling, repetitions, noise_level)
 
                 acq.idx.kspace_encode_step_1 = line
                 acq.idx.kspace_encode_step_2 = 0
+                acq.idx.slice = 0
                 acq.idx.repetition = r
-                # acq.data = np.array(kspace[:, 0, line, :], order='C')
                 acq.data[:] = kspace[:, 0, line, :]
                 yield mrd.StreamItem.Acquisition(acq)
 

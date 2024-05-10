@@ -6,5 +6,5 @@ cpp:
 python:
   outputDir: ../python/
 
-# matlab:
-#   outputDir: ../matlab/toolbox
+matlab:
+  outputDir: ../matlab/toolbox

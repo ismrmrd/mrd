@@ -1142,7 +1142,7 @@ struct _Inner_Image {
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> repetition;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> set;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> acquisition_time_stamp;
-  yardl::FixedNDArray<uint32_t, 3> physiology_time_stamp;
+  yardl::hdf5::InnerVlen<uint32_t, uint32_t> physiology_time_stamp;
   mrd::ImageType image_type;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> image_index;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> image_series_index;
@@ -1572,7 +1572,7 @@ template <typename _T_Inner, typename T>
   t.insertMember("repetition", HOFFSET(RecordType, repetition), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("set", HOFFSET(RecordType, set), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("acquisitionTimeStamp", HOFFSET(RecordType, acquisition_time_stamp), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
-  t.insertMember("physiologyTimeStamp", HOFFSET(RecordType, physiology_time_stamp), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_UINT32, {3}));
+  t.insertMember("physiologyTimeStamp", HOFFSET(RecordType, physiology_time_stamp), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT32));
   t.insertMember("imageType", HOFFSET(RecordType, image_type), mrd::hdf5::GetImageTypeHdf5Ddl());
   t.insertMember("imageIndex", HOFFSET(RecordType, image_index), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("imageSeriesIndex", HOFFSET(RecordType, image_series_index), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));

@@ -4,7 +4,7 @@ import numpy as np
 from typing import BinaryIO, Iterable, Union
 
 import mrd
-from mrd.tools.transform import kspace_to_image
+from mrd.tools.transform import kspace_to_image, image_to_kspace
 
 
 def acquisition_reader(input: Iterable[mrd.StreamItem]) -> Iterable[mrd.Acquisition]:
@@ -42,7 +42,7 @@ def remove_oversampling(head: mrd.Header,input: Iterable[mrd.Acquisition]) -> It
             x1 = x0 + rNx
             xline = xline[:, x0:x1]
             acq.center_sample = rNx // 2
-            acq.data = xline.astype('complex64')  # Keep it in image space
+            acq.data = image_to_kspace(xline, [1])
         yield acq
 
 def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterable[mrd.Image[np.float32]]:
@@ -90,25 +90,28 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
 
     def produce_image(buffer: np.ndarray, ref_acq: mrd.Acquisition) -> Iterable[mrd.Image[np.float32]]:
         if buffer.shape[-3] > 1:
-            img = kspace_to_image(buffer, dim=[-2, -3])  # Assuming FFT in x-direction has happened upstream
+            img = kspace_to_image(buffer, dim=[-1, -2, -3])
         else:
-            img = kspace_to_image(buffer, dim=[-2])  # Assuming FFT in x-direction has happened upstream
+            img = kspace_to_image(buffer, dim=[-1, -2])
 
         for contrast in range(img.shape[0]):
             for islice in range(img.shape[1]):
-                img_combined = np.squeeze(np.sqrt(np.abs(np.sum(img[contrast, islice] * np.conj(img[contrast, islice]), axis=0)).astype('float32')))
+                slice = img[contrast, islice]
+                combined = np.squeeze(np.sqrt(np.abs(np.sum(slice * np.conj(slice), axis=0)).astype('float32')))
 
-                xoffset = int((img_combined.shape[0] + 1)/2) - int((rNx+1)/2)
-                yoffset = int((img_combined.shape[1] + 1)/2) - int((rNy+1)/2)
-                if len(img_combined.shape) == 3:
-                    zoffset = int((img_combined.shape[2] + 1)/2) - int((rNz+1)/2)
-                    img_combined = img_combined[xoffset:(xoffset+rNx), yoffset:(yoffset+rNy), zoffset:(zoffset+rNz)]
-                elif len(img_combined.shape) == 2:
-                    img_combined = img_combined[xoffset:(xoffset+rNx), yoffset:(yoffset+rNy)]
+                xoffset = (combined.shape[-1] + 1) // 2 - (rNx+1) // 2
+                yoffset = (combined.shape[-2] + 1) // 2 - (rNy+1) // 2
+                if len(combined.shape) == 3:
+                    zoffset = (combined.shape[-3] + 1) // 2 - (rNz+1) // 2
+                    combined = combined[zoffset:(zoffset+rNz), yoffset:(yoffset+rNy), xoffset:(xoffset+rNx)]
+                    combined = np.reshape(combined, (1, combined.shape[-3], combined.shape[-2], combined.shape[-1]))
+                elif len(combined.shape) == 2:
+                    combined = combined[yoffset:(yoffset+rNy), xoffset:(xoffset+rNx)]
+                    combined = np.reshape(combined, (1, 1, combined.shape[-2], combined.shape[-1]))
                 else:
-                    raise Exception('Array img_bytes should have 2 or 3 dimensions')
-                img_combined = np.reshape(img_combined, (1,1,img_combined.shape[-2], img_combined.shape[-1]))
-                mrd_image = mrd.Image[np.float32](image_type=mrd.ImageType.MAGNITUDE, data=img_combined)
+                    raise Exception('Array img_combined should have 2 or 3 dimensions')
+
+                mrd_image = mrd.Image[np.float32](image_type=mrd.ImageType.MAGNITUDE, data=combined)
                 mrd_image.field_of_view[0] = rFOVx
                 mrd_image.field_of_view[1] = rFOVy
                 mrd_image.field_of_view[2] = rFOVz/rNz
@@ -118,7 +121,7 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
                 mrd_image.slice_dir = ref_acq.slice_dir
                 mrd_image.patient_table_position = ref_acq.patient_table_position
                 mrd_image.acquisition_time_stamp = ref_acq.acquisition_time_stamp
-                # mrd_image.physiology_time_stamp = np.array(ref_acq.physiology_time_stamp).astype('uint32')
+                mrd_image.physiology_time_stamp = ref_acq.physiology_time_stamp
                 mrd_image.slice = ref_acq.idx.slice
                 mrd_image.contrast = contrast
                 mrd_image.repetition = ref_acq.idx.repetition
@@ -137,7 +140,7 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
             if acq.data.shape[-1] == eNx:
                 readout_length = eNx
             else:
-                readout_length = rNx  # Readout oversampling has probably been removed upstream
+                readout_length = rNx  # Readout oversampling has been removed upstream
 
             buffer = np.zeros((ncontrasts, nslices, ncoils, eNz, eNy, readout_length), dtype=np.complex64)
             current_rep = acq.idx.repetition
