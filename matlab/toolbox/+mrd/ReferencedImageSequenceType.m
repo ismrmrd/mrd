@@ -16,7 +16,7 @@ classdef ReferencedImageSequenceType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.ReferencedImageSequenceType") && ...
-        all([self.referenced_sop_instance_uid] == [other.referenced_sop_instance_uid]);
+        isequal(self.referenced_sop_instance_uid, other.referenced_sop_instance_uid);
     end
 
     function res = ne(self, other)

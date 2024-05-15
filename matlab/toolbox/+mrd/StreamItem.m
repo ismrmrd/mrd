@@ -98,11 +98,16 @@ classdef StreamItem < yardl.Union
     end
 
     function eq = eq(self, other)
-      eq = isa(other, "mrd.StreamItem") && other.index == self.index && other.value == self.value;
+      eq = isa(other, "mrd.StreamItem") && isequal(self.index, other.index) && isequal(self.value, other.value);
     end
 
     function ne = ne(self, other)
       ne = ~self.eq(other);
+    end
+
+    function t = tag(self)
+      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint", "ImageInt", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble"];
+      t = tags_(self.index_);
     end
   end
 end
