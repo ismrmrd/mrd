@@ -94,7 +94,6 @@ jobs:
           sha256-checksums.txt
           mrd-cmake-src.tar.gz
           mrd.mltbx
-          LICENSE
         fail_on_unmatched_files: true
         body: |
           See also:
