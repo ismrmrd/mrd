@@ -11,6 +11,7 @@ function cleanup() {
 trap cleanup EXIT
 
 cmd="generate_phantom(\"${tempname}\")"
-matlab -batch "${cmd}" >&2
+# matlab -batch "${cmd}" >&2
+run-matlab-command "${cmd}" >&2
 
 cat "${tempname}"

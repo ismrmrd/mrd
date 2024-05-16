@@ -20,7 +20,8 @@ cat "${pipe_out}" &
 
 # 2. Start MATLAB job
 cmd="stream_recon(\"${pipe_in}\", \"${pipe_out}\")"
-matlab -batch "${cmd}" >&2 &
+# matlab -batch "${cmd}" >&2 &
+run-matlab-command "${cmd}" >&2 &
 
 # 3. Start input job
 cat /dev/stdin > "${pipe_in}"

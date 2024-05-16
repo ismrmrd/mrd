@@ -18,7 +18,8 @@ trap cleanup EXIT
 mkfifo "${pipe}"
 
 cmd="export_png_images(\"${pipe}\", output_prefix=\"${1}\")"
-matlab -batch "${cmd}" &
+# matlab -batch "${cmd}" &
+run-matlab-command "${cmd}" &
 
 cat /dev/stdin > "${pipe}"
 
