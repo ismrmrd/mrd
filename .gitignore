@@ -1,3 +1,6 @@
 cpp/build/
 .vscode/
 *.ipynb
+
+*.bin
+*.png

@@ -1,7 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
-# cd tests
-# nosetests
-echo No tests found
+python -m mrd.tools.phantom | python -m mrd.tools.stream_recon | python -m mrd.tools.export_png_images

@@ -205,7 +205,7 @@ class Acquisition:
     def trajectory_dimensions(self) -> yardl.Size:
         return self.trajectory.shape[0]
 
-    def tracjectory_samples(self) -> yardl.Size:
+    def trajectory_samples(self) -> yardl.Size:
         return self.trajectory.shape[1]
 
     def __eq__(self, other: object) -> bool:
@@ -1442,7 +1442,7 @@ class Image(typing.Generic[T_NP]):
     repetition: typing.Optional[yardl.UInt32]
     set: typing.Optional[yardl.UInt32]
     acquisition_time_stamp: typing.Optional[yardl.UInt32]
-    physiology_time_stamp: npt.NDArray[np.uint32]
+    physiology_time_stamp: list[yardl.UInt32]
     image_type: ImageType
     image_index: typing.Optional[yardl.UInt32]
     image_series_index: typing.Optional[yardl.UInt32]
@@ -1467,7 +1467,7 @@ class Image(typing.Generic[T_NP]):
         repetition: typing.Optional[yardl.UInt32] = None,
         set: typing.Optional[yardl.UInt32] = None,
         acquisition_time_stamp: typing.Optional[yardl.UInt32] = None,
-        physiology_time_stamp: typing.Optional[npt.NDArray[np.uint32]] = None,
+        physiology_time_stamp: typing.Optional[list[yardl.UInt32]] = None,
         image_type: ImageType,
         image_index: typing.Optional[yardl.UInt32] = None,
         image_series_index: typing.Optional[yardl.UInt32] = None,
@@ -1491,7 +1491,7 @@ class Image(typing.Generic[T_NP]):
         self.repetition = repetition
         self.set = set
         self.acquisition_time_stamp = acquisition_time_stamp
-        self.physiology_time_stamp = physiology_time_stamp if physiology_time_stamp is not None else np.zeros((3,), dtype=np.dtype(np.uint32))
+        self.physiology_time_stamp = physiology_time_stamp if physiology_time_stamp is not None else []
         self.image_type = image_type
         self.image_index = image_index
         self.image_series_index = image_series_index
@@ -1530,7 +1530,7 @@ class Image(typing.Generic[T_NP]):
             and self.repetition == other.repetition
             and self.set == other.set
             and self.acquisition_time_stamp == other.acquisition_time_stamp
-            and yardl.structural_equal(self.physiology_time_stamp, other.physiology_time_stamp)
+            and self.physiology_time_stamp == other.physiology_time_stamp
             and self.image_type == other.image_type
             and self.image_index == other.image_index
             and self.image_series_index == other.image_series_index
@@ -1695,7 +1695,7 @@ def _mk_get_dtype():
     dtype_map.setdefault(ImageFlags, np.dtype(np.uint64))
     dtype_map.setdefault(ImageType, np.dtype(np.int32))
     dtype_map.setdefault(ImageMetaData, np.dtype([('name', np.dtype(np.object_)), ('value', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(Image, lambda type_args: np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('physiology_time_stamp', np.dtype(np.uint32), (3,)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(Image, lambda type_args: np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('physiology_time_stamp', np.dtype(np.object_)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(Waveform, lambda type_args: np.dtype([('flags', np.dtype(np.uint64)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype(np.uint32)), ('time_stamp', np.dtype(np.uint32)), ('sample_time_us', np.dtype(np.float32)), ('waveform_id', np.dtype(np.uint32)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(WaveformUint32, get_dtype(types.GenericAlias(Waveform, (yardl.UInt32,))))
     dtype_map.setdefault(ImageUint16, get_dtype(types.GenericAlias(Image, (yardl.UInt16,))))

@@ -7,6 +7,23 @@
     "context": ".."
   },
   "runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
+  "overrideCommand": false,
+  "mounts": [
+    // Bind mount docker socket under an alias to support docker-from-docker
+    "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind",
+    "source=${localEnv:MATLAB_LICENSE_FILE:/dev/null},target=/tmp/matlab.host.lic,type=bind,readonly"
+  ],
+  "onCreateCommand": ".devcontainer/devcontainer-on-create.sh",
+  "remoteUser": "vscode",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/mrd/python",
+    "MATLAB_LICENSE_FILE": "/opt/matlab/latest/licenses/license.lic"
+  },
 
   // Configure tool-specific properties.
   "customizations": {
@@ -96,14 +113,5 @@
         "twxs.cmake"
       ]
     }
-  },
-
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "./.devcontainer/install-dependencies.sh",
-
-  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-  "remoteUser": "vscode"
+  }
 }

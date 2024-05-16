@@ -1611,7 +1611,7 @@ template<typename T, yardl::binary::Writer<T> WriteT>
   yardl::binary::WriteOptional<uint32_t, yardl::binary::WriteInteger>(stream, value.repetition);
   yardl::binary::WriteOptional<uint32_t, yardl::binary::WriteInteger>(stream, value.set);
   yardl::binary::WriteOptional<uint32_t, yardl::binary::WriteInteger>(stream, value.acquisition_time_stamp);
-  yardl::binary::WriteFixedNDArray<uint32_t, yardl::binary::WriteInteger, 3>(stream, value.physiology_time_stamp);
+  yardl::binary::WriteVector<uint32_t, yardl::binary::WriteInteger>(stream, value.physiology_time_stamp);
   yardl::binary::WriteEnum<mrd::ImageType>(stream, value.image_type);
   yardl::binary::WriteOptional<uint32_t, yardl::binary::WriteInteger>(stream, value.image_index);
   yardl::binary::WriteOptional<uint32_t, yardl::binary::WriteInteger>(stream, value.image_series_index);
@@ -1643,7 +1643,7 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   yardl::binary::ReadOptional<uint32_t, yardl::binary::ReadInteger>(stream, value.repetition);
   yardl::binary::ReadOptional<uint32_t, yardl::binary::ReadInteger>(stream, value.set);
   yardl::binary::ReadOptional<uint32_t, yardl::binary::ReadInteger>(stream, value.acquisition_time_stamp);
-  yardl::binary::ReadFixedNDArray<uint32_t, yardl::binary::ReadInteger, 3>(stream, value.physiology_time_stamp);
+  yardl::binary::ReadVector<uint32_t, yardl::binary::ReadInteger>(stream, value.physiology_time_stamp);
   yardl::binary::ReadEnum<mrd::ImageType>(stream, value.image_type);
   yardl::binary::ReadOptional<uint32_t, yardl::binary::ReadInteger>(stream, value.image_index);
   yardl::binary::ReadOptional<uint32_t, yardl::binary::ReadInteger>(stream, value.image_series_index);
