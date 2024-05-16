@@ -21,7 +21,7 @@
   },
 
   "containerEnv": {
-    "PYTHONPATH": "/workspaces/mrd-experimental/python",
+    "PYTHONPATH": "/workspaces/mrd/python",
     "MATLAB_LICENSE_FILE": "/opt/matlab/latest/licenses/license.lic"
   },
 

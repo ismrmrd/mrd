@@ -82,9 +82,6 @@ fi\n" >> /etc/bash.bashrc
 ENV CMAKE_GENERATOR=Ninja
 
 # Create a kits file for the VSCode CMake Tools extension, so you are not prompted for which kit to select whenever you open VSCode
-# RUN mkdir -p /home/vscode/.local/share/CMakeTools \
-#     && echo '[{"name":"GCC","compilers":{"C":"/opt/conda/envs/mrd/bin/x86_64-conda_cos6-linux-gnu-gcc","CXX":"/opt/conda/envs/mrd/bin/x86_64-conda_cos6-linux-gnu-g++"}}]' > /home/vscode/.local/share/CMakeTools/cmake-tools-kits.json \
-#     && chown vscode:conda /home/vscode/.local/share/CMakeTools/cmake-tools-kits.json
 RUN . /opt/conda/etc/profile.d/conda.sh \
     && conda activate /opt/conda/envs/mrd \
     && mkdir -p /home/vscode/.local/share/CMakeTools \

@@ -6,10 +6,9 @@ function plan = buildfile
     plan("check") = CodeIssuesTask(Results="tests/results/static-analysis-results.sarif");
     plan("test") = TestTask("tests", SourceFiles="toolbox", TestResults="tests/results/test-results.xml");
 
-    plan.DefaultTasks = ["check", "test"];
+    plan("packageToolbox").Dependencies = ["check" "test"];
 
-    % Make the "packageToolbox" task dependent on the "check" and "test" tasks
-    % plan("packageToolbox").Dependencies = ["check" "test"];
+    plan.DefaultTasks = ["packageToolbox"];
 end
 
 function packageToolboxTask(~)

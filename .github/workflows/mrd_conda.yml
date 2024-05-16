@@ -1,4 +1,4 @@
-name: C++ Conda
+name: Conda
 
 on:
   push:
@@ -14,13 +14,16 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-13]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Download MacOSX SDK
-        if: startsWith(matrix.os, 'macOS')
+        if: startsWith(matrix.os, 'macos')
         run: |
           curl -o MacOSX10.13.sdk.tar.xz -L https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.13.sdk.tar.xz && \
           tar xf MacOSX10.13.sdk.tar.xz && \
@@ -35,23 +38,40 @@ jobs:
           miniforge-variant: Miniforge3
           miniforge-version: latest
 
-      - name: Build conda package
-        shell: bash -l {0}
+      - name: Install Conda build tools
+        run: mamba install conda-build conda-verify anaconda-client boa
+
+      - name: Build C++ conda package
         working-directory: cpp/conda
         run: |
-          mamba install conda-build boa conda-verify anaconda-client
           ../../utils/conda/package.sh
           echo "Packages built: $(find build_pkg -name mrd*.tar.bz2)"
 
-      - name: Push conda package
-        shell: bash -l {0}
-        if: ${{ github.event_name == 'release' }}
+      - name: Build Python conda package
+        if: startsWith(matrix.os, 'ubuntu')
+        working-directory: python/conda
+        run: |
+          ../../utils/conda/package.sh
+          echo "Packages built: $(find build_pkg -name mrd-python*.tar.bz2)"
+
+      - name: Push C++ conda package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         env:
           ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
         working-directory: cpp/conda
         run: |
           for p in $(find build_pkg -name mrd*.tar.bz2)
           do
-            # ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
-            echo "*Would* publish $p"
+            ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
+          done
+
+      - name: Push Python conda package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(matrix.os, 'ubuntu')
+        env:
+          ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+        working-directory: python/conda
+        run: |
+          for p in $(find build_pkg -name mrd-python*.tar.bz2)
+          do
+            ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
           done

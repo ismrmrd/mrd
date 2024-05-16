@@ -22,6 +22,6 @@ classifiers = [
 keywords = []
 
 [project.urls]
-Homepage = "https://github.com/ismrmrd/mrd-experimental"
-Documentation = "https://github.com/ismrmrd/mrd-experimental"
-Repository = "https://github.com/ismrmrd/mrd-experimental"
+Homepage = "https://github.com/ismrmrd/mrd"
+Documentation = "https://github.com/ismrmrd/mrd"
+Repository = "https://github.com/ismrmrd/mrd"

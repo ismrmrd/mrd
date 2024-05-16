@@ -1,6 +1,6 @@
-name: Configure CPP Build Environment
-description: Configures the conda environment
-# TODO:
+name: Configure MRD Build Environment
+description: Configures the conda development environment
+
 # The following inputs are currently expected environment variables:
 # YARDL_VERSION, e.g. 0.5.0
 # CONDA_CACHE_NUMBER, e.g. 0
@@ -13,8 +13,9 @@ runs:
       run: |
         mkdir -p "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
         cd "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
-        wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
-        tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        # wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        # tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        wget --quiet "https://github.com/naegelejd/mrd/releases/download/v2.0.0-alpha.1/yardl"
         pwd >> $GITHUB_PATH
 
     - name: Setup Mambaforge
@@ -46,3 +47,9 @@ runs:
       shell: bash -el {0}
       run: mamba env update -n mrd -f environment.yml
       if: steps.cache-conda.outputs.cache-hit != 'true'
+
+    - name: Set up MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: R2023b
+        cache: true

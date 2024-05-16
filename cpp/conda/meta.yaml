@@ -1,7 +1,7 @@
 {% set major = load_file_regex(load_file='CMakeLists.txt', regex_pattern='(?<=set\(MRD_VERSION_MAJOR )([^\)]+)') %}
 {% set minor = load_file_regex(load_file='CMakeLists.txt', regex_pattern='(?<=set\(MRD_VERSION_MINOR )([^\)]+)') %}
 {% set patch = load_file_regex(load_file='CMakeLists.txt', regex_pattern='(?<=set\(MRD_VERSION_PATCH )([^\)]+)') %}
-{% set repo = 'https://github.com/ismrmrd/mrd-experimental' %}
+{% set repo = 'https://github.com/ismrmrd/mrd' %}
 
 package:
   name: mrd

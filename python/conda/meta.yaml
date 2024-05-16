@@ -1,4 +1,4 @@
-{% set repo = 'https://github.com/ismrmrd/mrd-experimental' %}
+{% set repo = 'https://github.com/ismrmrd/mrd' %}
 
 package:
   name: mrd-python
