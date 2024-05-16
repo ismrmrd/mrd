@@ -66,10 +66,22 @@ jobs:
         name: matlab-toolbox
         path: matlab/release/
 
+    - name: Generate CMake FetchContent source archive
+      run: |
+        # tar -czf mrd-cmake-src.tar.gz --transform s/cpp/mrd-cmake-src/ --exclude build --exclude conda ./cpp/
+        tar -czf mrd-cmake-src.tar.gz -C ./cpp/ CMakeLists.txt mrd/ mrd-tools/
+
+    - name: Generate Checksums
+      run: |
+        sha256sum matlab/release/mrd.mltbx > sha256-checksums.txt
+        sha256sum mrd-cmake-src.tar.gz >> sha256-checksums.txt
+
     - name: Publish Artifacts
       uses: softprops/action-gh-release@v2
       with:
         files: |
+          sha256-checksums.txt
+          mrd-cmake-src.tar.gz
           matlab/release/mrd.mltbx
           LICENSE
         fail_on_unmatched_files: true
