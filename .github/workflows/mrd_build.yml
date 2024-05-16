@@ -76,17 +76,15 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: matlab-toolbox
-        path: matlab/release/
 
     - name: Retrieve CMake FetchContent source archive
       uses: actions/download-artifact@v4
       with:
         name: mrd-cmake-src
-        path: mrd-cmake-src.tar.gz
 
     - name: Generate Checksums
       run: |
-        sha256sum matlab/release/mrd.mltbx > sha256-checksums.txt
+        sha256sum mrd.mltbx > sha256-checksums.txt
         sha256sum mrd-cmake-src.tar.gz >> sha256-checksums.txt
 
     - name: Publish Artifacts
@@ -95,7 +93,7 @@ jobs:
         files: |
           sha256-checksums.txt
           mrd-cmake-src.tar.gz
-          matlab/release/mrd.mltbx
+          mrd.mltbx
           LICENSE
         fail_on_unmatched_files: true
         body: |
