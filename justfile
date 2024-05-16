@@ -24,8 +24,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "./test.sh" } else { "echo Ski
     rm ismrmrd.xsd
 
 @generate:
-    # cd model && yardl generate
-    cd model && ../yardl generate
+    cd model && yardl generate
 
 @converter-roundtrip-test: build
     cd cpp/build; \
