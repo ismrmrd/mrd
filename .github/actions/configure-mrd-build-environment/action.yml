@@ -13,10 +13,8 @@ runs:
       run: |
         mkdir -p "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
         cd "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
-        # wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
-        # tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
-        wget --quiet "https://github.com/naegelejd/mrd/releases/download/v2.0.0-alpha.1/yardl"
-        chmod +x yardl
+        wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
         pwd >> $GITHUB_PATH
 
     - name: Setup Mambaforge

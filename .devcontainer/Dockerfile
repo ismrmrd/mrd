@@ -90,7 +90,7 @@ RUN . /opt/conda/etc/profile.d/conda.sh \
 
 
 # Install the yardl tool
-ARG YARDL_VERSION=0.5.0
+ARG YARDL_VERSION=0.6.0
 RUN wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz" \
     && tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz" \
     && mv yardl "/opt/conda/envs/${CONDA_ENVIRONMENT_NAME}/bin/" \

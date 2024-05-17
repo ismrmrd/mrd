@@ -11,7 +11,7 @@ on:
 env:
   # Increase this to manually reset the conda environment cache
   CONDA_CACHE_NUMBER: 0
-  YARDL_VERSION: 0.5.0
+  YARDL_VERSION: 0.6.0
 
 defaults:
   run:
