@@ -1,44 +1,43 @@
-# MRD Playground
+# ISMRM Raw Data Format (MRD)
 
-This repo is an illustration of how [yardl](https://github.com/Microsoft/yardl) could be used to develop the next generation of the [ISMRMRD/MRD](https://github.com/ismrmrd/ismrmrd) standard.
+MRD is the next generation of the ISMRM Raw Data Format, superseding [ISMRMRD v1](https://ismrmrd.readthedocs.io).
 
-To get started:
 
-1. Open the repo in [GitHub Codespaces](https://docs.github.com/en/codespaces/overview) or a [VS Code Devcontainer](https://code.visualstudio.com/docs/devcontainers/containers).
-2. Generate code from the yardl model:
-    ```bash
-    just generate
-    ```
-3. Build the project:
-    ```bash
-    just build
-    ```
-4. Perform example reconstruction:
-    ```bash
-    cd cpp/build
-    ./mrd_phantom | ./mrd_stream_recon | ./mrd_stream_to_hdf5 images.h5
-    ```
-5. To inspect images, you can use the MRD image stream to PNG converter:
-    ```bash
-    cd cpp/build
-    ./mrd_phantom | ./mrd_stream_recon | ./mrd_image_stream_to_png
-    ```
+## Getting Started
 
-## ISMRMRD -> MRD converter
+<!-- Please check out the project [documentation](https://mrd.readthedocs.io). -->
+Please check out the project [documentation]().
 
-To enable interoperability with the older [ISMRMRD format](https://github.com/ismrmrd/ismrmrd) format, the repo contains tools for rountrip conversion between the two formats:
+## Building the Code in this Repo
+
+We recommend opening this repository in a [devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) or a [codespace](https://docs.github.com/en/codespaces/overview).
+
+The devcontainer is configured to install all dependencies for this repository, including:
+- Those listed in the [Conda](https://docs.conda.io/en/latest/) [environment.yml](environment.yml)
+file
+- [Yardl](https://github.com/microsoft/yardl/releases) - most recent release
+- (Optional) [MATLAB R2023b or newer]
+
+We use the [`just`](https://github.com/casey/just) command runner to build and run tests. To get started, you should be able to run
 
 ```bash
-cd cpp/build
-ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.bin
-ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin
-
-# The files should not be different
-diff direct.bin roundtrip.bin
+$ just
 ```
 
-You can run the roundtrip tests with:
+from the repo root, or, with MATLAB installed
 
 ```bash
-just test
+$ just matlab=enabled
 ```
+
+## References
+
+A prerequisite for sharing magnetic resonance (imaging) reconstruction algorithms and code is a common raw data format. This repository describes such a common raw data format, which attempts to capture the data fields that are required to describe the magnetic resonance experiment with enough detail to reconstruct images. The repository also contains a C/C++ library for working with the format. This standard was developed by a subcommittee of the ISMRM Sedona 2013 workshop and is described in detail in:
+
+Inati SJ, Naegele JD, Zwart NR, Roopchansingh V, Lizak MJ, Hansen DC, Liu CY, Atkinson D, Kellman P, Kozerke S, Xue H, Campbell-Washburn AE, Sørensen TS, Hansen MS. ISMRM Raw data format: A proposed standard for MRI raw datasets. [Magn Reson Med. 2017 Jan;77(1):411-421.](https://onlinelibrary.wiley.com/doi/10.1002/mrm.26089)
+
+Please cite this paper if you use the format.
+
+## LICENSE
+
+See [LICENSE](LICENSE).
