@@ -32,9 +32,9 @@ Images can stores as individual 2D images or 3D volumes and may include multiple
 
 Footnotes
 1. (position) This is different than DICOM's ImageOrientationPatient, which defines the center of the first (typically top-left) voxel.
-2. (col_dir) If the image is [flipped or rotated to bring them into standard DICOM orientation](http://gdcm.sourceforge.net/wiki/index.php/Orientation), ***this field still corresponds to the acquisition readout/frequency direction***, but the ``ImageRowDir`` must be set in the MetaAttributes.
-3. (line_dir) If the image is [flipped or rotated to bring them into standard DICOM orientation](http://gdcm.sourceforge.net/wiki/index.php/Orientation), ***this field still corresponds to the 2D phase encoding direction***, but the ``ImageColumnDir`` must be set in the MetaAttributes.
-4. (slice_dir) For 3D data, the slice normal, i.e. cross-product of ``read_dir`` and ``phase_dir``.  If the image is [flipped or rotated to bring them into standard DICOM orientation](http://gdcm.sourceforge.net/wiki/index.php/Orientation), ***this field still corresponds to the 3D phase encoding direction***, but the ``ImageSliceDir`` must be set in the MetaAttributes.
+2. (colDir) If the image is [flipped or rotated to bring them into standard DICOM orientation](http://gdcm.sourceforge.net/wiki/index.php/Orientation), ***this field still corresponds to the acquisition readout/frequency direction***, but the `ImageRowDir` must be set in the MetaAttributes.
+3. (lineDir) If the image is [flipped or rotated to bring them into standard DICOM orientation](http://gdcm.sourceforge.net/wiki/index.php/Orientation), ***this field still corresponds to the 2D phase encoding direction***, but the `ImageColumnDir` must be set in the MetaAttributes.
+4. (sliceDir) For 3D data, the slice normal, i.e. cross-product of `readDir` and `phaseDir`.  If the image is [flipped or rotated to bring them into standard DICOM orientation](http://gdcm.sourceforge.net/wiki/index.php/Orientation), ***this field still corresponds to the 3D phase encoding direction***, but the `ImageSliceDir` must be set in the MetaAttributes.
 
 <!-- A reference implementation for serialization/deserialization of the ImageHeader can be found in [serialization.cpp](../libsrc/serialization.cpp). -->
 
@@ -55,7 +55,7 @@ The [MRD Protocol](../model/mrd_protocol.yml) defines image types with the follo
 
 (ImageTypes)=
 ### Image Types
-The `image_type` field of the ImageHeader is an enum describing the image type with the following values:
+The `imageType` field of the ImageHeader is an enum describing the image type with the following values:
 | Value        | Name       |
 | --           | --         |
 | 1            | magnitude  |

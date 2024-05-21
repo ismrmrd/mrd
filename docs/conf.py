@@ -1,3 +1,4 @@
+import os
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -9,7 +10,8 @@
 project = 'MRD'
 copyright = '2024, ISMRMRD Working Group'
 author = 'ISMRMRD Working Group'
-release = '2.0.0'
+version = os.environ["MRD_VERSION_STRING"]
+release = os.environ["MRD_VERSION_STRING"]
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

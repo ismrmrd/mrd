@@ -1,4 +1,4 @@
-## ISMRMRD <-> MRD converter
+# ISMRMRD <-> MRD converter
 
 To enable interoperability with the older [ISMRMRD format](https://github.com/ismrmrd/ismrmrd) format, the MRD repository contains tools for roundtrip conversion between the two formats.
 

@@ -21,14 +21,20 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install build
+      - name: Set up just command runner
+        uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
 
-      - name: Build PyPI Package
-        run: python3 -m build
-        working-directory: python/
+      # - name: Install dependencies
+      #   run: |
+      #     python3 -m pip install --upgrade pip
+      #     python3 -m pip install build
+
+      # - name: Build PyPI Package
+      #   run: python3 -m build
+      #   working-directory: python/
+
+      - name: Build PyPI package
+        run: just build-pypi-package
 
       - name: Store Python package distributions
         uses: actions/upload-artifact@v4

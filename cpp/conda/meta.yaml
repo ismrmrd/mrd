@@ -1,17 +1,16 @@
-{% set major = load_file_regex(load_file='CMakeLists.txt', regex_pattern='(?<=set\(MRD_VERSION_MAJOR )([^\)]+)') %}
-{% set minor = load_file_regex(load_file='CMakeLists.txt', regex_pattern='(?<=set\(MRD_VERSION_MINOR )([^\)]+)') %}
-{% set patch = load_file_regex(load_file='CMakeLists.txt', regex_pattern='(?<=set\(MRD_VERSION_PATCH )([^\)]+)') %}
+{% set version = os.environ['MRD_VERSION_STRING'].replace('-', '') %}
 {% set repo = 'https://github.com/ismrmrd/mrd' %}
 
 package:
   name: mrd
-  version: {{ major.group(1) }}.{{ minor.group(1) }}.{{ patch.group(1) }}
+  version: {{ version }}
 
 source:
   path: ../
 
 build:
-  number: 0
+  script_env:
+    - MRD_VERSION_STRING
 
 requirements:
   build:

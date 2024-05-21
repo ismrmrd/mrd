@@ -5,9 +5,3 @@ set -e
 # conda deactivate
 mamba install -y -n base conda-build conda-verify anaconda-client boa
 conda activate base
-pushd ./cpp/conda
-../../utils/conda/package.sh
-popd
-pushd ./python/conda
-../../utils/conda/package.sh
-popd

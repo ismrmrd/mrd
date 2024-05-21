@@ -39,28 +39,27 @@ jobs:
       run: just cpp_version=${{ matrix.cppVersion }} matlab=enabled validate-with-no-changes
 
     - name: Package MATLAB toolbox
-      uses: matlab-actions/run-build@v2
-      with:
-        tasks: packageToolbox
-        startup-options: -sd ./matlab/
+      # uses: matlab-actions/run-build@v2
+      # with:
+      #   tasks: packageToolbox
+      #   startup-options: -sd ./matlab/
+      run: just build-matlab-toolbox
 
     - name: Store MATLAB Toolbox
       uses: actions/upload-artifact@v4
       with:
         name: matlab-toolbox
-        path: matlab/release/mrd.mltbx
+        path: matlab/release/mrd*.mltbx
         overwrite: true
 
     - name: Generate CMake FetchContent source archive
-      run: |
-        # tar -czf mrd-cmake-src.tar.gz --transform s/cpp/mrd-cmake-src/ --exclude build --exclude conda ./cpp/
-        tar -czf mrd-cmake-src.tar.gz -C ./cpp/ CMakeLists.txt mrd/ mrd-tools/
+      run: just build-cmake-fetch-src
 
     - name: Store CMake FetchContent source archive
       uses: actions/upload-artifact@v4
       with:
         name: mrd-cmake-src
-        path: mrd-cmake-src.tar.gz
+        path: mrd-cmake-src*.tar.gz
         overwrite: true
 
   release:
@@ -84,16 +83,16 @@ jobs:
 
     - name: Generate Checksums
       run: |
-        sha256sum mrd.mltbx > sha256-checksums.txt
-        sha256sum mrd-cmake-src.tar.gz >> sha256-checksums.txt
+        sha256sum mrd*.mltbx > sha256-checksums.txt
+        sha256sum mrd-cmake-src*.tar.gz >> sha256-checksums.txt
 
     - name: Publish Artifacts
       uses: softprops/action-gh-release@v2
       with:
         files: |
           sha256-checksums.txt
-          mrd-cmake-src.tar.gz
-          mrd.mltbx
+          mrd-cmake-src*.tar.gz
+          mrd*.mltbx
         fail_on_unmatched_files: true
         body: |
           See also:

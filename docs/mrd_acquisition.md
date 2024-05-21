@@ -15,7 +15,7 @@ It contains the following information:
 | flags                 | A bit mask of common attributes applicable to individual acquisition readouts                                       | uint64
 | idx                   | Encoding loop counters, as defined [below](EncodingCounters)                                                        | EncodingCounters
 | measurementUid        | Unique ID corresponding to the readout                                                                              | uint32
-| scan_counter          | Zero-indexed incrementing counter for readouts                                                                      | uint32?
+| scanCounter           | Zero-indexed incrementing counter for readouts                                                                      | uint32?
 | acquisitionTimeStamp  | Clock time stamp (e.g. milliseconds since midnight)                                                                 | uint32?
 | physiologyTimeStamp   | Time stamps relative to physiological triggering                                                                    | uint32*
 | channelOrder          | TODO                                                                                                                | uint32*
@@ -29,8 +29,8 @@ It contains the following information:
 | phaseDir              | Directional cosine of phase encoding (2D)                                                                           | float32[3]
 | sliceDir              | Directional cosine of slice normal, i.e. cross-product of read_dir and phase_dir                                    | float32[3]
 | patientTablePosition  | Offset position of the patient table, in LPS coordinates                                                            | float32[3]
-| userInt               | User-defined integer parameters, multiplicity defined by ISMRMRD_USER_INTS (currently 8)                            | int32*
-| userFloat             | User-defined float parameters, multiplicity defined by ISMRMRD_USER_FLOATS (currently 8)                            | float32*
+| userInt               | User-defined integer parameters                                                                                     | int32*
+| userFloat             | User-defined float parameters                                                                                       | float32*
 | data                  | Raw AcquisitionData as defined [below](RawData)                                                                     | AcqusititionData
 | trajectory            | Trajectory data as defined [below](Trajectory)                                                                      | TrajectoryData
 

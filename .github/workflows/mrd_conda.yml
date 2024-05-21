@@ -13,9 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-13]
-    # MacOS temporarily disabled while testing the entire CI pipeline
-    # runs-on: ${{ matrix.os }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash -l {0}
@@ -40,40 +38,55 @@ jobs:
           miniforge-variant: Miniforge3
           miniforge-version: latest
 
-      - name: Install Conda build tools
-        run: mamba install conda-build conda-verify anaconda-client boa
+      - name: Set up just command runner
+        uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+
+      # - name: Install Conda build tools
+      #   run: mamba install conda-build conda-verify anaconda-client boa
 
       - name: Build C++ conda package
-        working-directory: cpp/conda
+        # working-directory: cpp/conda
         run: |
-          ../../utils/conda/package.sh
-          echo "Packages built: $(find build_pkg -name mrd*.tar.bz2)"
+          # ../../utils/conda/package.sh
+          # echo "Packages built: $(find build_pkg -name mrd*.tar.bz2)"
+          just build-cpp-conda-package
 
       - name: Build Python conda package
         if: startsWith(matrix.os, 'ubuntu')
-        working-directory: python/conda
+        # working-directory: python/conda
         run: |
-          ../../utils/conda/package.sh
-          echo "Packages built: $(find build_pkg -name mrd-python*.tar.bz2)"
+          # ../../utils/conda/package.sh
+          # echo "Packages built: $(find build_pkg -name mrd-python*.tar.bz2)"
+          just build-python-conda-package
 
-      - name: Push C++ conda package
+      - name: Publish conda packages
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
         env:
           ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-        working-directory: cpp/conda
         run: |
-          for p in $(find build_pkg -name mrd*.tar.bz2)
+          for p in $(find {cpp,python}/conda/build_pkg -name mrd*.tar.bz2)
           do
             ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
           done
 
-      - name: Push Python conda package
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(matrix.os, 'ubuntu')
-        env:
-          ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-        working-directory: python/conda
-        run: |
-          for p in $(find build_pkg -name mrd-python*.tar.bz2)
-          do
-            ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
-          done
+      # - name: Push C++ conda package
+      #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      #   env:
+      #     ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      #   working-directory: cpp/conda
+      #   run: |
+      #     for p in $(find build_pkg -name mrd*.tar.bz2)
+      #     do
+      #       ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
+      #     done
+
+      # - name: Push Python conda package
+      #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(matrix.os, 'ubuntu')
+      #   env:
+      #     ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+      #   working-directory: python/conda
+      #   run: |
+      #     for p in $(find build_pkg -name mrd-python*.tar.bz2)
+      #     do
+      #       ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
+      #     done

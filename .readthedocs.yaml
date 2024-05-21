@@ -9,10 +9,13 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.9"
+  jobs:
+    pre-build:
+      - export MRD_VERSION_STRING=$(cat VERSION)
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
-  configuration: doc/conf.py
+  configuration: docs/conf.py
   # Fail on all warnings to avoid broken references
   # fail_on_warning: true
 
