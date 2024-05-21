@@ -7,7 +7,7 @@ packages = ["mrd", "mrd.tools"]
 
 [project]
 name = "mrd"
-version = "2.0.0a2"
+dynamic = ["version"]
 dependencies = ["numpy>=1.22.0", "pillow>=9.2.0"]
 requires-python = ">=3.9"
 description = "Libraries and tools for working with data in the ISMRM Raw Data (ISMRMRD or MRD)."

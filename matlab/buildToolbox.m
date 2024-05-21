@@ -9,9 +9,12 @@ function buildToolbox(outdir)
     end
 
     opts.ToolboxName = "MRD";
-    % TODO: Templatize ToolboxVersion
-    opts.ToolboxVersion = "1.0.0";
-    opts.OutputFile = fullfile(outdir, "mrd.mltbx");
+
+    disallowedPattern = "-" | lettersPattern;
+    version = replace(string(getenv("MRD_VERSION_STRING")), disallowedPattern, "");
+
+    opts.ToolboxVersion = version;
+    opts.OutputFile = fullfile(outdir, sprintf("mrd-%s.mltbx", version));
 
     opts.Description = "Magnetic Resonance Data (MRD) toolbox for MATLAB";
     % opts.Summary = "";

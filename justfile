@@ -1,5 +1,8 @@
 set shell := ['bash', '-ceuo', 'pipefail']
 
+# Read version from file and export for all tasks
+export MRD_VERSION_STRING := `cat VERSION`
+
 cpp_version := "17"
 
 matlab := "disabled"
@@ -72,11 +75,34 @@ validate-with-no-changes: validate
     fi
 
 
-build-conda-packages:
-    bash -il ./utils/conda/mrd_package_all.sh
+clean:
+    rm -rf cpp/conda/build_pkg/
+    rm -rf python/conda/build_pkg/
+    rm -rf python/dist python/mrd.egg-info/
+    pushd cpp/build && ninja clean && popd
+    pushd docs && make clean && popd
 
-build-matlab-toolbox:
-    matlab -sd ./matlab -batch "buildtool"
+
+build-docs:
+    cd docs; \
+    make clean html
+
+build-cpp-conda-package:
+    bash -il ./utils/conda/setup-conda-build.sh; \
+    cd cpp/conda; \
+    ../../utils/conda/package.sh
+
+build-python-conda-package:
+    bash -il ./utils/conda/setup-conda-build.sh; \
+    cd python/conda; \
+    ../../utils/conda/package.sh
 
 build-pypi-package:
     ./utils/pypi/package.sh
+
+build-matlab-toolbox:
+    cd matlab; \
+    run-matlab-command buildtool
+
+build-cmake-fetch-src:
+    tar -czf mrd-cmake-src-${MRD_VERSION_STRING}.tar.gz -C ./cpp/ CMakeLists.txt mrd/ mrd-tools/

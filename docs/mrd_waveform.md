@@ -19,7 +19,7 @@ The Waveform record contains metadata associated with a set of waveform data and
 
 (WaveformIDs)=
 ### Waveform IDs
-The `waveform_id` field in the Waveform record describes the type of physiological data stored.
+The `waveformId` field in the Waveform record describes the type of physiological data stored.
 The following ID numbers are defined in the `WaveformType` enum in [mrd_header.yml](../model/mrd_waveform.yml):
 
 | Value | Name                |
@@ -30,12 +30,12 @@ The following ID numbers are defined in the `WaveformType` enum in [mrd_header.y
 |  3    | External Waveform 1 |
 |  4    | External Waveform 2 |
 
-For each type of `waveform_id` included in the dataset, a corresponding `WaveformInformation` entry is found in the MRD header to describe the data interpretation.
+For each type of `waveformId` included in the dataset, a corresponding `WaveformInformation` entry is found in the MRD header to describe the data interpretation.
 
 <!-- Physiological data used for triggering may have an associated "trigger" channel as detected by the MR system.  The ``waveformTriggerChannel`` indicates the channel index (0-indexed) which contains the detected triggers and is omitted if no trigger data is present. -->
 
 Waveform ID numbers less than 1024 are reserved while numbers greater than or equal to 1024 can be used to define custom physiological data.
-For custom waveform_ids, corresponding `WaveformInformation` entries should be added to the MRD header to describe the data interpretation.
+For custom waveformIds, corresponding `WaveformInformation` entries should be added to the MRD header to describe the data interpretation.
 
 
 (WaveformSamples)=
