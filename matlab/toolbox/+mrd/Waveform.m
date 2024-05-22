@@ -2,12 +2,19 @@
 
 classdef Waveform < handle
   properties
+    % Bit field of flags. Currently unused
     flags
+    % Unique ID for this measurement
     measurement_uid
+    % Number of the acquisition after this waveform
     scan_counter
+    % Starting timestamp of this waveform
     time_stamp
+    % Time between samples in microseconds
     sample_time_us
+    % ID matching the waveform in the MRD header
     waveform_id
+    % Waveform sample array
     data
   end
 

@@ -2,15 +2,25 @@
 
 classdef EncodingCounters < handle
   properties
+    % Phase encoding line
     kspace_encode_step_1
+    % Partition encoding
     kspace_encode_step_2
+    % Signal average
     average
+    % Slice number (multi-slice 2D)
     slice
+    % Echo number in multi-echo
     contrast
+    % Cardiac phase
     phase
+    % Counter in repeated/dynamic acquisitions
     repetition
+    % Sets of different preparation, e.g. flow encoding, diffusion weighting
     set
+    % Counter for segmented acquisitions
     segment
+    % User-defined counters
     user
   end
 

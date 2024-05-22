@@ -35,13 +35,13 @@ jobs:
           overwrite: true
 
   publish:
-    if: false
-    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: [build-pypi-package]
+    name: Publish PyPI Package
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: build-pypi-package
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/mrd
+      url: https://pypi.org/p/mrd-python
     permissions:
       id-token: write   # IMPORTANT: Mandatory for trusted publishing
 
@@ -54,5 +54,3 @@ jobs:
 
       - name: Publish Package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        # with:
-        #   password: ${{ secrets.PYPI_API_TOKEN }}

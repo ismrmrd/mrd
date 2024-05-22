@@ -5,8 +5,7 @@ MRD is the next generation of the ISMRM Raw Data Format, superseding [ISMRMRD v1
 
 ## Getting Started
 
-<!-- Please check out the project [documentation](https://mrd.readthedocs.io). -->
-Please check out the project [documentation]().
+Please check out the project [documentation](https://ismrmrd.github.io/mrd).
 
 ## Building the Code in this Repo
 

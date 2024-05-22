@@ -21,6 +21,7 @@ dependencies:
   - matplotlib=3.6.2
   - ninja=1.11.0
   - nlohmann_json=3.11.2
+  - nodejs=18.12.1 # local
   - python=3.9.15
   - pyfftw=0.13.1
   - shellcheck=0.8.0
@@ -28,6 +29,3 @@ dependencies:
   - xmlschema=2.2.3
   - xtensor=0.24.2
   - xtensor-fftw=0.2.5
-  - sphinx=7.3.7
-  - sphinx-rtd-theme=2.0.0
-  - myst-parser=3.0.1

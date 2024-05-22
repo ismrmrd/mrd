@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Minimal Example
+mrd_minimal_example
+
 # Smoketest A
 rm -f mrd_testdata.h5 mrd_testdata_recon.h5
 mrd_phantom -o mrd_testdata.h5

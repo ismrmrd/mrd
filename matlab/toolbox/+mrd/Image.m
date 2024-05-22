@@ -2,28 +2,51 @@
 
 classdef Image < handle
   properties
+    % A bit mask of common attributes applicable to individual images
     flags
+    % Unique ID corresponding to the image
     measurement_uid
+    % Physical size (in mm) in each of the 3 dimensions in the image
     field_of_view
+    % Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position
+    % Directional cosine of readout/frequency encoding
     col_dir
+    % Directional cosine of phase encoding (2D)
     line_dir
+    % Directional cosine of 3D phase encoding direction
     slice_dir
+    % Offset position of the patient table, in LPS coordinates
     patient_table_position
+    % Signal average
     average
+    % Slice number (multi-slice 2D)
     slice
+    % Echo number in multi-echo
     contrast
+    % Cardiac phase
     phase
+    % Counter in repeated/dynamic acquisitions
     repetition
+    % Sets of different preparation, e.g. flow encoding, diffusion weighting
     set
+    % Clock time stamp (e.g. milliseconds since midnight)
     acquisition_time_stamp
+    % Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
     physiology_time_stamp
+    % Interpretation type of the image
     image_type
+    % Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
     image_index
+    % Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
     image_series_index
+    % User-defined int parameters
     user_int
+    % User-defined float parameters
     user_float
+    % Image data array
     data
+    % Meta attributes
     meta
   end
 

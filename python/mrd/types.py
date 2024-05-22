@@ -66,15 +66,35 @@ class AcquisitionFlags(enum.IntFlag):
 
 class EncodingCounters:
     kspace_encode_step_1: typing.Optional[yardl.UInt32]
+    """Phase encoding line"""
+
     kspace_encode_step_2: typing.Optional[yardl.UInt32]
+    """Partition encoding"""
+
     average: typing.Optional[yardl.UInt32]
+    """Signal average"""
+
     slice: typing.Optional[yardl.UInt32]
+    """Slice number (multi-slice 2D)"""
+
     contrast: typing.Optional[yardl.UInt32]
+    """Echo number in multi-echo"""
+
     phase: typing.Optional[yardl.UInt32]
+    """Cardiac phase"""
+
     repetition: typing.Optional[yardl.UInt32]
+    """Counter in repeated/dynamic acquisitions"""
+
     set: typing.Optional[yardl.UInt32]
+    """Sets of different preparation, e.g. flow encoding, diffusion weighting"""
+
     segment: typing.Optional[yardl.UInt32]
+    """Counter for segmented acquisitions"""
+
     user: list[yardl.UInt32]
+    """User-defined counters"""
+
 
     def __init__(self, *,
         kspace_encode_step_1: typing.Optional[yardl.UInt32] = None,
@@ -127,26 +147,72 @@ TrajectoryData = npt.NDArray[np.float32]
 
 class Acquisition:
     flags: AcquisitionFlags
+    """A bit mask of common attributes applicable to individual acquisition"""
+
     idx: EncodingCounters
+    """Encoding loop counters"""
+
     measurement_uid: yardl.UInt32
+    """Unique ID corresponding to the readout"""
+
     scan_counter: typing.Optional[yardl.UInt32]
+    """Zero-indexed incrementing counter for readouts"""
+
     acquisition_time_stamp: typing.Optional[yardl.UInt32]
+    """Clock time stamp (e.g. milliseconds since midnight)"""
+
     physiology_time_stamp: list[yardl.UInt32]
+    """Time stamps relative to physiological triggering"""
+
     channel_order: list[yardl.UInt32]
+    """Channel numbers"""
+
     discard_pre: typing.Optional[yardl.UInt32]
+    """Number of readout samples to be discarded at the beginning
+      (e.g. if the ADC is active during gradient events)
+    """
+
     discard_post: typing.Optional[yardl.UInt32]
+    """Number of readout samples to be discarded at the end
+      (e.g. if the ADC is active during gradient events)
+    """
+
     center_sample: typing.Optional[yardl.UInt32]
+    """Index of the readout sample corresponing to k-space center (zero indexed)"""
+
     encoding_space_ref: typing.Optional[yardl.UInt32]
+    """Indexed reference to the encoding spaces enumerated in the MRD Header"""
+
     sample_time_us: typing.Optional[yardl.Float32]
+    """Readout bandwidth, as time between samples in microseconds"""
+
     position: npt.NDArray[np.float32]
+    """Center of the excited volume, in LPS coordinates relative to isocenter in millimeters"""
+
     read_dir: npt.NDArray[np.float32]
+    """Directional cosine of readout/frequency encoding"""
+
     phase_dir: npt.NDArray[np.float32]
+    """Directional cosine of phase encoding (2D)"""
+
     slice_dir: npt.NDArray[np.float32]
+    """Directional cosine of slice normal, i.e. cross-product of read_dir and phase_dir"""
+
     patient_table_position: npt.NDArray[np.float32]
+    """Offset position of the patient table, in LPS coordinates"""
+
     user_int: list[yardl.Int32]
+    """User-defined integer parameters"""
+
     user_float: list[yardl.Float32]
+    """User-defined float parameters"""
+
     data: AcquisitionData
+    """Raw k-space samples array"""
+
     trajectory: TrajectoryData
+    """Trajectory array"""
+
 
     def __init__(self, *,
         flags: AcquisitionFlags = AcquisitionFlags(0),
@@ -1428,28 +1494,74 @@ class ImageMetaData:
 
 class Image(typing.Generic[T_NP]):
     flags: ImageFlags
+    """A bit mask of common attributes applicable to individual images"""
+
     measurement_uid: yardl.UInt32
+    """Unique ID corresponding to the image"""
+
     field_of_view: npt.NDArray[np.float32]
+    """Physical size (in mm) in each of the 3 dimensions in the image"""
+
     position: npt.NDArray[np.float32]
+    """Center of the excited volume, in LPS coordinates relative to isocenter in millimeters"""
+
     col_dir: npt.NDArray[np.float32]
+    """Directional cosine of readout/frequency encoding"""
+
     line_dir: npt.NDArray[np.float32]
+    """Directional cosine of phase encoding (2D)"""
+
     slice_dir: npt.NDArray[np.float32]
+    """Directional cosine of 3D phase encoding direction"""
+
     patient_table_position: npt.NDArray[np.float32]
+    """Offset position of the patient table, in LPS coordinates"""
+
     average: typing.Optional[yardl.UInt32]
+    """Signal average"""
+
     slice: typing.Optional[yardl.UInt32]
+    """Slice number (multi-slice 2D)"""
+
     contrast: typing.Optional[yardl.UInt32]
+    """Echo number in multi-echo"""
+
     phase: typing.Optional[yardl.UInt32]
+    """Cardiac phase"""
+
     repetition: typing.Optional[yardl.UInt32]
+    """Counter in repeated/dynamic acquisitions"""
+
     set: typing.Optional[yardl.UInt32]
+    """Sets of different preparation, e.g. flow encoding, diffusion weighting"""
+
     acquisition_time_stamp: typing.Optional[yardl.UInt32]
+    """Clock time stamp (e.g. milliseconds since midnight)"""
+
     physiology_time_stamp: list[yardl.UInt32]
+    """Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory"""
+
     image_type: ImageType
+    """Interpretation type of the image"""
+
     image_index: typing.Optional[yardl.UInt32]
+    """Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)"""
+
     image_series_index: typing.Optional[yardl.UInt32]
+    """Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)"""
+
     user_int: list[yardl.Int32]
+    """User-defined int parameters"""
+
     user_float: list[yardl.Float32]
+    """User-defined float parameters"""
+
     data: ImageData[T_NP]
+    """Image data array"""
+
     meta: dict[str, list[str]]
+    """Meta attributes"""
+
 
     def __init__(self, *,
         flags: ImageFlags = ImageFlags(0),
@@ -1551,12 +1663,26 @@ WaveformSamples = npt.NDArray[T_NP]
 
 class Waveform(typing.Generic[T_NP]):
     flags: yardl.UInt64
+    """Bit field of flags. Currently unused"""
+
     measurement_uid: yardl.UInt32
+    """Unique ID for this measurement"""
+
     scan_counter: yardl.UInt32
+    """Number of the acquisition after this waveform"""
+
     time_stamp: yardl.UInt32
+    """Starting timestamp of this waveform"""
+
     sample_time_us: yardl.Float32
+    """Time between samples in microseconds"""
+
     waveform_id: yardl.UInt32
+    """ID matching the waveform in the MRD header"""
+
     data: WaveformSamples[T_NP]
+    """Waveform sample array"""
+
 
     def __init__(self, *,
         flags: yardl.UInt64 = 0,

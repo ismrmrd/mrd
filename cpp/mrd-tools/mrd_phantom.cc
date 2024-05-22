@@ -56,7 +56,7 @@ mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t n
 void print_usage(std::string program_name)
 {
   std::cerr << "Usage: " << program_name << std::endl;
-  std::cerr << "  -o|--output-file <output file>" << std::endl;
+  std::cerr << "  -o|--output-file <output **HDF5** file>" << std::endl;
   std::cerr << "  -c|--coils       <number of coils>" << std::endl;
   std::cerr << "  -m|--matrix      <matrix size>" << std::endl;
   std::cerr << "  -r|--repetitions <number of repetitions>" << std::endl;

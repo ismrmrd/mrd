@@ -6,13 +6,12 @@ build-backend = "setuptools.build_meta"
 packages = ["mrd", "mrd.tools"]
 
 [project]
-name = "mrd"
+name = "mrd-python"
 dynamic = ["version"]
 dependencies = ["numpy>=1.22.0", "pillow>=9.2.0"]
 requires-python = ">=3.9"
-description = "Libraries and tools for working with data in the ISMRM Raw Data (ISMRMRD or MRD)."
+description = "Library and tools for working with data in the ISMRM Raw Data (MRD) format."
 readme = "README.md"
-license = {file = "LICENSE" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
@@ -24,6 +23,6 @@ classifiers = [
 keywords = []
 
 [project.urls]
-Homepage = "https://github.com/ismrmrd/mrd"
-Documentation = "https://github.com/ismrmrd/mrd"
+Homepage = "https://ismrmrd.github.io/mrd"
+Documentation = "https://ismrmrd.github.io/mrd"
 Repository = "https://github.com/ismrmrd/mrd"

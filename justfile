@@ -74,35 +74,34 @@ validate-with-no-changes: validate
       exit 1
     fi
 
-
-clean:
+@clean:
     rm -rf cpp/conda/build_pkg/
     rm -rf python/conda/build_pkg/
     rm -rf python/dist python/mrd.egg-info/
     pushd cpp/build && ninja clean && popd
-    pushd docs && make clean && popd
 
+@start-docs-website:
+    cd docs && npm install && npm run docs:dev
 
-build-docs:
-    cd docs; \
-    make clean html
+@build-docs:
+    cd docs && npm install && npm run docs:build
 
-build-cpp-conda-package:
+@build-cpp-conda-package:
     bash -il ./utils/conda/setup-conda-build.sh; \
     cd cpp/conda; \
     ../../utils/conda/package.sh
 
-build-python-conda-package:
+@build-python-conda-package:
     bash -il ./utils/conda/setup-conda-build.sh; \
     cd python/conda; \
     ../../utils/conda/package.sh
 
-build-pypi-package:
+@build-pypi-package:
     ./utils/pypi/package.sh
 
-build-matlab-toolbox:
+@build-matlab-toolbox:
     cd matlab; \
     run-matlab-command buildtool
 
-build-cmake-fetch-src:
+@build-cmake-fetch-src:
     tar -czf mrd-cmake-src-${MRD_VERSION_STRING}.tar.gz -C ./cpp/ CMakeLists.txt mrd/ mrd-tools/

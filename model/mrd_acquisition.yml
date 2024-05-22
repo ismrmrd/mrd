@@ -35,15 +35,25 @@ AcquisitionFlags: !flags
 
 EncodingCounters: !record
   fields:
+    # Phase encoding line
     kspaceEncodeStep1: uint?
+    # Partition encoding
     kspaceEncodeStep2: uint?
+    # Signal average
     average: uint?
+    # Slice number (multi-slice 2D)
     slice: uint?
+    # Echo number in multi-echo
     contrast: uint?
+    # Cardiac phase
     phase: uint?
+    # Counter in repeated/dynamic acquisitions
     repetition: uint?
+    # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
+    # Counter for segmented acquisitions
     segment: uint?
+    # User-defined counters
     user: uint*
 
 AcquisitionData: !array
@@ -60,26 +70,49 @@ TrajectoryData: !array
 
 Acquisition: !record
   fields:
+    # A bit mask of common attributes applicable to individual acquisition
     flags: AcquisitionFlags
+    # Encoding loop counters
     idx: EncodingCounters
-    measurementUid: uint # remove?
+    # Unique ID corresponding to the readout
+    measurementUid: uint
+    # Zero-indexed incrementing counter for readouts
     scanCounter: uint?
+    # Clock time stamp (e.g. milliseconds since midnight)
     acquisitionTimeStamp: uint?
+    # Time stamps relative to physiological triggering
     physiologyTimeStamp: uint*
+    # Channel numbers
     channelOrder: uint*
+    # Number of readout samples to be discarded at the beginning
+    #   (e.g. if the ADC is active during gradient events)
     discardPre: uint?
+    # Number of readout samples to be discarded at the end
+    #   (e.g. if the ADC is active during gradient events)
     discardPost: uint?
+    # Index of the readout sample corresponing to k-space center (zero indexed)
     centerSample: uint?
+    # Indexed reference to the encoding spaces enumerated in the MRD Header
     encodingSpaceRef: uint?
+    # Readout bandwidth, as time between samples in microseconds
     sampleTimeUs: float?
+    # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position: float[3]
+    # Directional cosine of readout/frequency encoding
     readDir: float[3]
+    # Directional cosine of phase encoding (2D)
     phaseDir: float[3]
+    # Directional cosine of slice normal, i.e. cross-product of read_dir and phase_dir
     sliceDir: float[3]
+    # Offset position of the patient table, in LPS coordinates
     patientTablePosition: float[3]
+    # User-defined integer parameters
     userInt: int*
+    # User-defined float parameters
     userFloat: float*
+    # Raw k-space samples array
     data: AcquisitionData
+    # Trajectory array
     trajectory: TrajectoryData
   computedFields:
     coils: size(data, "coils")

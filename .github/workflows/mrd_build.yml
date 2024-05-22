@@ -20,14 +20,11 @@ defaults:
 
 jobs:
   build:
+    name: Build and Test C++17, Python, MATLAB SDKs
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         cppVersion: [17]
-
-    name: Validate SDKs (C++${{ matrix.cppVersion }})
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -58,11 +55,58 @@ jobs:
         path: mrd-cmake-src*.tar.gz
         overwrite: true
 
+  publishDocs:
+    name: Publish Documentation
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ismrmrd/mrd'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+    # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up just command runner
+        uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+
+      - name: Build static page
+        run: just build-docs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'docs/.vitepress/dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+
   release:
+    name: Publish Release
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     needs: build
     runs-on: ubuntu-latest
-    name: Publish Release
+    environment:
+      name: github-release
+      url: https://github.com/ismrmrd/mrd/releases
     permissions:
       contents: write
 

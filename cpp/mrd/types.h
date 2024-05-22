@@ -47,15 +47,25 @@ struct AcquisitionFlags : yardl::BaseFlags<uint64_t, AcquisitionFlags> {
 };
 
 struct EncodingCounters {
+  // Phase encoding line
   std::optional<uint32_t> kspace_encode_step_1{};
+  // Partition encoding
   std::optional<uint32_t> kspace_encode_step_2{};
+  // Signal average
   std::optional<uint32_t> average{};
+  // Slice number (multi-slice 2D)
   std::optional<uint32_t> slice{};
+  // Echo number in multi-echo
   std::optional<uint32_t> contrast{};
+  // Cardiac phase
   std::optional<uint32_t> phase{};
+  // Counter in repeated/dynamic acquisitions
   std::optional<uint32_t> repetition{};
+  // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
+  // Counter for segmented acquisitions
   std::optional<uint32_t> segment{};
+  // User-defined counters
   std::vector<uint32_t> user{};
 
   bool operator==(const EncodingCounters& other) const {
@@ -81,26 +91,49 @@ using AcquisitionData = yardl::NDArray<std::complex<float>, 2>;
 using TrajectoryData = yardl::NDArray<float, 2>;
 
 struct Acquisition {
+  // A bit mask of common attributes applicable to individual acquisition
   mrd::AcquisitionFlags flags{};
+  // Encoding loop counters
   mrd::EncodingCounters idx{};
+  // Unique ID corresponding to the readout
   uint32_t measurement_uid{};
+  // Zero-indexed incrementing counter for readouts
   std::optional<uint32_t> scan_counter{};
+  // Clock time stamp (e.g. milliseconds since midnight)
   std::optional<uint32_t> acquisition_time_stamp{};
+  // Time stamps relative to physiological triggering
   std::vector<uint32_t> physiology_time_stamp{};
+  // Channel numbers
   std::vector<uint32_t> channel_order{};
+  // Number of readout samples to be discarded at the beginning
+  //   (e.g. if the ADC is active during gradient events)
   std::optional<uint32_t> discard_pre{};
+  // Number of readout samples to be discarded at the end
+  //   (e.g. if the ADC is active during gradient events)
   std::optional<uint32_t> discard_post{};
+  // Index of the readout sample corresponing to k-space center (zero indexed)
   std::optional<uint32_t> center_sample{};
+  // Indexed reference to the encoding spaces enumerated in the MRD Header
   std::optional<uint32_t> encoding_space_ref{};
+  // Readout bandwidth, as time between samples in microseconds
   std::optional<float> sample_time_us{};
+  // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
   yardl::FixedNDArray<float, 3> position{};
+  // Directional cosine of readout/frequency encoding
   yardl::FixedNDArray<float, 3> read_dir{};
+  // Directional cosine of phase encoding (2D)
   yardl::FixedNDArray<float, 3> phase_dir{};
+  // Directional cosine of slice normal, i.e. cross-product of read_dir and phase_dir
   yardl::FixedNDArray<float, 3> slice_dir{};
+  // Offset position of the patient table, in LPS coordinates
   yardl::FixedNDArray<float, 3> patient_table_position{};
+  // User-defined integer parameters
   std::vector<int32_t> user_int{};
+  // User-defined float parameters
   std::vector<float> user_float{};
+  // Raw k-space samples array
   mrd::AcquisitionData data{};
+  // Trajectory array
   mrd::TrajectoryData trajectory{};
 
   yardl::Size Coils() const {
@@ -846,28 +879,51 @@ struct ImageMetaData {
 
 template <typename T>
 struct Image {
+  // A bit mask of common attributes applicable to individual images
   mrd::ImageFlags flags{};
+  // Unique ID corresponding to the image
   uint32_t measurement_uid{};
+  // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
+  // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
   yardl::FixedNDArray<float, 3> position{};
+  // Directional cosine of readout/frequency encoding
   yardl::FixedNDArray<float, 3> col_dir{};
+  // Directional cosine of phase encoding (2D)
   yardl::FixedNDArray<float, 3> line_dir{};
+  // Directional cosine of 3D phase encoding direction
   yardl::FixedNDArray<float, 3> slice_dir{};
+  // Offset position of the patient table, in LPS coordinates
   yardl::FixedNDArray<float, 3> patient_table_position{};
+  // Signal average
   std::optional<uint32_t> average{};
+  // Slice number (multi-slice 2D)
   std::optional<uint32_t> slice{};
+  // Echo number in multi-echo
   std::optional<uint32_t> contrast{};
+  // Cardiac phase
   std::optional<uint32_t> phase{};
+  // Counter in repeated/dynamic acquisitions
   std::optional<uint32_t> repetition{};
+  // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
+  // Clock time stamp (e.g. milliseconds since midnight)
   std::optional<uint32_t> acquisition_time_stamp{};
+  // Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
   std::vector<uint32_t> physiology_time_stamp{};
+  // Interpretation type of the image
   mrd::ImageType image_type{};
+  // Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
   std::optional<uint32_t> image_index{};
+  // Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
   std::optional<uint32_t> image_series_index{};
+  // User-defined int parameters
   std::vector<int32_t> user_int{};
+  // User-defined float parameters
   std::vector<float> user_float{};
+  // Image data array
   mrd::ImageData<T> data{};
+  // Meta attributes
   std::unordered_map<std::string, std::vector<std::string>> meta{};
 
   yardl::Size Channels() const {
@@ -922,12 +978,19 @@ using WaveformSamples = yardl::NDArray<T, 2>;
 
 template <typename T>
 struct Waveform {
+  // Bit field of flags. Currently unused
   uint64_t flags{};
+  // Unique ID for this measurement
   uint32_t measurement_uid{};
+  // Number of the acquisition after this waveform
   uint32_t scan_counter{};
+  // Starting timestamp of this waveform
   uint32_t time_stamp{};
+  // Time between samples in microseconds
   float sample_time_us{};
+  // ID matching the waveform in the MRD header
   uint32_t waveform_id{};
+  // Waveform sample array
   mrd::WaveformSamples<T> data{};
 
   yardl::Size Channels() const {

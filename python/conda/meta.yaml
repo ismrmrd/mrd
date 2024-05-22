@@ -1,5 +1,4 @@
 {% set version = os.environ['MRD_VERSION_STRING'].replace('-', '') %}
-{% set repo = 'https://github.com/ismrmrd/mrd' %}
 
 package:
   name: mrd-python
@@ -29,11 +28,11 @@ test:
     - mrd.tools.stream_recon
 
 about:
-  home: {{ repo }}
+  home: https://ismrmrd.github.io/mrd
   license: MIT
   summary: 'Python SDK for the ISMRM Raw Data Format (MRD)'
   description: |
     Python interface and utilities for working with ISMRM Raw Data.
-  dev_url: {{ repo }}
-  doc_url: {{ repo }}
-  doc_source_url: {{repo}}/blob/main/README.md
+  dev_url: https://github.com/ismrmrd/mrd
+  doc_url: https://ismrmrd.github.io/mrd
+  doc_source_url: https://github.com/ismrmrd/mrd/blob/main/README.md

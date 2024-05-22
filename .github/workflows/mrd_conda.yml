@@ -10,6 +10,7 @@ on:
 
 jobs:
   build-conda-packages:
+    name: Test and Build Conda Packages
     strategy:
       matrix:
         os: [ubuntu-latest, macos-13]
@@ -57,5 +58,5 @@ jobs:
         run: |
           for p in $(find {cpp,python}/conda/build_pkg -name mrd*.tar.bz2)
           do
-            ../../utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
+            ./utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
           done

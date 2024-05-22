@@ -38,28 +38,51 @@ ImageMetaData: !record
 
 Image<T>: !record
   fields:
+    # A bit mask of common attributes applicable to individual images
     flags: ImageFlags
-    measurementUid: uint #Remove?
+    # Unique ID corresponding to the image
+    measurementUid: uint
+    # Physical size (in mm) in each of the 3 dimensions in the image
     fieldOfView: float[3]
+    # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position: float[3]
+    # Directional cosine of readout/frequency encoding
     colDir: float[3]
+    # Directional cosine of phase encoding (2D)
     lineDir: float[3]
+    # Directional cosine of 3D phase encoding direction
     sliceDir: float[3]
+    # Offset position of the patient table, in LPS coordinates
     patientTablePosition: float[3]
+    # Signal average
     average: uint?
+    # Slice number (multi-slice 2D)
     slice: uint?
+    # Echo number in multi-echo
     contrast: uint?
+    # Cardiac phase
     phase: uint?
+    # Counter in repeated/dynamic acquisitions
     repetition: uint?
+    # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
+    # Clock time stamp (e.g. milliseconds since midnight)
     acquisitionTimeStamp: uint?
+    # Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
     physiologyTimeStamp: uint*
+    # Interpretation type of the image
     imageType: ImageType
+    # Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
     imageIndex: uint?
+    # Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
     imageSeriesIndex: uint?
+    # User-defined int parameters
     userInt: int*
+    # User-defined float parameters
     userFloat: float*
+    # Image data array
     data: ImageData<T>
+    # Meta attributes
     meta: string->string*
   computedFields:
     channels: size(data, "channel")

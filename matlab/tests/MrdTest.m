@@ -1,7 +1,15 @@
 classdef MrdTest < matlab.unittest.TestCase
     methods (Test)
 
-        function testMrd(testCase)
+        function testMinimalExample(testCase)
+            addpath("../toolbox", "../toolbox/examples");
+
+            minimal_example();
+
+            delete("./*.bin");
+        end
+
+        function testFullRecon(testCase)
             addpath("../toolbox", "../toolbox/examples");
 
             phantom = "phantom.bin";

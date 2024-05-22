@@ -26,6 +26,9 @@ add_compile_options(-Wall -Wextra -pedantic -Werror)
 add_subdirectory(mrd)
 add_subdirectory(mrd-tools)
 
+add_executable(mrd_minimal_example minimal_example.cc)
+target_link_libraries(mrd_minimal_example mrd_generated)
+
 install(DIRECTORY mrd DESTINATION include COMPONENT Devel)
 install(TARGETS mrd_generated DESTINATION lib)
 install(TARGETS
@@ -36,4 +39,5 @@ install(TARGETS
     mrd_stream_recon
     mrd_stream_to_hdf5
     mrd_to_ismrmrd
+    mrd_minimal_example
     DESTINATION bin)
