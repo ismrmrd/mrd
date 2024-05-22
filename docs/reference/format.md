@@ -23,7 +23,7 @@ Examples of reading and writing MRD streams are provided in the MRD repository:
     - `matlab/toolbox/examples/export_png_images.m`
 
 See also:
-- Quick Start Guides for [Python](python/quickstart), [C++](cpp/quickstart), and [MATLAB](matlab/quickstart)
+- Quick Start Guides for [Python](/python/quickstart), [C++](/cpp/quickstart), and [MATLAB](/matlab/quickstart)
 - [Yardl Binary Encoding Reference](https://microsoft.github.io/yardl/reference/binary.html)
 
 ## NDJSON
