@@ -26,6 +26,8 @@
   },
 
   "containerEnv": {
+    "HOST_WORKSPACE_DIR": "${localWorkspaceFolder}", // The host's path to the repo's folder
+    "CONTAINER_WORKSPACE_DIR": "${containerWorkspaceFolder}",
     "PYTHONPATH": "/workspaces/mrd/python",
     "MATLAB_LICENSE_FILE": "/opt/matlab/latest/licenses/license.lic"
   },

@@ -55,11 +55,22 @@ jobs:
         path: mrd-cmake-src*.tar.gz
         overwrite: true
 
+  docker:
+    name: Build and Publish Docker images
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build and test Docker images
+      run: |
+        ./docker/build-images.sh
+        ./docker/test-docker-images.sh
+
   publishDocs:
     name: Publish Documentation
     # if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ismrmrd/mrd'
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
+    needs: [build, docker]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -102,7 +113,7 @@ jobs:
   release:
     name: Publish Release
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: build
+    needs: [build, docker]
     runs-on: ubuntu-latest
     environment:
       name: github-release
@@ -140,3 +151,13 @@ jobs:
           - [MRD Conda Python SDK](https://anaconda.org/ismrmrd/mrd-python)
           - [PyPi]()
         append_body: true
+
+    - name: Log into ghcr.io
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Push Docker images
+      run: ./docker/build-images.sh --tag "${GITHUB_REF_NAME}" --push
