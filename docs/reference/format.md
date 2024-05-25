@@ -28,7 +28,7 @@ See also:
 
 ## NDJSON
 
-The NDJSON serialization format is great for debugging and interoperability with other tools (like jq) but is it orders of magnitude less efficient than the binary format.
+The NDJSON serialization format is great for debugging and interoperability with other tools (like jq) but it is much less efficient than the binary format.
 
 The C++ and Python SDKs are both capable of reading and writing NDJSON.
 
@@ -40,8 +40,8 @@ import mrd
 
 header = mrd.Header()
 
-with mrd.BinaryMrdWriter("phantom.bin") as w:    // [!code --]
-with mrd.NDJsonMrdWriter("phantom.bin") as w:    // [!code ++]
+with mrd.BinaryMrdWriter("phantom.bin") as w:    # [!code --]
+with mrd.NDJsonMrdWriter("phantom.bin") as w:    # [!code ++]
     w.write_header(h)
     w.write_data(generate_data())
 ```
