@@ -2,7 +2,7 @@ name: mrd
 channels:
   - conda-forge
   - ismrmrd
-  - defaults
+  - nodefaults
 dependencies:
   - bash-completion=2.11
   - boost=1.80.0
@@ -21,6 +21,7 @@ dependencies:
   - matplotlib=3.6.2
   - ninja=1.11.0
   - nlohmann_json=3.11.2
+  - nodejs=18.12.1 # local
   - python=3.9.15
   - pyfftw=0.13.1
   - shellcheck=0.8.0

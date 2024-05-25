@@ -1,44 +1,34 @@
-# MRD Playground
+# ISMRM Raw Data Format (MRD)
 
-This repo is an illustration of how [yardl](https://github.com/Microsoft/yardl) could be used to develop the next generation of the [ISMRMRD/MRD](https://github.com/ismrmrd/ismrmrd) standard.
+MRD is the next generation of the ISMRM Raw Data Format, superseding [ISMRMRD v1](https://ismrmrd.readthedocs.io).
 
-To get started:
 
-1. Open the repo in [GitHub Codespaces](https://docs.github.com/en/codespaces/overview) or a [VS Code Devcontainer](https://code.visualstudio.com/docs/devcontainers/containers).
-2. Generate code from the yardl model:
-    ```bash
-    just generate
-    ```
-3. Build the project:
-    ```bash
-    just build
-    ```
-4. Perform example reconstruction:
-    ```bash
-    cd cpp/build
-    ./mrd_phantom -s | ./mrd_stream_recon | ./mrd_stream_to_hdf5 images.h5
-    ```
-5. To inspect images, you can use the MRD image stream to PNG converter:
-    ```bash
-    cd cpp/build
-    ./mrd_phantom -s | ./mrd_stream_recon | ./mrd_image_stream_to_png
-    ```
+## Getting Started
 
-## ISMRMRD -> MRD converter
+Please check out the project [documentation](https://ismrmrd.github.io/mrd).
 
-To enable interoperability with the older [ISMRMRD format](https://github.com/ismrmrd/ismrmrd) format, the repo contains tools for rountrip conversion between the two formats:
+## Building the Code in this Repo
+
+We recommend opening this repository in a [devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) or a [codespace](https://docs.github.com/en/codespaces/overview).
+
+The devcontainer is configured to install all dependencies for this repository, including:
+- Those listed in the [Conda](https://docs.conda.io/en/latest/) [environment.yml](environment.yml)
+file
+- [Yardl](https://github.com/microsoft/yardl/releases) - most recent release
+- (Optional) [MATLAB R2023b or newer]
+
+We use the [`just`](https://github.com/casey/just) command runner to build and run tests. To get started, you should be able to run
 
 ```bash
-cd cpp/build
-ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.bin
-ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin
-
-# The files should not be different
-diff direct.bin roundtrip.bin
+$ just
 ```
 
-You can run the roundtrip tests with:
+from the repo root, or, with MATLAB installed
 
 ```bash
-just test
+$ just matlab=enabled
 ```
+
+## LICENSE
+
+See [LICENSE](LICENSE).

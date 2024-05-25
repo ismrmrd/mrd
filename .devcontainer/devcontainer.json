@@ -6,7 +6,31 @@
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
+  "runArgs": [
+    "--cap-add=SYS_PTRACE",
+    "--security-opt",
+    "seccomp=unconfined",
+    "--network=host"
+  ],
+  "overrideCommand": false,
+  "mounts": [
+    // Bind mount docker socket under an alias to support docker-from-docker
+    "source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind",
+    "source=${localEnv:MATLAB_LICENSE_FILE:/dev/null},target=/tmp/matlab.host.lic,type=bind,readonly"
+  ],
+  "onCreateCommand": ".devcontainer/devcontainer-on-create.sh",
+  "remoteUser": "vscode",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
+  "containerEnv": {
+    "HOST_WORKSPACE_DIR": "${localWorkspaceFolder}", // The host's path to the repo's folder
+    "CONTAINER_WORKSPACE_DIR": "${containerWorkspaceFolder}",
+    "PYTHONPATH": "/workspaces/mrd/python",
+    "MATLAB_LICENSE_FILE": "/opt/matlab/latest/licenses/license.lic"
+  },
 
   // Configure tool-specific properties.
   "customizations": {
@@ -85,24 +109,16 @@
         "JacquesLucke.gcov-viewer",
         "jinliming2.vscode-go-template",
         "matepek.vscode-catch2-test-adapter",
+        "mathworks.language-matlab",
         "mhutchie.git-graph",
-        "sclu1034.justfile",
         "ms-python.python",
         "ms-toolsai.jupyter",
         "ms-vscode.cmake-tools",
         "ms-vscode.cpptools",
+        "sclu1034.justfile",
         "timonwong.shellcheck",
         "twxs.cmake"
       ]
     }
-  },
-
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "./.devcontainer/install-dependencies.sh",
-
-  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-  "remoteUser": "vscode"
+  }
 }

@@ -1,0 +1,11 @@
+c_compiler_version:
+  - 11.2.0                      # [linux]
+  - 14                          # [osx]
+cxx_compiler_version:
+  - 11.2.0                      # [linux]
+  - 14                          # [osx]
+
+MACOSX_DEPLOYMENT_TARGET:       # [osx]
+  - 10.13                       # [osx]
+CONDA_BUILD_SYSROOT:            # [osx]
+  - /opt/MacOSX10.13.sdk        # [osx]

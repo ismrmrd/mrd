@@ -6,12 +6,19 @@ WaveformSamples<T>: !array
 
 Waveform<T>: !record
   fields:
-    flags: uint64 # Currently unused
-    measurementUid: uint # Remove?
+    # Bit field of flags. Currently unused
+    flags: uint64
+    # Unique ID for this measurement
+    measurementUid: uint
+    # Number of the acquisition after this waveform
     scanCounter: uint
+    # Starting timestamp of this waveform
     timeStamp: uint
+    # Time between samples in microseconds
     sampleTimeUs: float
+    # ID matching the waveform in the MRD header
     waveformId: uint
+    # Waveform sample array
     data: WaveformSamples<T>
   computedFields:
     channels: size(data, "channels")

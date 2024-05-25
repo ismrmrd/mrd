@@ -1,0 +1,62 @@
+name: Configure MRD Build Environment
+description: Configures the conda development environment
+
+# The following inputs are currently expected environment variables:
+# YARDL_VERSION, e.g. 0.5.0
+# CONDA_CACHE_NUMBER, e.g. 0
+
+runs:
+  using: composite
+  steps:
+    - name: Install Yardl
+      shell: bash
+      run: |
+        mkdir -p "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
+        cd "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
+        wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        pwd >> $GITHUB_PATH
+
+    - name: Setup Mambaforge
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniforge-variant: Miniforge3
+        miniforge-version: latest
+        # Do not specify environment file - see Cache step below
+        activate-environment: mrd
+        use-mamba: true
+
+    - name: Get Date
+      id: get-date
+      shell: bash
+      run: echo "DATE=$(date -u +'%Y%m%d')" >> $GITHUB_ENV
+
+    - name: Cache Conda Env
+      id: cache-conda
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.CONDA }}/envs
+        key:
+            conda-${{ runner.os }}--${{ runner.arch }}--${{
+            hashFiles('environment.yml') }}-${{
+            env.DATE }}-${{
+            env.CONDA_CACHE_NUMBER }}
+
+    - name: Update Environment
+      shell: bash -el {0}
+      run: mamba env update -n mrd -f environment.yml
+      if: steps.cache-conda.outputs.cache-hit != 'true'
+
+    - name: Set up MATLAB
+      uses: matlab-actions/setup-matlab@v2
+      with:
+        release: R2023b
+        cache: true
+
+    # Workaround to running `matlab -batch` from within justfile and Python
+    # See: https://github.com/matlab-actions/run-command/issues/53
+    - name: Get run-matlab-command
+      shell: bash
+      run: |
+        wget -O /usr/local/bin/run-matlab-command https://ssd.mathworks.com/supportfiles/ci/run-matlab-command/v2/glnxa64/run-matlab-command
+        chmod +x /usr/local/bin/run-matlab-command
