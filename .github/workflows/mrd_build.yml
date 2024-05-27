@@ -149,7 +149,7 @@ jobs:
           See also:
           - [MRD Conda C++ SDK](https://anaconda.org/ismrmrd/mrd)
           - [MRD Conda Python SDK](https://anaconda.org/ismrmrd/mrd-python)
-          - [PyPi]()
+          - [PyPi](https://pypi.org/project/mrd-python/)
         append_body: true
 
     - name: Log into ghcr.io
@@ -159,5 +159,7 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Checkout
+      uses: actions/checkout@v4
     - name: Push Docker images
       run: ./docker/build-images.sh --tag "${GITHUB_REF_NAME}" --push
