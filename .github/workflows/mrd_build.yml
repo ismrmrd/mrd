@@ -56,7 +56,7 @@ jobs:
         overwrite: true
 
   docker:
-    name: Build and Publish Docker images
+    name: Build and Test Docker images
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -120,6 +120,7 @@ jobs:
       url: https://github.com/ismrmrd/mrd/releases
     permissions:
       contents: write
+      packages: write
 
     steps:
     - name: Retrieve MATLAB Toolbox
