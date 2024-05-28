@@ -151,6 +151,7 @@ jobs:
           - [MRD Conda C++ SDK](https://anaconda.org/ismrmrd/mrd)
           - [MRD Conda Python SDK](https://anaconda.org/ismrmrd/mrd-python)
           - [PyPi](https://pypi.org/project/mrd-python/)
+          - [Docker image](https://ghcr.io/ismrmrd/mrd-tools)
         append_body: true
 
     - name: Log into ghcr.io
