@@ -20,11 +20,11 @@ defaults:
 
 jobs:
   build:
-    name: Build and Test C++17, Python, MATLAB SDKs
+    name: Build and Test C++, Python, MATLAB SDKs
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cppVersion: [17]
+        cppVersion: [17, 20]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -68,8 +68,7 @@ jobs:
 
   publishDocs:
     name: Publish Documentation
-    # if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ismrmrd/mrd'
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ismrmrd/mrd'
     needs: [build, docker]
     runs-on: ubuntu-latest
     environment:

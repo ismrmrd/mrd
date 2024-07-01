@@ -26,18 +26,19 @@ add_compile_options(-Wall -Wextra -pedantic -Werror)
 add_subdirectory(mrd)
 add_subdirectory(mrd-tools)
 
+# Minimal example
 add_executable(mrd_minimal_example minimal_example.cc)
 target_link_libraries(mrd_minimal_example mrd_generated)
+install(TARGETS mrd_minimal_example DESTINATION bin)
 
-install(DIRECTORY mrd DESTINATION include COMPONENT Devel)
-install(TARGETS mrd_generated DESTINATION lib)
-install(TARGETS
-    ismrmrd_to_mrd
-    mrd_hdf5_to_stream
-    mrd_image_stream_to_png
-    mrd_phantom
-    mrd_stream_recon
-    mrd_stream_to_hdf5
-    mrd_to_ismrmrd
-    mrd_minimal_example
-    DESTINATION bin)
+# MRD Library (libmrd)
+add_library(mrd SHARED $<TARGET_OBJECTS:mrd_generated>)
+target_link_libraries(mrd mrd_generated)
+install(TARGETS mrd DESTINATION lib)
+
+# MRD Library Headers
+install(DIRECTORY mrd
+        DESTINATION include
+        COMPONENT Devel
+        FILES_MATCHING PATTERN "*.h"
+)
