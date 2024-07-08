@@ -1,6 +1,5 @@
 #include "mrd/binary/protocols.h"
 #include <exception>
-#include <filesystem>
 #include <iostream>
 #include <ismrmrd/dataset.h>
 #include <ismrmrd/meta.h>
@@ -1034,9 +1033,6 @@ int main(int argc, char** argv) {
 
   std::unique_ptr<std::ifstream> input_file;
   if (!input_path.empty()) {
-    if (!std::filesystem::exists(input_path)) {
-      throw std::runtime_error("Input file does not exist.");
-    }
     input_file = std::make_unique<std::ifstream>(input_path, std::ios::binary | std::ios::in);
     if (!input_file->good()) {
       throw std::runtime_error("Failed to open input file for reading.");

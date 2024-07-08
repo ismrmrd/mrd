@@ -1,9 +1,7 @@
-#include <filesystem>
-#include <iostream>
-
 #include "mrd/binary/protocols.h"
 #include "shepp_logan_phantom.h"
 
+#include <iostream>
 #include <random>
 #include <xtensor-fftw/basic.hpp>
 #include <xtensor-fftw/helper.hpp>
