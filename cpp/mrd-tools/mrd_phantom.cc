@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
   if (filename.empty()) {
     w = std::make_unique<mrd::binary::MrdWriter>(std::cout);
   } else {
-    std::filesystem::remove(filename);
+    std::remove(filename.c_str());
     w = std::make_unique<mrd::binary::MrdWriter>(filename);
   }
 
