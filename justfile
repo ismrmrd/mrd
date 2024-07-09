@@ -3,11 +3,11 @@ set shell := ['bash', '-ceuo', 'pipefail']
 # Read version from file and export for all tasks
 export MRD_VERSION_STRING := `cat VERSION`
 
-cpp_version := "17"
+cpp_version := "20"
 
 matlab := "disabled"
 matlab-test-cmd := if matlab != "disabled" { "run-matlab-command buildtool" } else { "echo Skipping MATLAB tests..." }
-cross-recon-test-cmd := if matlab != "disabled" { "./test.sh" } else { "echo Skipping cross-language reconstruction test..." }
+cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test.sh" } else { "./test.sh" }
 
 @default: test
 
@@ -16,10 +16,17 @@ cross-recon-test-cmd := if matlab != "disabled" { "./test.sh" } else { "echo Ski
 
 @configure: ensure-build-dir
     cd cpp/build; \
-    cmake -GNinja -D CMAKE_CXX_STANDARD={{ cpp_version }} ..
+    cmake -GNinja \
+        -D CMAKE_CXX_STANDARD={{ cpp_version }} \
+        -D CMAKE_BUILD_TYPE=Release \
+        -D CMAKE_INSTALL_PREFIX=$(mamba info --json | jq -r .default_prefix) \
+        ..
 
 @build: configure generate
     cd cpp/build && ninja
+
+@install: build
+    cd cpp/build && ninja install
 
 @convert-xsd:
     wget -O ismrmrd.xsd https://raw.githubusercontent.com/ismrmrd/ismrmrd/master/schema/ismrmrd.xsd

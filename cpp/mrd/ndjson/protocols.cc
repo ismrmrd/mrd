@@ -153,45 +153,45 @@ void from_json(ordered_json const& j, mrd::Waveform<T>& value);
 NLOHMANN_JSON_NAMESPACE_BEGIN
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble> const& value) {
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>> const& value) {
     switch (value.index()) {
       case 0:
         j = ordered_json{ {"Acquisition", std::get<mrd::Acquisition>(value)} };
         break;
       case 1:
-        j = ordered_json{ {"WaveformUint32", std::get<mrd::WaveformUint32>(value)} };
+        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
         break;
       case 2:
-        j = ordered_json{ {"ImageUint16", std::get<mrd::ImageUint16>(value)} };
+        j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
         break;
       case 3:
-        j = ordered_json{ {"ImageInt16", std::get<mrd::ImageInt16>(value)} };
+        j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
         break;
       case 4:
-        j = ordered_json{ {"ImageUint", std::get<mrd::ImageUint>(value)} };
+        j = ordered_json{ {"ImageUint", std::get<mrd::Image<uint32_t>>(value)} };
         break;
       case 5:
-        j = ordered_json{ {"ImageInt", std::get<mrd::ImageInt>(value)} };
+        j = ordered_json{ {"ImageInt", std::get<mrd::Image<int32_t>>(value)} };
         break;
       case 6:
-        j = ordered_json{ {"ImageFloat", std::get<mrd::ImageFloat>(value)} };
+        j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
         break;
       case 7:
-        j = ordered_json{ {"ImageDouble", std::get<mrd::ImageDouble>(value)} };
+        j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
         break;
       case 8:
-        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::ImageComplexFloat>(value)} };
+        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
         break;
       case 9:
-        j = ordered_json{ {"ImageComplexDouble", std::get<mrd::ImageComplexDouble>(value)} };
+        j = ordered_json{ {"ImageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
         break;
       default:
         throw std::runtime_error("Invalid union value");
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>& value) {
     auto it = j.begin();
     std::string tag = it.key();
     if (tag == "Acquisition") {
@@ -199,39 +199,39 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::I
       return;
     }
     if (tag == "WaveformUint32") {
-      value = it.value().get<mrd::WaveformUint32>();
+      value = it.value().get<mrd::Waveform<uint32_t>>();
       return;
     }
     if (tag == "ImageUint16") {
-      value = it.value().get<mrd::ImageUint16>();
+      value = it.value().get<mrd::Image<uint16_t>>();
       return;
     }
     if (tag == "ImageInt16") {
-      value = it.value().get<mrd::ImageInt16>();
+      value = it.value().get<mrd::Image<int16_t>>();
       return;
     }
     if (tag == "ImageUint") {
-      value = it.value().get<mrd::ImageUint>();
+      value = it.value().get<mrd::Image<uint32_t>>();
       return;
     }
     if (tag == "ImageInt") {
-      value = it.value().get<mrd::ImageInt>();
+      value = it.value().get<mrd::Image<int32_t>>();
       return;
     }
     if (tag == "ImageFloat") {
-      value = it.value().get<mrd::ImageFloat>();
+      value = it.value().get<mrd::Image<float>>();
       return;
     }
     if (tag == "ImageDouble") {
-      value = it.value().get<mrd::ImageDouble>();
+      value = it.value().get<mrd::Image<double>>();
       return;
     }
     if (tag == "ImageComplexFloat") {
-      value = it.value().get<mrd::ImageComplexFloat>();
+      value = it.value().get<mrd::Image<std::complex<float>>>();
       return;
     }
     if (tag == "ImageComplexDouble") {
-      value = it.value().get<mrd::ImageComplexDouble>();
+      value = it.value().get<mrd::Image<std::complex<double>>>();
       return;
     }
   }

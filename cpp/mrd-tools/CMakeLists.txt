@@ -83,3 +83,13 @@ target_link_libraries(
   ${ImageMagick_LIBRARIES}
   fmt::fmt
 )
+
+install(TARGETS
+    ismrmrd_to_mrd
+    mrd_hdf5_to_stream
+    mrd_image_stream_to_png
+    mrd_phantom
+    mrd_stream_recon
+    mrd_stream_to_hdf5
+    mrd_to_ismrmrd
+    DESTINATION bin)
