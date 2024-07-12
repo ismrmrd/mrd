@@ -7,6 +7,62 @@ namespace mrd {
 enum class Version {
   Current
 };
+// Abstract writer for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceWriterBase {
+  public:
+  // Ordinal 0.
+  void WriteNoiseCovariance(mrd::NoiseCovariance const& value);
+
+  // Optionaly close this writer before destructing. Validates that all steps were completed.
+  void Close();
+
+  virtual ~MrdNoiseCovarianceWriterBase() = default;
+
+  // Flushes all buffered data.
+  virtual void Flush() {}
+
+  protected:
+  virtual void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) = 0;
+  virtual void CloseImpl() {}
+
+  static std::string schema_;
+
+  static std::vector<std::string> previous_schemas_;
+
+  static std::string SchemaFromVersion(Version version);
+
+  private:
+  uint8_t state_ = 0;
+
+  friend class MrdNoiseCovarianceReaderBase;
+};
+
+// Abstract reader for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceReaderBase {
+  public:
+  // Ordinal 0.
+  void ReadNoiseCovariance(mrd::NoiseCovariance& value);
+
+  // Optionaly close this writer before destructing. Validates that all steps were completely read.
+  void Close();
+
+  void CopyTo(MrdNoiseCovarianceWriterBase& writer);
+
+  virtual ~MrdNoiseCovarianceReaderBase() = default;
+
+  protected:
+  virtual void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) = 0;
+  virtual void CloseImpl() {}
+  static std::string schema_;
+
+  static std::vector<std::string> previous_schemas_;
+
+  static Version VersionFromSchema(const std::string& schema);
+
+  private:
+  uint8_t state_ = 0;
+};
+
 // Abstract writer for the Mrd protocol.
 class MrdWriterBase {
   public:

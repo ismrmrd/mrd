@@ -18,7 +18,6 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     cd cpp/build; \
     cmake -GNinja \
         -D CMAKE_CXX_STANDARD={{ cpp_version }} \
-        -D CMAKE_BUILD_TYPE=Release \
         -D CMAKE_INSTALL_PREFIX=$(mamba info --json | jq -r .default_prefix) \
         ..
 

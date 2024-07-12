@@ -1659,6 +1659,104 @@ class Image(typing.Generic[T_NP]):
         return f"Image(flags={repr(self.flags)}, measurementUid={repr(self.measurement_uid)}, fieldOfView={repr(self.field_of_view)}, position={repr(self.position)}, colDir={repr(self.col_dir)}, lineDir={repr(self.line_dir)}, sliceDir={repr(self.slice_dir)}, patientTablePosition={repr(self.patient_table_position)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, acquisitionTimeStamp={repr(self.acquisition_time_stamp)}, physiologyTimeStamp={repr(self.physiology_time_stamp)}, imageType={repr(self.image_type)}, imageIndex={repr(self.image_index)}, imageSeriesIndex={repr(self.image_series_index)}, userInt={repr(self.user_int)}, userFloat={repr(self.user_float)}, data={repr(self.data)}, meta={repr(self.meta)})"
 
 
+KspaceData = npt.NDArray[np.complex64]
+
+MaskData = npt.NDArray[np.bool_]
+
+class Kspace:
+    reference: Acquisition
+    data: KspaceData
+    mask: typing.Optional[MaskData]
+
+    def __init__(self, *,
+        reference: typing.Optional[Acquisition] = None,
+        data: typing.Optional[KspaceData] = None,
+        mask: typing.Optional[MaskData] = None,
+    ):
+        self.reference = reference if reference is not None else Acquisition()
+        self.data = data if data is not None else np.zeros((0, 0, 0, 0, 0, 0), dtype=np.dtype(np.complex64))
+        self.mask = mask
+
+    def slices(self) -> yardl.Size:
+        return self.data.shape[1]
+
+    def contrasts(self) -> yardl.Size:
+        return self.data.shape[0]
+
+    def coils(self) -> yardl.Size:
+        return self.data.shape[2]
+
+    def nz(self) -> yardl.Size:
+        return self.data.shape[3]
+
+    def ny(self) -> yardl.Size:
+        return self.data.shape[4]
+
+    def nx(self) -> yardl.Size:
+        return self.data.shape[5]
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, Kspace)
+            and self.reference == other.reference
+            and yardl.structural_equal(self.data, other.data)
+            and (other.mask is None if self.mask is None else (other.mask is not None and yardl.structural_equal(self.mask, other.mask)))
+        )
+
+    def __str__(self) -> str:
+        return f"Kspace(reference={self.reference}, data={self.data}, mask={self.mask})"
+
+    def __repr__(self) -> str:
+        return f"Kspace(reference={repr(self.reference)}, data={repr(self.data)}, mask={repr(self.mask)})"
+
+
+class NoiseCovariance:
+    coil_labels: list[CoilLabelType]
+    """Comes from Header.acquisitionSystemInformation.coilLabel"""
+
+    receiver_noise_bandwidth: yardl.Float32
+    """Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth"""
+
+    noise_dwell_time_us: yardl.Float32
+    """Comes from Acquisition.sampleTimeUs"""
+
+    sample_count: yardl.Size
+    """Number of samples used to compute matrix"""
+
+    matrix: npt.NDArray[np.complex64]
+    """Noise covariance matrix with dimensions [coil, coil]"""
+
+
+    def __init__(self, *,
+        coil_labels: typing.Optional[list[CoilLabelType]] = None,
+        receiver_noise_bandwidth: yardl.Float32 = 0.0,
+        noise_dwell_time_us: yardl.Float32 = 0.0,
+        sample_count: yardl.Size = 0,
+        matrix: typing.Optional[npt.NDArray[np.complex64]] = None,
+    ):
+        self.coil_labels = coil_labels if coil_labels is not None else []
+        self.receiver_noise_bandwidth = receiver_noise_bandwidth
+        self.noise_dwell_time_us = noise_dwell_time_us
+        self.sample_count = sample_count
+        self.matrix = matrix if matrix is not None else np.zeros((0, 0), dtype=np.dtype(np.complex64))
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, NoiseCovariance)
+            and self.coil_labels == other.coil_labels
+            and self.receiver_noise_bandwidth == other.receiver_noise_bandwidth
+            and self.noise_dwell_time_us == other.noise_dwell_time_us
+            and self.sample_count == other.sample_count
+            and yardl.structural_equal(self.matrix, other.matrix)
+        )
+
+    def __str__(self) -> str:
+        return f"NoiseCovariance(coilLabels={self.coil_labels}, receiverNoiseBandwidth={self.receiver_noise_bandwidth}, noiseDwellTimeUs={self.noise_dwell_time_us}, sampleCount={self.sample_count}, matrix={self.matrix})"
+
+    def __repr__(self) -> str:
+        return f"NoiseCovariance(coilLabels={repr(self.coil_labels)}, receiverNoiseBandwidth={repr(self.receiver_noise_bandwidth)}, noiseDwellTimeUs={repr(self.noise_dwell_time_us)}, sampleCount={repr(self.sample_count)}, matrix={repr(self.matrix)})"
+
+
 WaveformSamples = npt.NDArray[T_NP]
 
 class Waveform(typing.Generic[T_NP]):
@@ -1748,6 +1846,7 @@ _T = typing.TypeVar('_T')
 
 class StreamItem:
     Acquisition: typing.ClassVar[type["StreamItemUnionCase[Acquisition]"]]
+    Kspace: typing.ClassVar[type["StreamItemUnionCase[Kspace]"]]
     WaveformUint32: typing.ClassVar[type["StreamItemUnionCase[WaveformUint32]"]]
     ImageUint16: typing.ClassVar[type["StreamItemUnionCase[ImageUint16]"]]
     ImageInt16: typing.ClassVar[type["StreamItemUnionCase[ImageInt16]"]]
@@ -1762,15 +1861,16 @@ class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
 
 StreamItem.Acquisition = type("StreamItem.Acquisition", (StreamItemUnionCase,), {"index": 0, "tag": "Acquisition"})
-StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 1, "tag": "WaveformUint32"})
-StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 2, "tag": "ImageUint16"})
-StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 3, "tag": "ImageInt16"})
-StreamItem.ImageUint = type("StreamItem.ImageUint", (StreamItemUnionCase,), {"index": 4, "tag": "ImageUint"})
-StreamItem.ImageInt = type("StreamItem.ImageInt", (StreamItemUnionCase,), {"index": 5, "tag": "ImageInt"})
-StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 6, "tag": "ImageFloat"})
-StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 7, "tag": "ImageDouble"})
-StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 8, "tag": "ImageComplexFloat"})
-StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 9, "tag": "ImageComplexDouble"})
+StreamItem.Kspace = type("StreamItem.Kspace", (StreamItemUnionCase,), {"index": 1, "tag": "Kspace"})
+StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 2, "tag": "WaveformUint32"})
+StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 3, "tag": "ImageUint16"})
+StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 4, "tag": "ImageInt16"})
+StreamItem.ImageUint = type("StreamItem.ImageUint", (StreamItemUnionCase,), {"index": 5, "tag": "ImageUint"})
+StreamItem.ImageInt = type("StreamItem.ImageInt", (StreamItemUnionCase,), {"index": 6, "tag": "ImageInt"})
+StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 7, "tag": "ImageFloat"})
+StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 8, "tag": "ImageDouble"})
+StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 9, "tag": "ImageComplexFloat"})
+StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 10, "tag": "ImageComplexDouble"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():
@@ -1822,6 +1922,8 @@ def _mk_get_dtype():
     dtype_map.setdefault(ImageType, np.dtype(np.int32))
     dtype_map.setdefault(ImageMetaData, np.dtype([('name', np.dtype(np.object_)), ('value', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(Image, lambda type_args: np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('physiology_time_stamp', np.dtype(np.object_)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(Kspace, np.dtype([('reference', get_dtype(Acquisition)), ('data', np.dtype(np.object_)), ('mask', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))
+    dtype_map.setdefault(NoiseCovariance, np.dtype([('coil_labels', np.dtype(np.object_)), ('receiver_noise_bandwidth', np.dtype(np.float32)), ('noise_dwell_time_us', np.dtype(np.float32)), ('sample_count', np.dtype(np.uint64)), ('matrix', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(Waveform, lambda type_args: np.dtype([('flags', np.dtype(np.uint64)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype(np.uint32)), ('time_stamp', np.dtype(np.uint32)), ('sample_time_us', np.dtype(np.float32)), ('waveform_id', np.dtype(np.uint32)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(WaveformUint32, get_dtype(types.GenericAlias(Waveform, (yardl.UInt32,))))
     dtype_map.setdefault(ImageUint16, get_dtype(types.GenericAlias(Image, (yardl.UInt16,))))

@@ -8,7 +8,7 @@ ImageDouble: Image<double>
 ImageComplexFloat: Image<complexfloat>
 ImageComplexDouble: Image<complexdouble>
 
-StreamItem: [Acquisition, WaveformUint32, ImageUint16, ImageInt16, ImageUint, ImageInt, ImageFloat, ImageDouble, ImageComplexFloat, ImageComplexDouble]
+StreamItem: [Acquisition, Kspace, WaveformUint32, ImageUint16, ImageInt16, ImageUint, ImageInt, ImageFloat, ImageDouble, ImageComplexFloat, ImageComplexDouble]
 
 Mrd: !protocol
   sequence:

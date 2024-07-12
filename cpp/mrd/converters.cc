@@ -1,4 +1,4 @@
-#include "mrd/converters.h"
+#include "converters.h"
 
 #include <ismrmrd/meta.h>
 #include <ismrmrd/version.h>
@@ -1069,6 +1069,11 @@ ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im) {
     return convert<std::complex<double>>(im);
 }
 
+// Convert mrd::Kspace - no equivalent in ISMRMRD::
+int convert(Kspace&) {
+  return 0;
+}
+
 
 yardl::Date date_from_string(const std::string& s) {
   std::stringstream ss{s};
@@ -2073,5 +2078,6 @@ Image<std::complex<float>> convert(ISMRMRD::Image<std::complex<float>>& im) {
 Image<std::complex<double>> convert(ISMRMRD::Image<std::complex<double>>& im) {
     return convert<std::complex<double>>(im);
 }
+
 
 }

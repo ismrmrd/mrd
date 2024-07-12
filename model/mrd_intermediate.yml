@@ -1,0 +1,53 @@
+# KspaceProtocol: !protocol
+#   sequence:
+#     header: Header?
+#     kspace: !stream
+#       items: Kspace
+
+Kspace: !record
+  fields:
+    reference: Acquisition
+    data: KspaceData
+    mask: MaskData?
+  computedFields:
+    slices: size(data, "slice")
+    contrasts: size(data, "contrast")
+    coils: size(data, "coil")
+    nz: size(data, "kspaceEncodeStep2")
+    ny: size(data, "kspaceEncodeStep1")
+    nx: size(data, "samples")
+
+KspaceData: !array
+  items: complexfloat
+  dimensions:
+    contrast:
+    slice:
+    coil:
+    kspaceEncodeStep2:
+    kspaceEncodeStep1:
+    samples:
+
+MaskData: !array
+  items: bool
+  dimensions:
+    contrast:
+    slice:
+    kspaceEncodeStep2:
+    kspaceEncodeStep1:
+
+NoiseCovariance: !record
+  fields:
+    # Comes from Header.acquisitionSystemInformation.coilLabel
+    coilLabels: CoilLabelType*
+    # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
+    receiverNoiseBandwidth: float
+    # Comes from Acquisition.sampleTimeUs
+    noiseDwellTimeUs: float
+    # Number of samples used to compute matrix
+    sampleCount: size
+    # Noise covariance matrix with dimensions [coil, coil]
+    matrix: complexfloat[,]
+
+MrdNoiseCovariance: !protocol
+  sequence:
+    noiseCovariance: NoiseCovariance

@@ -52,12 +52,16 @@ from .types import (
     ImageUint,
     ImageUint16,
     InterleavingDimension,
+    Kspace,
+    KspaceData,
     LimitType,
+    MaskData,
     MatrixSizeType,
     MeasurementDependencyType,
     MeasurementInformationType,
     MultibandSpacingType,
     MultibandType,
+    NoiseCovariance,
     ParallelImagingType,
     PatientGender,
     PatientPosition,
@@ -83,14 +87,20 @@ from .types import (
     get_dtype,
 )
 from .protocols import (
+    MrdNoiseCovarianceReaderBase,
+    MrdNoiseCovarianceWriterBase,
     MrdReaderBase,
     MrdWriterBase,
 )
 from .binary import (
+    BinaryMrdNoiseCovarianceReader,
+    BinaryMrdNoiseCovarianceWriter,
     BinaryMrdReader,
     BinaryMrdWriter,
 )
 from .ndjson import (
+    NDJsonMrdNoiseCovarianceReader,
+    NDJsonMrdNoiseCovarianceWriter,
     NDJsonMrdReader,
     NDJsonMrdWriter,
 )

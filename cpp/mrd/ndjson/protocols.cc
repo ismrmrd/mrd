@@ -143,6 +143,12 @@ void to_json(ordered_json& j, mrd::Image<T> const& value);
 template <typename T>
 void from_json(ordered_json const& j, mrd::Image<T>& value);
 
+void to_json(ordered_json& j, mrd::Kspace const& value);
+void from_json(ordered_json const& j, mrd::Kspace& value);
+
+void to_json(ordered_json& j, mrd::NoiseCovariance const& value);
+void from_json(ordered_json const& j, mrd::NoiseCovariance& value);
+
 template <typename T>
 void to_json(ordered_json& j, mrd::Waveform<T> const& value);
 template <typename T>
@@ -153,37 +159,40 @@ void from_json(ordered_json const& j, mrd::Waveform<T>& value);
 NLOHMANN_JSON_NAMESPACE_BEGIN
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>> const& value) {
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::Kspace, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Kspace, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>> const& value) {
     switch (value.index()) {
       case 0:
         j = ordered_json{ {"Acquisition", std::get<mrd::Acquisition>(value)} };
         break;
       case 1:
-        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
+        j = ordered_json{ {"Kspace", std::get<mrd::Kspace>(value)} };
         break;
       case 2:
-        j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
+        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
         break;
       case 3:
-        j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
+        j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
         break;
       case 4:
-        j = ordered_json{ {"ImageUint", std::get<mrd::Image<uint32_t>>(value)} };
+        j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
         break;
       case 5:
-        j = ordered_json{ {"ImageInt", std::get<mrd::Image<int32_t>>(value)} };
+        j = ordered_json{ {"ImageUint", std::get<mrd::Image<uint32_t>>(value)} };
         break;
       case 6:
-        j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
+        j = ordered_json{ {"ImageInt", std::get<mrd::Image<int32_t>>(value)} };
         break;
       case 7:
-        j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
+        j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
         break;
       case 8:
-        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
+        j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
         break;
       case 9:
+        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
+        break;
+      case 10:
         j = ordered_json{ {"ImageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
         break;
       default:
@@ -191,11 +200,15 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mr
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Kspace, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>& value) {
     auto it = j.begin();
     std::string tag = it.key();
     if (tag == "Acquisition") {
       value = it.value().get<mrd::Acquisition>();
+      return;
+    }
+    if (tag == "Kspace") {
+      value = it.value().get<mrd::Kspace>();
       return;
     }
     if (tag == "WaveformUint32") {
@@ -2569,6 +2582,68 @@ void from_json(ordered_json const& j, mrd::Image<T>& value) {
   }
 }
 
+void to_json(ordered_json& j, mrd::Kspace const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.reference)) {
+    j.push_back({"reference", value.reference});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.data)) {
+    j.push_back({"data", value.data});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.mask)) {
+    j.push_back({"mask", value.mask});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::Kspace& value) {
+  if (auto it = j.find("reference"); it != j.end()) {
+    it->get_to(value.reference);
+  }
+  if (auto it = j.find("data"); it != j.end()) {
+    it->get_to(value.data);
+  }
+  if (auto it = j.find("mask"); it != j.end()) {
+    it->get_to(value.mask);
+  }
+}
+
+void to_json(ordered_json& j, mrd::NoiseCovariance const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.coil_labels)) {
+    j.push_back({"coilLabels", value.coil_labels});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.receiver_noise_bandwidth)) {
+    j.push_back({"receiverNoiseBandwidth", value.receiver_noise_bandwidth});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.noise_dwell_time_us)) {
+    j.push_back({"noiseDwellTimeUs", value.noise_dwell_time_us});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_count)) {
+    j.push_back({"sampleCount", value.sample_count});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.matrix)) {
+    j.push_back({"matrix", value.matrix});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::NoiseCovariance& value) {
+  if (auto it = j.find("coilLabels"); it != j.end()) {
+    it->get_to(value.coil_labels);
+  }
+  if (auto it = j.find("receiverNoiseBandwidth"); it != j.end()) {
+    it->get_to(value.receiver_noise_bandwidth);
+  }
+  if (auto it = j.find("noiseDwellTimeUs"); it != j.end()) {
+    it->get_to(value.noise_dwell_time_us);
+  }
+  if (auto it = j.find("sampleCount"); it != j.end()) {
+    it->get_to(value.sample_count);
+  }
+  if (auto it = j.find("matrix"); it != j.end()) {
+    it->get_to(value.matrix);
+  }
+}
+
 template <typename T>
 void to_json(ordered_json& j, mrd::Waveform<T> const& value) {
   j = ordered_json::object();
@@ -2623,6 +2698,26 @@ void from_json(ordered_json const& j, mrd::Waveform<T>& value) {
 } // namespace mrd
 
 namespace mrd::ndjson {
+void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) {
+  ordered_json json_value = value;
+  yardl::ndjson::WriteProtocolValue(stream_, "noiseCovariance", json_value);}
+
+void MrdNoiseCovarianceWriter::Flush() {
+  stream_.flush();
+}
+
+void MrdNoiseCovarianceWriter::CloseImpl() {
+  stream_.flush();
+}
+
+void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) {
+  yardl::ndjson::ReadProtocolValue(stream_, line_, "noiseCovariance", true, unused_step_, value);
+}
+
+void MrdNoiseCovarianceReader::CloseImpl() {
+  VerifyFinished();
+}
+
 void MrdWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
   ordered_json json_value = value;
   yardl::ndjson::WriteProtocolValue(stream_, "header", json_value);}

@@ -19,6 +19,29 @@ from .protocols import *
 from . import _binary
 from . import yardl_types as yardl
 
+class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovarianceWriterBase):
+    """Binary writer for the MrdNoiseCovariance protocol."""
+
+
+    def __init__(self, stream: typing.Union[typing.BinaryIO, str]) -> None:
+        MrdNoiseCovarianceWriterBase.__init__(self)
+        _binary.BinaryProtocolWriter.__init__(self, stream, MrdNoiseCovarianceWriterBase.schema)
+
+    def _write_noise_covariance(self, value: NoiseCovariance) -> None:
+        NoiseCovarianceSerializer().write(self._stream, value)
+
+
+class BinaryMrdNoiseCovarianceReader(_binary.BinaryProtocolReader, MrdNoiseCovarianceReaderBase):
+    """Binary writer for the MrdNoiseCovariance protocol."""
+
+
+    def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str]) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self)
+        _binary.BinaryProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
+
+    def _read_noise_covariance(self) -> NoiseCovariance:
+        return NoiseCovarianceSerializer().read(self._stream)
+
 class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
     """Binary writer for the Mrd protocol."""
 
@@ -31,7 +54,7 @@ class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
         _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer))])).write(self._stream, value)
+        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.Kspace, KspaceSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer))])).write(self._stream, value)
 
 
 class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
@@ -46,7 +69,7 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer))])).read(self._stream)
+        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.Kspace, KspaceSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer))])).read(self._stream)
 
 class EncodingCountersSerializer(_binary.RecordSerializer[EncodingCounters]):
     def __init__(self) -> None:
@@ -658,6 +681,42 @@ class ImageSerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[Image[T_
     def read(self, stream: _binary.CodedInputStream) -> Image[T_NP]:
         field_values = self._read(stream)
         return Image[T_NP](flags=field_values[0], measurement_uid=field_values[1], field_of_view=field_values[2], position=field_values[3], col_dir=field_values[4], line_dir=field_values[5], slice_dir=field_values[6], patient_table_position=field_values[7], average=field_values[8], slice=field_values[9], contrast=field_values[10], phase=field_values[11], repetition=field_values[12], set=field_values[13], acquisition_time_stamp=field_values[14], physiology_time_stamp=field_values[15], image_type=field_values[16], image_index=field_values[17], image_series_index=field_values[18], user_int=field_values[19], user_float=field_values[20], data=field_values[21], meta=field_values[22])
+
+
+class KspaceSerializer(_binary.RecordSerializer[Kspace]):
+    def __init__(self) -> None:
+        super().__init__([("reference", AcquisitionSerializer()), ("data", _binary.NDArraySerializer(_binary.complexfloat32_serializer, 6)), ("mask", _binary.OptionalSerializer(_binary.NDArraySerializer(_binary.bool_serializer, 4)))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: Kspace) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.reference, value.data, value.mask)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['reference'], value['data'], value['mask'])
+
+    def read(self, stream: _binary.CodedInputStream) -> Kspace:
+        field_values = self._read(stream)
+        return Kspace(reference=field_values[0], data=field_values[1], mask=field_values[2])
+
+
+class NoiseCovarianceSerializer(_binary.RecordSerializer[NoiseCovariance]):
+    def __init__(self) -> None:
+        super().__init__([("coil_labels", _binary.VectorSerializer(CoilLabelTypeSerializer())), ("receiver_noise_bandwidth", _binary.float32_serializer), ("noise_dwell_time_us", _binary.float32_serializer), ("sample_count", _binary.size_serializer), ("matrix", _binary.NDArraySerializer(_binary.complexfloat32_serializer, 2))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: NoiseCovariance) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.coil_labels, value.receiver_noise_bandwidth, value.noise_dwell_time_us, value.sample_count, value.matrix)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['coil_labels'], value['receiver_noise_bandwidth'], value['noise_dwell_time_us'], value['sample_count'], value['matrix'])
+
+    def read(self, stream: _binary.CodedInputStream) -> NoiseCovariance:
+        field_values = self._read(stream)
+        return NoiseCovariance(coil_labels=field_values[0], receiver_noise_bandwidth=field_values[1], noise_dwell_time_us=field_values[2], sample_count=field_values[3], matrix=field_values[4])
 
 
 class WaveformSerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[Waveform[T_NP]]):
