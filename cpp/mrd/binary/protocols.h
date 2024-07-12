@@ -13,6 +13,42 @@
 #include "../types.h"
 
 namespace mrd::binary {
+// Binary writer for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::binary::BinaryWriter {
+  public:
+  MrdNoiseCovarianceWriter(std::ostream& stream, Version version = Version::Current)
+      : yardl::binary::BinaryWriter(stream, mrd::MrdNoiseCovarianceWriterBase::SchemaFromVersion(version)), version_(version) {}
+
+  MrdNoiseCovarianceWriter(std::string file_name, Version version = Version::Current)
+      : yardl::binary::BinaryWriter(file_name, mrd::MrdNoiseCovarianceWriterBase::SchemaFromVersion(version)), version_(version) {}
+
+  void Flush() override;
+
+  protected:
+  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+  void CloseImpl() override;
+
+  Version version_;
+};
+
+// Binary reader for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::binary::BinaryReader {
+  public:
+  MrdNoiseCovarianceReader(std::istream& stream)
+      : yardl::binary::BinaryReader(stream), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+
+  MrdNoiseCovarianceReader(std::string file_name)
+      : yardl::binary::BinaryReader(file_name), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+
+  Version GetVersion() { return version_; }
+
+  protected:
+  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
+  void CloseImpl() override;
+
+  Version version_;
+};
+
 // Binary writer for the Mrd protocol.
 class MrdWriter : public mrd::MrdWriterBase, yardl::binary::BinaryWriter {
   public:

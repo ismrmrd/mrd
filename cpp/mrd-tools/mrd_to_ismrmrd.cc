@@ -1046,6 +1046,11 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
   return im;
 }
 
+// Convert mrd::Kspace - no equivalent in ISMRMRD::
+int convert(mrd::Kspace&) {
+  return 0;
+}
+
 void print_usage(std::string program_name) {
   std::cerr << "Usage: " << program_name << std::endl;
   std::cerr << "  -i|--input-file   <input MRD stream> (default: stdin)" << std::endl;

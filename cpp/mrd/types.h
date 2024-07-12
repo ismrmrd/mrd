@@ -973,6 +973,75 @@ struct Image {
   }
 };
 
+using KspaceData = yardl::NDArray<std::complex<float>, 6>;
+
+using MaskData = yardl::NDArray<bool, 4>;
+
+struct Kspace {
+  mrd::Acquisition reference{};
+  mrd::KspaceData data{};
+  std::optional<mrd::MaskData> mask{};
+
+  yardl::Size Slices() const {
+    return data.shape(1);
+  }
+
+  yardl::Size Contrasts() const {
+    return data.shape(0);
+  }
+
+  yardl::Size Coils() const {
+    return data.shape(2);
+  }
+
+  yardl::Size Nz() const {
+    return data.shape(3);
+  }
+
+  yardl::Size Ny() const {
+    return data.shape(4);
+  }
+
+  yardl::Size Nx() const {
+    return data.shape(5);
+  }
+
+  bool operator==(const Kspace& other) const {
+    return reference == other.reference &&
+      data == other.data &&
+      mask == other.mask;
+  }
+
+  bool operator!=(const Kspace& other) const {
+    return !(*this == other);
+  }
+};
+
+struct NoiseCovariance {
+  // Comes from Header.acquisitionSystemInformation.coilLabel
+  std::vector<mrd::CoilLabelType> coil_labels{};
+  // Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
+  float receiver_noise_bandwidth{};
+  // Comes from Acquisition.sampleTimeUs
+  float noise_dwell_time_us{};
+  // Number of samples used to compute matrix
+  yardl::Size sample_count{};
+  // Noise covariance matrix with dimensions [coil, coil]
+  yardl::NDArray<std::complex<float>, 2> matrix{};
+
+  bool operator==(const NoiseCovariance& other) const {
+    return coil_labels == other.coil_labels &&
+      receiver_noise_bandwidth == other.receiver_noise_bandwidth &&
+      noise_dwell_time_us == other.noise_dwell_time_us &&
+      sample_count == other.sample_count &&
+      matrix == other.matrix;
+  }
+
+  bool operator!=(const NoiseCovariance& other) const {
+    return !(*this == other);
+  }
+};
+
 template <typename T>
 using WaveformSamples = yardl::NDArray<T, 2>;
 
@@ -1034,7 +1103,7 @@ using ImageComplexFloat = mrd::Image<std::complex<float>>;
 
 using ImageComplexDouble = mrd::Image<std::complex<double>>;
 
-using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::Kspace, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>;
 
 } // namespace mrd
 

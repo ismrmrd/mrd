@@ -2602,6 +2602,120 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
         ) # type:ignore 
 
 
+class KspaceConverter(_ndjson.JsonConverter[Kspace, np.void]):
+    def __init__(self) -> None:
+        self._reference_converter = AcquisitionConverter()
+        self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 6)
+        self._mask_converter = _ndjson.OptionalConverter(_ndjson.NDArrayConverter(_ndjson.bool_converter, 4))
+        super().__init__(np.dtype([
+            ("reference", self._reference_converter.overall_dtype()),
+            ("data", self._data_converter.overall_dtype()),
+            ("mask", self._mask_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: Kspace) -> object:
+        if not isinstance(value, Kspace): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'Kspace' instance")
+        json_object = {}
+
+        json_object["reference"] = self._reference_converter.to_json(value.reference)
+        json_object["data"] = self._data_converter.to_json(value.data)
+        if value.mask is not None:
+            json_object["mask"] = self._mask_converter.to_json(value.mask)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["reference"] = self._reference_converter.numpy_to_json(value["reference"])
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        if (field_val := value["mask"]) is not None:
+            json_object["mask"] = self._mask_converter.numpy_to_json(field_val)
+        return json_object
+
+    def from_json(self, json_object: object) -> Kspace:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return Kspace(
+            reference=self._reference_converter.from_json(json_object["reference"],),
+            data=self._data_converter.from_json(json_object["data"],),
+            mask=self._mask_converter.from_json(json_object.get("mask")),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._reference_converter.from_json_to_numpy(json_object["reference"]),
+            self._data_converter.from_json_to_numpy(json_object["data"]),
+            self._mask_converter.from_json_to_numpy(json_object.get("mask")),
+        ) # type:ignore 
+
+
+class NoiseCovarianceConverter(_ndjson.JsonConverter[NoiseCovariance, np.void]):
+    def __init__(self) -> None:
+        self._coil_labels_converter = _ndjson.VectorConverter(CoilLabelTypeConverter())
+        self._receiver_noise_bandwidth_converter = _ndjson.float32_converter
+        self._noise_dwell_time_us_converter = _ndjson.float32_converter
+        self._sample_count_converter = _ndjson.size_converter
+        self._matrix_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 2)
+        super().__init__(np.dtype([
+            ("coil_labels", self._coil_labels_converter.overall_dtype()),
+            ("receiver_noise_bandwidth", self._receiver_noise_bandwidth_converter.overall_dtype()),
+            ("noise_dwell_time_us", self._noise_dwell_time_us_converter.overall_dtype()),
+            ("sample_count", self._sample_count_converter.overall_dtype()),
+            ("matrix", self._matrix_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: NoiseCovariance) -> object:
+        if not isinstance(value, NoiseCovariance): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'NoiseCovariance' instance")
+        json_object = {}
+
+        json_object["coilLabels"] = self._coil_labels_converter.to_json(value.coil_labels)
+        json_object["receiverNoiseBandwidth"] = self._receiver_noise_bandwidth_converter.to_json(value.receiver_noise_bandwidth)
+        json_object["noiseDwellTimeUs"] = self._noise_dwell_time_us_converter.to_json(value.noise_dwell_time_us)
+        json_object["sampleCount"] = self._sample_count_converter.to_json(value.sample_count)
+        json_object["matrix"] = self._matrix_converter.to_json(value.matrix)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["coilLabels"] = self._coil_labels_converter.numpy_to_json(value["coil_labels"])
+        json_object["receiverNoiseBandwidth"] = self._receiver_noise_bandwidth_converter.numpy_to_json(value["receiver_noise_bandwidth"])
+        json_object["noiseDwellTimeUs"] = self._noise_dwell_time_us_converter.numpy_to_json(value["noise_dwell_time_us"])
+        json_object["sampleCount"] = self._sample_count_converter.numpy_to_json(value["sample_count"])
+        json_object["matrix"] = self._matrix_converter.numpy_to_json(value["matrix"])
+        return json_object
+
+    def from_json(self, json_object: object) -> NoiseCovariance:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return NoiseCovariance(
+            coil_labels=self._coil_labels_converter.from_json(json_object["coilLabels"],),
+            receiver_noise_bandwidth=self._receiver_noise_bandwidth_converter.from_json(json_object["receiverNoiseBandwidth"],),
+            noise_dwell_time_us=self._noise_dwell_time_us_converter.from_json(json_object["noiseDwellTimeUs"],),
+            sample_count=self._sample_count_converter.from_json(json_object["sampleCount"],),
+            matrix=self._matrix_converter.from_json(json_object["matrix"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._coil_labels_converter.from_json_to_numpy(json_object["coilLabels"]),
+            self._receiver_noise_bandwidth_converter.from_json_to_numpy(json_object["receiverNoiseBandwidth"]),
+            self._noise_dwell_time_us_converter.from_json_to_numpy(json_object["noiseDwellTimeUs"]),
+            self._sample_count_converter.from_json_to_numpy(json_object["sampleCount"]),
+            self._matrix_converter.from_json_to_numpy(json_object["matrix"]),
+        ) # type:ignore 
+
+
 class WaveformConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Waveform[T_NP], np.void]):
     def __init__(self, t_converter: _ndjson.JsonConverter[T, T_NP]) -> None:
         self._flags_converter = _ndjson.uint64_converter
@@ -2676,6 +2790,33 @@ class WaveformConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Waveform[
         ) # type:ignore 
 
 
+class NDJsonMrdNoiseCovarianceWriter(_ndjson.NDJsonProtocolWriter, MrdNoiseCovarianceWriterBase):
+    """NDJson writer for the MrdNoiseCovariance protocol."""
+
+
+    def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
+        MrdNoiseCovarianceWriterBase.__init__(self)
+        _ndjson.NDJsonProtocolWriter.__init__(self, stream, MrdNoiseCovarianceWriterBase.schema)
+
+    def _write_noise_covariance(self, value: NoiseCovariance) -> None:
+        converter = NoiseCovarianceConverter()
+        json_value = converter.to_json(value)
+        self._write_json_line({"noiseCovariance": json_value})
+
+
+class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovarianceReaderBase):
+    """NDJson writer for the MrdNoiseCovariance protocol."""
+
+
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self)
+        _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
+
+    def _read_noise_covariance(self) -> NoiseCovariance:
+        json_object = self._read_json_line("noiseCovariance", True)
+        converter = NoiseCovarianceConverter()
+        return converter.from_json(json_object)
+
 class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
     """NDJson writer for the Mrd protocol."""
 
@@ -2690,7 +2831,7 @@ class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
         self._write_json_line({"header": json_value})
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.Kspace, KspaceConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict])], False)
         for item in value:
             json_item = converter.to_json(item)
             self._write_json_line({"data": json_item})
@@ -2710,7 +2851,7 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
         return converter.from_json(json_object)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.Kspace, KspaceConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict])], False)
         while (json_object := self._read_json_line("data", False)) is not _ndjson.MISSING_SENTINEL:
             yield converter.from_json(json_object)
 

@@ -12,6 +12,27 @@
 #include "../yardl/detail/hdf5/io.h"
 
 namespace mrd::hdf5 {
+// HDF5 writer for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, public yardl::hdf5::Hdf5Writer {
+  public:
+  MrdNoiseCovarianceWriter(std::string path);
+
+  protected:
+  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+
+  private:
+};
+
+// HDF5 reader for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, public yardl::hdf5::Hdf5Reader {
+  public:
+  MrdNoiseCovarianceReader(std::string path);
+
+  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
+
+  private:
+};
+
 // HDF5 writer for the Mrd protocol.
 class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   public:
@@ -28,7 +49,7 @@ class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   void Flush() override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<10>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<11>> data_dataset_state_;
 };
 
 // HDF5 reader for the Mrd protocol.
@@ -41,7 +62,7 @@ class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   bool ReadDataImpl(mrd::StreamItem& value) override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetReader<10>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetReader<11>> data_dataset_state_;
 };
 
 } // namespace mrd
