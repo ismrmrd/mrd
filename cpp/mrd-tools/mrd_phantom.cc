@@ -44,16 +44,6 @@ mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t n
   return fftshift(coils);
 }
 
-void print_usage(std::string program_name) {
-  std::cerr << "Usage: " << program_name << std::endl;
-  std::cerr << "  -o|--output-file <output MRD stream> (default: stdout)" << std::endl;
-  std::cerr << "  -c|--coils       <number of coils>" << std::endl;
-  std::cerr << "  -m|--matrix      <matrix size>" << std::endl;
-  std::cerr << "  -r|--repetitions <number of repetitions>" << std::endl;
-  std::cerr << "  -s|--oversampling <oversampling>" << std::endl;
-  std::cerr << "  -h|--help" << std::endl;
-}
-
 int main(int argc, char** argv) {
   uint32_t matrix = 256;
   uint32_t ncoils = 8;
@@ -62,17 +52,28 @@ int main(int argc, char** argv) {
   float noise_sigma = 0.05;
   std::string filename;
 
+  auto print_usage = [&]() {
+    std::cerr << "Usage: " << argv[0] << std::endl;
+    std::cerr << "  -o|--output-file  <output stream>   (default: stdout)" << std::endl;
+    std::cerr << "  -c|--coils        <number of coils> (default: " << ncoils << ")" << std::endl;
+    std::cerr << "  -m|--matrix       <matrix size>     (default: " << matrix << ")" << std::endl;
+    std::cerr << "  -r|--repetitions  <repetitions>     (default: " << repetitions << ")" << std::endl;
+    std::cerr << "  -s|--oversampling <oversampling>    (default: " << oversampling << ")" << std::endl;
+    std::cerr << "  -n|--noise-sigma  <noise level>     (default: " << noise_sigma << ")" << std::endl;
+    std::cerr << "  -h|--help" << std::endl;
+  };
+
   std::vector<std::string> args(argv, argv + argc);
   auto current_arg = args.begin() + 1;
   while (current_arg != args.end()) {
     if (*current_arg == "--help" || *current_arg == "-h") {
-      print_usage(args[0]);
+      print_usage();
       return 0;
     } else if (*current_arg == "--output-file" || *current_arg == "-o") {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing output file" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       filename = *current_arg;
@@ -81,7 +82,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing number of coils" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       ncoils = std::stoi(*current_arg);
@@ -90,7 +91,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing matrix size" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       matrix = std::stoi(*current_arg);
@@ -99,7 +100,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing number of frames" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       repetitions = std::stoi(*current_arg);
@@ -108,7 +109,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing oversampling factor" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       oversampling = std::stoi(*current_arg);
@@ -117,14 +118,14 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing noise sigma" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       noise_sigma = std::stof(*current_arg);
       current_arg++;
     } else {
       std::cerr << "Unknown argument: " << *current_arg << std::endl;
-      print_usage(args[0]);
+      print_usage();
       return 1;
     }
   }

@@ -25,7 +25,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
 @build: configure generate
     cd cpp/build && ninja
 
-@install: build
+@install: test
     cd cpp/build && ninja install
 
 @convert-xsd:
