@@ -8,10 +8,14 @@ ImageDouble: Image<double>
 ImageComplexFloat: Image<complexfloat>
 ImageComplexDouble: Image<complexdouble>
 
-StreamItem: [Acquisition, Kspace, WaveformUint32, ImageUint16, ImageInt16, ImageUint, ImageInt, ImageFloat, ImageDouble, ImageComplexFloat, ImageComplexDouble]
+StreamItem: [Acquisition, AcquisitionBucket, ReconData, WaveformUint32, ImageUint16, ImageInt16, ImageUint, ImageInt, ImageFloat, ImageDouble, ImageComplexFloat, ImageComplexDouble, ImageArray]
 
 Mrd: !protocol
   sequence:
     header: Header?
     data: !stream
       items: StreamItem
+
+MrdNoiseCovariance: !protocol
+  sequence:
+    noiseCovariance: NoiseCovariance

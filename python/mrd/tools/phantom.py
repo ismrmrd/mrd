@@ -72,11 +72,11 @@ def generate(output_file, matrix, coils, oversampling, repetitions, noise_level)
         acq = mrd.Acquisition()
 
         acq.data.resize((coils, nkx))
-        acq.channel_order = list(range(coils))
-        acq.center_sample = round(nkx / 2)
-        acq.read_dir[0] = 1.0
-        acq.phase_dir[1] = 1.0
-        acq.slice_dir[2] = 1.0
+        acq.head.channel_order = list(range(coils))
+        acq.head.center_sample = round(nkx / 2)
+        acq.head.read_dir[0] = 1.0
+        acq.head.phase_dir[1] = 1.0
+        acq.head.slice_dir[2] = 1.0
 
         scan_counter = 0
 
@@ -84,9 +84,9 @@ def generate(output_file, matrix, coils, oversampling, repetitions, noise_level)
         for n in range(32):
             noise = generate_noise((coils, nkx), noise_level)
             # Here's where we would make the noise correlated
-            acq.scan_counter = scan_counter
+            acq.head.scan_counter = scan_counter
             scan_counter += 1
-            acq.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT
+            acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT
             acq.data[:] = noise
             yield mrd.StreamItem.Acquisition(acq)
 
@@ -98,23 +98,23 @@ def generate(output_file, matrix, coils, oversampling, repetitions, noise_level)
             kspace = phantom + noise
 
             for line in range(nky):
-                acq.scan_counter = scan_counter
+                acq.head.scan_counter = scan_counter
                 scan_counter += 1
 
-                acq.flags = mrd.AcquisitionFlags(0)
+                acq.head.flags = mrd.AcquisitionFlags(0)
                 if line == 0:
-                    acq.flags |= mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1
-                    acq.flags |= mrd.AcquisitionFlags.FIRST_IN_SLICE
-                    acq.flags |= mrd.AcquisitionFlags.FIRST_IN_REPETITION
+                    acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1
+                    acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_SLICE
+                    acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_REPETITION
                 if line == nky - 1:
-                    acq.flags |= mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1
-                    acq.flags |= mrd.AcquisitionFlags.LAST_IN_SLICE
-                    acq.flags |= mrd.AcquisitionFlags.LAST_IN_REPETITION
+                    acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1
+                    acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_SLICE
+                    acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_REPETITION
 
-                acq.idx.kspace_encode_step_1 = line
-                acq.idx.kspace_encode_step_2 = 0
-                acq.idx.slice = 0
-                acq.idx.repetition = r
+                acq.head.idx.kspace_encode_step_1 = line
+                acq.head.idx.kspace_encode_step_2 = 0
+                acq.head.idx.slice = 0
+                acq.head.idx.repetition = r
                 acq.data[:] = kspace[:, 0, line, :]
                 yield mrd.StreamItem.Acquisition(acq)
 

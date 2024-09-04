@@ -7,22 +7,36 @@ namespace mrd {
 enum class Version {
   Current
 };
-// Abstract writer for the MrdNoiseCovariance protocol.
-class MrdNoiseCovarianceWriterBase {
+// Abstract writer for the KspaceProtocol protocol.
+class KspaceProtocolWriterBase {
   public:
   // Ordinal 0.
-  void WriteNoiseCovariance(mrd::NoiseCovariance const& value);
+  void WriteHeader(std::optional<mrd::Header> const& value);
+
+  // Ordinal 1.
+  // Call this method for each element of the `kspace` stream, then call `EndKspace() when done.`
+  void WriteKspace(mrd::Kspace const& value);
+
+  // Ordinal 1.
+  // Call this method to write many values to the `kspace` stream, then call `EndKspace()` when done.
+  void WriteKspace(std::vector<mrd::Kspace> const& values);
+
+  // Marks the end of the `kspace` stream.
+  void EndKspace();
 
   // Optionaly close this writer before destructing. Validates that all steps were completed.
   void Close();
 
-  virtual ~MrdNoiseCovarianceWriterBase() = default;
+  virtual ~KspaceProtocolWriterBase() = default;
 
   // Flushes all buffered data.
   virtual void Flush() {}
 
   protected:
-  virtual void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) = 0;
+  virtual void WriteHeaderImpl(std::optional<mrd::Header> const& value) = 0;
+  virtual void WriteKspaceImpl(mrd::Kspace const& value) = 0;
+  virtual void WriteKspaceImpl(std::vector<mrd::Kspace> const& value);
+  virtual void EndKspaceImpl() = 0;
   virtual void CloseImpl() {}
 
   static std::string schema_;
@@ -34,24 +48,32 @@ class MrdNoiseCovarianceWriterBase {
   private:
   uint8_t state_ = 0;
 
-  friend class MrdNoiseCovarianceReaderBase;
+  friend class KspaceProtocolReaderBase;
 };
 
-// Abstract reader for the MrdNoiseCovariance protocol.
-class MrdNoiseCovarianceReaderBase {
+// Abstract reader for the KspaceProtocol protocol.
+class KspaceProtocolReaderBase {
   public:
   // Ordinal 0.
-  void ReadNoiseCovariance(mrd::NoiseCovariance& value);
+  void ReadHeader(std::optional<mrd::Header>& value);
+
+  // Ordinal 1.
+  [[nodiscard]] bool ReadKspace(mrd::Kspace& value);
+
+  // Ordinal 1.
+  [[nodiscard]] bool ReadKspace(std::vector<mrd::Kspace>& values);
 
   // Optionaly close this writer before destructing. Validates that all steps were completely read.
   void Close();
 
-  void CopyTo(MrdNoiseCovarianceWriterBase& writer);
+  void CopyTo(KspaceProtocolWriterBase& writer, size_t kspace_buffer_size = 1);
 
-  virtual ~MrdNoiseCovarianceReaderBase() = default;
+  virtual ~KspaceProtocolReaderBase() = default;
 
   protected:
-  virtual void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) = 0;
+  virtual void ReadHeaderImpl(std::optional<mrd::Header>& value) = 0;
+  virtual bool ReadKspaceImpl(mrd::Kspace& value) = 0;
+  virtual bool ReadKspaceImpl(std::vector<mrd::Kspace>& values);
   virtual void CloseImpl() {}
   static std::string schema_;
 
@@ -130,6 +152,62 @@ class MrdReaderBase {
   virtual void ReadHeaderImpl(std::optional<mrd::Header>& value) = 0;
   virtual bool ReadDataImpl(mrd::StreamItem& value) = 0;
   virtual bool ReadDataImpl(std::vector<mrd::StreamItem>& values);
+  virtual void CloseImpl() {}
+  static std::string schema_;
+
+  static std::vector<std::string> previous_schemas_;
+
+  static Version VersionFromSchema(const std::string& schema);
+
+  private:
+  uint8_t state_ = 0;
+};
+
+// Abstract writer for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceWriterBase {
+  public:
+  // Ordinal 0.
+  void WriteNoiseCovariance(mrd::NoiseCovariance const& value);
+
+  // Optionaly close this writer before destructing. Validates that all steps were completed.
+  void Close();
+
+  virtual ~MrdNoiseCovarianceWriterBase() = default;
+
+  // Flushes all buffered data.
+  virtual void Flush() {}
+
+  protected:
+  virtual void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) = 0;
+  virtual void CloseImpl() {}
+
+  static std::string schema_;
+
+  static std::vector<std::string> previous_schemas_;
+
+  static std::string SchemaFromVersion(Version version);
+
+  private:
+  uint8_t state_ = 0;
+
+  friend class MrdNoiseCovarianceReaderBase;
+};
+
+// Abstract reader for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceReaderBase {
+  public:
+  // Ordinal 0.
+  void ReadNoiseCovariance(mrd::NoiseCovariance& value);
+
+  // Optionaly close this writer before destructing. Validates that all steps were completely read.
+  void Close();
+
+  void CopyTo(MrdNoiseCovarianceWriterBase& writer);
+
+  virtual ~MrdNoiseCovarianceReaderBase() = default;
+
+  protected:
+  virtual void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) = 0;
   virtual void CloseImpl() {}
   static std::string schema_;
 

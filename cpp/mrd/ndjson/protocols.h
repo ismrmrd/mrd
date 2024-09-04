@@ -10,40 +10,42 @@
 
 #include "../yardl/detail/ndjson/reader_writer.h"
 #include "../protocols.h"
-#include "../types.h"
 
 namespace mrd::ndjson {
-// NDJSON writer for the MrdNoiseCovariance protocol.
-class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::ndjson::NDJsonWriter {
+// NDJSON writer for the KspaceProtocol protocol.
+class KspaceProtocolWriter : public mrd::KspaceProtocolWriterBase, yardl::ndjson::NDJsonWriter {
   public:
-  MrdNoiseCovarianceWriter(std::ostream& stream)
+  KspaceProtocolWriter(std::ostream& stream)
       : yardl::ndjson::NDJsonWriter(stream, schema_) {
   }
 
-  MrdNoiseCovarianceWriter(std::string file_name)
+  KspaceProtocolWriter(std::string file_name)
       : yardl::ndjson::NDJsonWriter(file_name, schema_) {
   }
 
   void Flush() override;
 
   protected:
-  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+  void WriteHeaderImpl(std::optional<mrd::Header> const& value) override;
+  void WriteKspaceImpl(mrd::Kspace const& value) override;
+  void EndKspaceImpl() override {}
   void CloseImpl() override;
 };
 
-// NDJSON reader for the MrdNoiseCovariance protocol.
-class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::ndjson::NDJsonReader {
+// NDJSON reader for the KspaceProtocol protocol.
+class KspaceProtocolReader : public mrd::KspaceProtocolReaderBase, yardl::ndjson::NDJsonReader {
   public:
-  MrdNoiseCovarianceReader(std::istream& stream)
+  KspaceProtocolReader(std::istream& stream)
       : yardl::ndjson::NDJsonReader(stream, schema_) {
   }
 
-  MrdNoiseCovarianceReader(std::string file_name)
+  KspaceProtocolReader(std::string file_name)
       : yardl::ndjson::NDJsonReader(file_name, schema_) {
   }
 
   protected:
-  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
+  void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
+  bool ReadKspaceImpl(mrd::Kspace& value) override;
   void CloseImpl() override;
 };
 
@@ -81,6 +83,40 @@ class MrdReader : public mrd::MrdReaderBase, yardl::ndjson::NDJsonReader {
   protected:
   void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
   bool ReadDataImpl(mrd::StreamItem& value) override;
+  void CloseImpl() override;
+};
+
+// NDJSON writer for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::ndjson::NDJsonWriter {
+  public:
+  MrdNoiseCovarianceWriter(std::ostream& stream)
+      : yardl::ndjson::NDJsonWriter(stream, schema_) {
+  }
+
+  MrdNoiseCovarianceWriter(std::string file_name)
+      : yardl::ndjson::NDJsonWriter(file_name, schema_) {
+  }
+
+  void Flush() override;
+
+  protected:
+  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+  void CloseImpl() override;
+};
+
+// NDJSON reader for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::ndjson::NDJsonReader {
+  public:
+  MrdNoiseCovarianceReader(std::istream& stream)
+      : yardl::ndjson::NDJsonReader(stream, schema_) {
+  }
+
+  MrdNoiseCovarianceReader(std::string file_name)
+      : yardl::ndjson::NDJsonReader(file_name, schema_) {
+  }
+
+  protected:
+  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
   void CloseImpl() override;
 };
 

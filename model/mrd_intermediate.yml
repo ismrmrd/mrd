@@ -1,17 +1,97 @@
-# KspaceProtocol: !protocol
-#   sequence:
-#     header: Header?
-#     kspace: !stream
-#       items: Kspace
+NoiseCovariance: !record
+  fields:
+    # Comes from Header.acquisitionSystemInformation.coilLabel
+    coilLabels: CoilLabelType*
+    # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
+    receiverNoiseBandwidth: float
+    # Comes from Acquisition.sampleTimeUs
+    noiseDwellTimeUs: float
+    # Number of samples used to compute matrix
+    sampleCount: size
+    # Noise covariance matrix with dimensions [coil, coil]
+    matrix: complexfloat[,]
 
+MinMaxStat: !record
+  fields:
+    minimum: uint
+    maximum: uint
+
+AcquisitionBucketStats: !record
+  fields:
+    kspaceEncodeStep1: MinMaxStat
+    kspaceEncodeStep2: MinMaxStat
+    average: MinMaxStat
+    slice: MinMaxStat
+    contrast: MinMaxStat
+    phase: MinMaxStat
+    repetition: MinMaxStat
+    set: MinMaxStat
+    segment: MinMaxStat
+    # TODO: Remove after Yardl #171 is merged
+    unused: string
+
+AcquisitionBucket: !record
+  fields:
+    data: Acquisition*
+    ref: Acquisition*
+    datastats: AcquisitionBucketStats*
+    refstats: AcquisitionBucketStats*
+    waveforms: WaveformUint32*
+
+# Sampled range along RO, E1, E2 (for asymmetric echo and partial fourier)
+SamplingLimits: !record
+  fields:
+    ro: LimitType
+    e1: LimitType
+    e2: LimitType
+
+SamplingDescription: !record
+  fields:
+    encodedFOV: FieldOfViewMm
+    reconFOV: FieldOfViewMm
+    encodedMatrix: MatrixSizeType
+    reconMatrix: MatrixSizeType
+    samplingLimits: SamplingLimits
+
+BufferedData: !record
+  fields:
+    # Buffered Acquisition data
+    data: complexfloat[loc, s, n, chan, e2, e1, e0]
+    # Buffered Trajectory data
+    trajectory: float[loc, s, n, e2, e1, basis, samples]
+    # Buffered Density weights
+    density: float[loc, s, n, e2, e1, e0]?
+    # Buffered AcquisitionHeaders
+    headers: AcquisitionHeader[loc, s, n, e2, e1]
+    # Sampling details for these Acquisitions
+    sampling: SamplingDescription
+
+ReconBit: !record
+  fields:
+    data: BufferedData
+    ref: BufferedData?
+
+ReconData: !record
+  fields:
+    rbits: ReconBit*
+
+ImageArray: !record
+  fields:
+    data: complexfloat[loc, s, n, channel, z, y, x]
+    headers: ImageHeader[loc, s, n]
+    meta: ImageMeta[loc, s, n]
+    waveforms: WaveformUint32*
+
+
+# TODO: The types below were added to support Wabakimi, and should be replaced with above types
 Kspace: !record
   fields:
     reference: Acquisition
     data: KspaceData
     mask: MaskData?
   computedFields:
-    slices: size(data, "slice")
     contrasts: size(data, "contrast")
+    slices: size(data, "slice")
     coils: size(data, "coil")
     nz: size(data, "kspaceEncodeStep2")
     ny: size(data, "kspaceEncodeStep1")
@@ -35,19 +115,8 @@ MaskData: !array
     kspaceEncodeStep2:
     kspaceEncodeStep1:
 
-NoiseCovariance: !record
-  fields:
-    # Comes from Header.acquisitionSystemInformation.coilLabel
-    coilLabels: CoilLabelType*
-    # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
-    receiverNoiseBandwidth: float
-    # Comes from Acquisition.sampleTimeUs
-    noiseDwellTimeUs: float
-    # Number of samples used to compute matrix
-    sampleCount: size
-    # Noise covariance matrix with dimensions [coil, coil]
-    matrix: complexfloat[,]
-
-MrdNoiseCovariance: !protocol
+KspaceProtocol: !protocol
   sequence:
-    noiseCovariance: NoiseCovariance
+    header: Header?
+    kspace: !stream
+      items: Kspace

@@ -845,79 +845,80 @@ ISMRMRD::EncodingCounters convert(mrd::EncodingCounters& e) {
 ISMRMRD::Acquisition convert(mrd::Acquisition& acq) {
   ISMRMRD::Acquisition acquisition;
   ISMRMRD::AcquisitionHeader hdr;
+  mrd::AcquisitionHeader& head = acq.head;
 
   hdr.version = ISMRMRD_VERSION_MAJOR;
-  hdr.flags = acq.flags.Value();
-  hdr.measurement_uid = acq.measurement_uid;
-  hdr.scan_counter = acq.scan_counter ? *acq.scan_counter : 0;
-  hdr.acquisition_time_stamp = acq.acquisition_time_stamp ? *acq.acquisition_time_stamp : 0;
+  hdr.flags = head.flags.Value();
+  hdr.measurement_uid = head.measurement_uid;
+  hdr.scan_counter = head.scan_counter.value_or(0);
+  hdr.acquisition_time_stamp = head.acquisition_time_stamp.value_or(0);
 
-  if (acq.physiology_time_stamp.size() > 3) {
+  if (head.physiology_time_stamp.size() > 3) {
     throw std::runtime_error("Too many physiology time stamps");
   }
 
   for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++) {
-    if (acq.physiology_time_stamp.size() > i) {
-      hdr.physiology_time_stamp[i] = acq.physiology_time_stamp[i];
+    if (head.physiology_time_stamp.size() > i) {
+      hdr.physiology_time_stamp[i] = head.physiology_time_stamp[i];
     }
   }
 
-  hdr.number_of_samples = acq.data.shape()[1];
-  hdr.active_channels = acq.data.shape()[0];
-  hdr.available_channels = acq.data.shape()[0];
-  hdr.discard_pre = acq.discard_pre ? *acq.discard_pre : 0;
-  hdr.discard_post = acq.discard_post ? *acq.discard_post : 0;
-  hdr.encoding_space_ref = acq.encoding_space_ref ? *acq.encoding_space_ref : 0;
-  hdr.center_sample = acq.center_sample ? *acq.center_sample : 0;
+  hdr.number_of_samples = acq.Samples();
+  hdr.active_channels = acq.Coils();
+  hdr.available_channels = acq.Coils();
+  hdr.discard_pre = head.discard_pre.value_or(0);
+  hdr.discard_post = head.discard_post.value_or(0);
+  hdr.encoding_space_ref = head.encoding_space_ref.value_or(0);
+  hdr.center_sample = head.center_sample.value_or(0);
   hdr.trajectory_dimensions = acq.trajectory.shape()[0];
-  hdr.sample_time_us = acq.sample_time_us ? *acq.sample_time_us : 0;
-  hdr.position[0] = acq.position[0];
-  hdr.position[1] = acq.position[1];
-  hdr.position[2] = acq.position[2];
-  hdr.read_dir[0] = acq.read_dir[0];
-  hdr.read_dir[1] = acq.read_dir[1];
-  hdr.read_dir[2] = acq.read_dir[2];
-  hdr.phase_dir[0] = acq.phase_dir[0];
-  hdr.phase_dir[1] = acq.phase_dir[1];
-  hdr.phase_dir[2] = acq.phase_dir[2];
-  hdr.slice_dir[0] = acq.slice_dir[0];
-  hdr.slice_dir[1] = acq.slice_dir[1];
-  hdr.slice_dir[2] = acq.slice_dir[2];
-  hdr.patient_table_position[0] = acq.patient_table_position[0];
-  hdr.patient_table_position[1] = acq.patient_table_position[1];
-  hdr.patient_table_position[2] = acq.patient_table_position[2];
-  hdr.idx.kspace_encode_step_1 = acq.idx.kspace_encode_step_1 ? *acq.idx.kspace_encode_step_1 : 0;
-  hdr.idx.kspace_encode_step_2 = acq.idx.kspace_encode_step_2 ? *acq.idx.kspace_encode_step_2 : 0;
-  hdr.idx.average = acq.idx.average ? *acq.idx.average : 0;
-  hdr.idx.slice = acq.idx.slice ? *acq.idx.slice : 0;
-  hdr.idx.contrast = acq.idx.contrast ? *acq.idx.contrast : 0;
-  hdr.idx.phase = acq.idx.phase ? *acq.idx.phase : 0;
-  hdr.idx.repetition = acq.idx.repetition ? *acq.idx.repetition : 0;
-  hdr.idx.set = acq.idx.set ? *acq.idx.set : 0;
-  hdr.idx.segment = acq.idx.segment ? *acq.idx.segment : 0;
+  hdr.sample_time_us = head.sample_time_us.value_or(0);
+  hdr.position[0] = head.position[0];
+  hdr.position[1] = head.position[1];
+  hdr.position[2] = head.position[2];
+  hdr.read_dir[0] = head.read_dir[0];
+  hdr.read_dir[1] = head.read_dir[1];
+  hdr.read_dir[2] = head.read_dir[2];
+  hdr.phase_dir[0] = head.phase_dir[0];
+  hdr.phase_dir[1] = head.phase_dir[1];
+  hdr.phase_dir[2] = head.phase_dir[2];
+  hdr.slice_dir[0] = head.slice_dir[0];
+  hdr.slice_dir[1] = head.slice_dir[1];
+  hdr.slice_dir[2] = head.slice_dir[2];
+  hdr.patient_table_position[0] = head.patient_table_position[0];
+  hdr.patient_table_position[1] = head.patient_table_position[1];
+  hdr.patient_table_position[2] = head.patient_table_position[2];
+  hdr.idx.kspace_encode_step_1 = head.idx.kspace_encode_step_1.value_or(0);
+  hdr.idx.kspace_encode_step_2 = head.idx.kspace_encode_step_2.value_or(0);
+  hdr.idx.average = head.idx.average.value_or(0);
+  hdr.idx.slice = head.idx.slice.value_or(0);
+  hdr.idx.contrast = head.idx.contrast.value_or(0);
+  hdr.idx.phase = head.idx.phase.value_or(0);
+  hdr.idx.repetition = head.idx.repetition.value_or(0);
+  hdr.idx.set = head.idx.set.value_or(0);
+  hdr.idx.segment = head.idx.segment.value_or(0);
 
-  if (acq.idx.user.size() > 8) {
+  if (head.idx.user.size() > 8) {
     throw std::runtime_error("Too many user parameters");
   }
 
-  for (size_t i = 0; i < acq.idx.user.size(); i++) {
-    hdr.idx.user[i] = acq.idx.user[i];
+  for (size_t i = 0; i < head.idx.user.size(); i++) {
+    hdr.idx.user[i] = head.idx.user[i];
   }
 
-  if (acq.user_int.size() > ISMRMRD::ISMRMRD_USER_INTS) {
+  if (head.user_int.size() > ISMRMRD::ISMRMRD_USER_INTS) {
     throw std::runtime_error("Too many user parameters");
   }
 
-  for (size_t i = 0; i < acq.user_int.size(); i++) {
-    hdr.user_int[i] = acq.user_int[i];
+  for (size_t i = 0; i < head.user_int.size(); i++) {
+    hdr.user_int[i] = head.user_int[i];
   }
 
-  if (acq.user_float.size() > ISMRMRD::ISMRMRD_USER_FLOATS) {
+  if (head.user_float.size() > ISMRMRD::ISMRMRD_USER_FLOATS) {
     throw std::runtime_error("Too many user parameters");
   }
 
-  for (size_t i = 0; i < acq.user_float.size(); i++) {
-    hdr.user_float[i] = acq.user_float[i];
+  for (size_t i = 0; i < head.user_float.size(); i++) {
+    hdr.user_float[i] = head.user_float[i];
   }
 
   acquisition.setHead(hdr);
@@ -964,25 +965,31 @@ ISMRMRD::Waveform convert(mrd::Waveform<uint32_t>& wfm) {
 template <class T>
 ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
   ISMRMRD::Image<T> im(image.Cols(), image.Rows(), image.Slices(), image.Channels());
-  im.setFlags(image.flags.Value());
-  im.setMeasurementUid(image.measurement_uid);
-  im.setFieldOfView(image.field_of_view[0], image.field_of_view[1], image.field_of_view[2]);
-  im.setPosition(image.position[0], image.position[1], image.position[2]);
-  im.setReadDirection(image.col_dir[0], image.col_dir[1], image.col_dir[2]);
-  im.setPhaseDirection(image.line_dir[0], image.line_dir[1], image.line_dir[2]);
-  im.setSliceDirection(image.slice_dir[0], image.slice_dir[1], image.slice_dir[2]);
-  im.setPatientTablePosition(image.patient_table_position[0], image.patient_table_position[1], image.patient_table_position[2]);
-  im.setAverage(image.average ? *image.average : 0);
-  im.setSlice(image.slice ? *image.slice : 0);
-  im.setContrast(image.contrast ? *image.contrast : 0);
-  im.setPhase(image.phase ? *image.phase : 0);
-  im.setRepetition(image.repetition ? *image.repetition : 0);
-  im.setSet(image.set ? *image.set : 0);
-  im.setAcquisitionTimeStamp(image.acquisition_time_stamp ? *image.acquisition_time_stamp : 0);
-  im.setPhysiologyTimeStamp(0, image.physiology_time_stamp[0]);
-  im.setPhysiologyTimeStamp(1, image.physiology_time_stamp[1]);
-  im.setPhysiologyTimeStamp(2, image.physiology_time_stamp[2]);
-  switch (image.image_type) {
+
+  mrd::ImageHeader& head = image.head;
+  im.setFlags(head.flags.Value());
+  im.setMeasurementUid(head.measurement_uid);
+  im.setFieldOfView(head.field_of_view[0], head.field_of_view[1], head.field_of_view[2]);
+  im.setPosition(head.position[0], head.position[1], head.position[2]);
+  im.setReadDirection(head.col_dir[0], head.col_dir[1], head.col_dir[2]);
+  im.setPhaseDirection(head.line_dir[0], head.line_dir[1], head.line_dir[2]);
+  im.setSliceDirection(head.slice_dir[0], head.slice_dir[1], head.slice_dir[2]);
+  im.setPatientTablePosition(head.patient_table_position[0], head.patient_table_position[1], head.patient_table_position[2]);
+  im.setAverage(head.average.value_or(0));
+  im.setSlice(head.slice.value_or(0));
+  im.setContrast(head.contrast.value_or(0));
+  im.setPhase(head.phase.value_or(0));
+  im.setRepetition(head.repetition.value_or(0));
+  im.setSet(head.set.value_or(0));
+  im.setAcquisitionTimeStamp(head.acquisition_time_stamp.value_or(0));
+  for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++) {
+    if (i < head.physiology_time_stamp.size()) {
+      im.setPhysiologyTimeStamp(i, head.physiology_time_stamp[i]);
+    } else {
+      im.setPhysiologyTimeStamp(i, 0);
+    }
+  }
+  switch (head.image_type) {
   case mrd::ImageType::kMagnitude:
     im.setImageType(ISMRMRD::ISMRMRD_IMTYPE_MAGNITUDE);
     break;
@@ -1001,29 +1008,40 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
   default:
     throw std::runtime_error("Unknown image type");
   }
-  im.setImageIndex(image.image_index ? *image.image_index : 0);
-  im.setImageSeriesIndex(image.image_series_index ? *image.image_series_index : 0);
+  im.setImageIndex(head.image_index.value_or(0));
+  im.setImageSeriesIndex(head.image_series_index.value_or(0));
 
-  if (image.user_int.size() > ISMRMRD::ISMRMRD_USER_INTS) {
+  if (head.user_int.size() > ISMRMRD::ISMRMRD_USER_INTS) {
     throw std::runtime_error("Too many user_int values");
   }
 
-  for (size_t i = 0; i < image.user_int.size(); i++) {
-    im.setUserInt(i, image.user_int[i]);
+  for (size_t i = 0; i < head.user_int.size(); i++) {
+    im.setUserInt(i, head.user_int[i]);
   }
 
-  if (image.user_float.size() > ISMRMRD::ISMRMRD_USER_FLOATS) {
+  if (head.user_float.size() > ISMRMRD::ISMRMRD_USER_FLOATS) {
     throw std::runtime_error("Too many user_float values");
   }
 
-  for (size_t i = 0; i < image.user_float.size(); i++) {
-    im.setUserFloat(i, image.user_float[i]);
+  for (size_t i = 0; i < head.user_float.size(); i++) {
+    im.setUserFloat(i, head.user_float[i]);
   }
 
   ISMRMRD::MetaContainer meta;
   for (auto it = image.meta.begin(); it != image.meta.end(); it++) {
-    for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-      meta.append(it->first.c_str(), (*it2).c_str());
+    auto& key = it->first;
+    auto& values = it->second;
+    for (auto it2 = values.begin(); it2 != values.end(); it2++) {
+      mrd::ImageMetaValue& val = *it2;
+      if (auto* v = std::get_if<std::string>(&val)) {
+        meta.append(key.c_str(), v->c_str());
+      } else if (auto* v = std::get_if<long>(&val)) {
+        meta.append(key.c_str(), *v);
+      } else if (auto* v = std::get_if<double>(&val)) {
+        meta.append(key.c_str(), *v);
+      } else {
+        throw std::runtime_error("Unknown meta type");
+      }
     }
   }
 
@@ -1069,8 +1087,18 @@ ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im) {
     return convert<std::complex<double>>(im);
 }
 
-// Convert mrd::Kspace - no equivalent in ISMRMRD::
-int convert(Kspace&) {
+// Convert mrd::AcquisitionBucket - no equivalent in ISMRMRD::
+int convert(AcquisitionBucket&) {
+  return 0;
+}
+
+// Convert mrd::ReconData - no equivalent in ISMRMRD::
+int convert(ReconData&) {
+  return 0;
+}
+
+// Convert mrd::ImageArray - no equivalent in ISMRMRD::
+int convert(ImageArray&) {
   return 0;
 }
 
@@ -1885,67 +1913,66 @@ mrd::EncodingCounters convert(ISMRMRD::EncodingCounters& e) {
 mrd::Acquisition convert(ISMRMRD::Acquisition& acq) {
   mrd::Acquisition acquisition;
 
-  acquisition.flags = acq.flags();
-  acquisition.idx = convert(acq.idx());
-  acquisition.measurement_uid = acq.measurement_uid();
-  acquisition.scan_counter = acq.scan_counter();
-  acquisition.acquisition_time_stamp = acq.acquisition_time_stamp();
+  acquisition.head.flags = acq.flags();
+  acquisition.head.idx = convert(acq.idx());
+  acquisition.head.measurement_uid = acq.measurement_uid();
+  acquisition.head.scan_counter = acq.scan_counter();
+  acquisition.head.acquisition_time_stamp = acq.acquisition_time_stamp();
   for (auto& p : acq.physiology_time_stamp()) {
-    acquisition.physiology_time_stamp.push_back(p);
+    acquisition.head.physiology_time_stamp.push_back(p);
   }
 
-  // TODO: Convert channel_mask to channel_order
+  for (size_t i = 0; i < acq.active_channels(); i++) {
+    acquisition.head.channel_order.push_back(i);
+  }
 
-  acquisition.discard_pre = acq.discard_pre();
-  acquisition.discard_post = acq.discard_post();
-  acquisition.center_sample = acq.center_sample();
-  acquisition.encoding_space_ref = acq.encoding_space_ref();
-  acquisition.sample_time_us = acq.sample_time_us();
+  acquisition.head.discard_pre = acq.discard_pre();
+  acquisition.head.discard_post = acq.discard_post();
+  acquisition.head.center_sample = acq.center_sample();
+  acquisition.head.encoding_space_ref = acq.encoding_space_ref();
+  acquisition.head.sample_time_us = acq.sample_time_us();
 
-  acquisition.position[0] = acq.position()[0];
-  acquisition.position[1] = acq.position()[1];
-  acquisition.position[2] = acq.position()[2];
+  acquisition.head.position[0] = acq.position()[0];
+  acquisition.head.position[1] = acq.position()[1];
+  acquisition.head.position[2] = acq.position()[2];
 
-  acquisition.read_dir[0] = acq.read_dir()[0];
-  acquisition.read_dir[1] = acq.read_dir()[1];
-  acquisition.read_dir[2] = acq.read_dir()[2];
+  acquisition.head.read_dir[0] = acq.read_dir()[0];
+  acquisition.head.read_dir[1] = acq.read_dir()[1];
+  acquisition.head.read_dir[2] = acq.read_dir()[2];
 
-  acquisition.phase_dir[0] = acq.phase_dir()[0];
-  acquisition.phase_dir[1] = acq.phase_dir()[1];
-  acquisition.phase_dir[2] = acq.phase_dir()[2];
+  acquisition.head.phase_dir[0] = acq.phase_dir()[0];
+  acquisition.head.phase_dir[1] = acq.phase_dir()[1];
+  acquisition.head.phase_dir[2] = acq.phase_dir()[2];
 
-  acquisition.slice_dir[0] = acq.slice_dir()[0];
-  acquisition.slice_dir[1] = acq.slice_dir()[1];
-  acquisition.slice_dir[2] = acq.slice_dir()[2];
+  acquisition.head.slice_dir[0] = acq.slice_dir()[0];
+  acquisition.head.slice_dir[1] = acq.slice_dir()[1];
+  acquisition.head.slice_dir[2] = acq.slice_dir()[2];
 
-  acquisition.patient_table_position[0] = acq.patient_table_position()[0];
-  acquisition.patient_table_position[1] = acq.patient_table_position()[1];
-  acquisition.patient_table_position[2] = acq.patient_table_position()[2];
+  acquisition.head.patient_table_position[0] = acq.patient_table_position()[0];
+  acquisition.head.patient_table_position[1] = acq.patient_table_position()[1];
+  acquisition.head.patient_table_position[2] = acq.patient_table_position()[2];
 
   for (auto& p : acq.user_int()) {
-    acquisition.user_int.push_back(p);
+    acquisition.head.user_int.push_back(p);
   }
   for (auto& p : acq.user_float()) {
-    acquisition.user_float.push_back(p);
+    acquisition.head.user_float.push_back(p);
   }
 
-  mrd::AcquisitionData data({acq.active_channels(), acq.number_of_samples()});
+  acquisition.data.resize({acq.active_channels(), acq.number_of_samples()});
   for (uint16_t c = 0; c < acq.active_channels(); c++) {
     for (uint16_t s = 0; s < acq.number_of_samples(); s++) {
-      data(c, s) = acq.data(s, c);
+      acquisition.data(c, s) = acq.data(s, c);
     }
   }
 
-  acquisition.data = xt::view(data, xt::all(), xt::all());
-
   if (acq.trajectory_dimensions() > 0) {
-    mrd::TrajectoryData trajectory({acq.trajectory_dimensions(), acq.number_of_samples()});
+    acquisition.trajectory.resize({acq.trajectory_dimensions(), acq.number_of_samples()});
     for (uint16_t d = 0; d < acq.trajectory_dimensions(); d++) {
       for (uint16_t s = 0; s < acq.number_of_samples(); s++) {
-        trajectory(d, s) = acq.traj(s, d);
+        acquisition.trajectory(d, s) = acq.traj(s, d);
       }
     }
-    acquisition.trajectory = xt::view(trajectory, xt::all(), xt::all());
   }
 
   return acquisition;
@@ -1975,58 +2002,58 @@ mrd::Waveform<uint32_t> convert(ISMRMRD::Waveform& wfm) {
 template <typename T>
 mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
   mrd::Image<T> image;
-  image.flags = im.getFlags();
-  image.measurement_uid = im.getMeasurementUid();
-  image.field_of_view[0] = im.getFieldOfViewX();
-  image.field_of_view[1] = im.getFieldOfViewY();
-  image.field_of_view[2] = im.getFieldOfViewZ();
-  image.position[0] = im.getPositionX();
-  image.position[1] = im.getPositionY();
-  image.position[2] = im.getPositionZ();
-  image.col_dir[0] = im.getReadDirectionX();
-  image.col_dir[1] = im.getReadDirectionY();
-  image.col_dir[2] = im.getReadDirectionZ();
-  image.line_dir[0] = im.getPhaseDirectionX();
-  image.line_dir[1] = im.getPhaseDirectionY();
-  image.line_dir[2] = im.getPhaseDirectionZ();
-  image.slice_dir[0] = im.getSliceDirectionX();
-  image.slice_dir[1] = im.getSliceDirectionY();
-  image.slice_dir[2] = im.getSliceDirectionZ();
-  image.patient_table_position[0] = im.getPatientTablePositionX();
-  image.patient_table_position[1] = im.getPatientTablePositionY();
-  image.patient_table_position[2] = im.getPatientTablePositionZ();
-  image.average = im.getAverage();
-  image.slice = im.getSlice();
-  image.contrast = im.getContrast();
-  image.phase = im.getPhase();
-  image.repetition = im.getRepetition();
-  image.set = im.getSet();
-  image.acquisition_time_stamp = im.getAcquisitionTimeStamp();
-  image.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(0));
-  image.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(1));
-  image.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(2));
+  image.head.flags = im.getFlags();
+  image.head.measurement_uid = im.getMeasurementUid();
+  image.head.field_of_view[0] = im.getFieldOfViewX();
+  image.head.field_of_view[1] = im.getFieldOfViewY();
+  image.head.field_of_view[2] = im.getFieldOfViewZ();
+  image.head.position[0] = im.getPositionX();
+  image.head.position[1] = im.getPositionY();
+  image.head.position[2] = im.getPositionZ();
+  image.head.col_dir[0] = im.getReadDirectionX();
+  image.head.col_dir[1] = im.getReadDirectionY();
+  image.head.col_dir[2] = im.getReadDirectionZ();
+  image.head.line_dir[0] = im.getPhaseDirectionX();
+  image.head.line_dir[1] = im.getPhaseDirectionY();
+  image.head.line_dir[2] = im.getPhaseDirectionZ();
+  image.head.slice_dir[0] = im.getSliceDirectionX();
+  image.head.slice_dir[1] = im.getSliceDirectionY();
+  image.head.slice_dir[2] = im.getSliceDirectionZ();
+  image.head.patient_table_position[0] = im.getPatientTablePositionX();
+  image.head.patient_table_position[1] = im.getPatientTablePositionY();
+  image.head.patient_table_position[2] = im.getPatientTablePositionZ();
+  image.head.average = im.getAverage();
+  image.head.slice = im.getSlice();
+  image.head.contrast = im.getContrast();
+  image.head.phase = im.getPhase();
+  image.head.repetition = im.getRepetition();
+  image.head.set = im.getSet();
+  image.head.acquisition_time_stamp = im.getAcquisitionTimeStamp();
+  image.head.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(0));
+  image.head.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(1));
+  image.head.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(2));
 
   if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_COMPLEX) {
-    image.image_type = mrd::ImageType::kComplex;
+    image.head.image_type = mrd::ImageType::kComplex;
   } else if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_MAGNITUDE) {
-    image.image_type = mrd::ImageType::kMagnitude;
+    image.head.image_type = mrd::ImageType::kMagnitude;
   } else if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_REAL) {
-    image.image_type = mrd::ImageType::kReal;
+    image.head.image_type = mrd::ImageType::kReal;
   } else if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_PHASE) {
-    image.image_type = mrd::ImageType::kPhase;
+    image.head.image_type = mrd::ImageType::kPhase;
   } else if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_IMAG) {
-    image.image_type = mrd::ImageType::kImag;
+    image.head.image_type = mrd::ImageType::kImag;
   } else {
     throw std::runtime_error("Unknown image type");
   }
 
-  image.image_index = im.getImageIndex();
-  image.image_series_index = im.getImageSeriesIndex();
+  image.head.image_index = im.getImageIndex();
+  image.head.image_series_index = im.getImageSeriesIndex();
   for (int i = 0; i < ISMRMRD::ISMRMRD_USER_INTS; i++) {
-    image.user_int.push_back(im.getUserInt(i));
+    image.head.user_int.push_back(im.getUserInt(i));
   }
   for (int i = 0; i < ISMRMRD::ISMRMRD_USER_FLOATS; i++) {
-    image.user_float.push_back(im.getUserFloat(i));
+    image.head.user_float.push_back(im.getUserFloat(i));
   }
 
   mrd::ImageData<T> data({im.getNumberOfChannels(), im.getMatrixSizeZ(), im.getMatrixSizeY(), im.getMatrixSizeX()});

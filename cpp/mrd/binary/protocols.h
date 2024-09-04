@@ -8,45 +8,52 @@
 #include <variant>
 #include <vector>
 
-#include "../yardl/detail/binary/reader_writer.h"
 #include "../protocols.h"
-#include "../types.h"
+#include "../yardl/detail/binary/reader_writer.h"
 
 namespace mrd::binary {
-// Binary writer for the MrdNoiseCovariance protocol.
-class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::binary::BinaryWriter {
+// Binary writer for the KspaceProtocol protocol.
+class KspaceProtocolWriter : public mrd::KspaceProtocolWriterBase, yardl::binary::BinaryWriter {
   public:
-  MrdNoiseCovarianceWriter(std::ostream& stream, Version version = Version::Current)
-      : yardl::binary::BinaryWriter(stream, mrd::MrdNoiseCovarianceWriterBase::SchemaFromVersion(version)), version_(version) {}
+  KspaceProtocolWriter(std::ostream& stream, Version version = Version::Current)
+      : yardl::binary::BinaryWriter(stream, mrd::KspaceProtocolWriterBase::SchemaFromVersion(version)), version_(version) {}
 
-  MrdNoiseCovarianceWriter(std::string file_name, Version version = Version::Current)
-      : yardl::binary::BinaryWriter(file_name, mrd::MrdNoiseCovarianceWriterBase::SchemaFromVersion(version)), version_(version) {}
+  KspaceProtocolWriter(std::string file_name, Version version = Version::Current)
+      : yardl::binary::BinaryWriter(file_name, mrd::KspaceProtocolWriterBase::SchemaFromVersion(version)), version_(version) {}
 
   void Flush() override;
 
   protected:
-  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+  void WriteHeaderImpl(std::optional<mrd::Header> const& value) override;
+  void WriteKspaceImpl(mrd::Kspace const& value) override;
+  void WriteKspaceImpl(std::vector<mrd::Kspace> const& values) override;
+  void EndKspaceImpl() override;
   void CloseImpl() override;
 
   Version version_;
 };
 
-// Binary reader for the MrdNoiseCovariance protocol.
-class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::binary::BinaryReader {
+// Binary reader for the KspaceProtocol protocol.
+class KspaceProtocolReader : public mrd::KspaceProtocolReaderBase, yardl::binary::BinaryReader {
   public:
-  MrdNoiseCovarianceReader(std::istream& stream)
-      : yardl::binary::BinaryReader(stream), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+  KspaceProtocolReader(std::istream& stream)
+      : yardl::binary::BinaryReader(stream), version_(mrd::KspaceProtocolReaderBase::VersionFromSchema(schema_read_)) {}
 
-  MrdNoiseCovarianceReader(std::string file_name)
-      : yardl::binary::BinaryReader(file_name), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+  KspaceProtocolReader(std::string file_name)
+      : yardl::binary::BinaryReader(file_name), version_(mrd::KspaceProtocolReaderBase::VersionFromSchema(schema_read_)) {}
 
   Version GetVersion() { return version_; }
 
   protected:
-  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
+  void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
+  bool ReadKspaceImpl(mrd::Kspace& value) override;
+  bool ReadKspaceImpl(std::vector<mrd::Kspace>& values) override;
   void CloseImpl() override;
 
   Version version_;
+
+  private:
+  size_t current_block_remaining_ = 0;
 };
 
 // Binary writer for the Mrd protocol.
@@ -91,6 +98,42 @@ class MrdReader : public mrd::MrdReaderBase, yardl::binary::BinaryReader {
 
   private:
   size_t current_block_remaining_ = 0;
+};
+
+// Binary writer for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::binary::BinaryWriter {
+  public:
+  MrdNoiseCovarianceWriter(std::ostream& stream, Version version = Version::Current)
+      : yardl::binary::BinaryWriter(stream, mrd::MrdNoiseCovarianceWriterBase::SchemaFromVersion(version)), version_(version) {}
+
+  MrdNoiseCovarianceWriter(std::string file_name, Version version = Version::Current)
+      : yardl::binary::BinaryWriter(file_name, mrd::MrdNoiseCovarianceWriterBase::SchemaFromVersion(version)), version_(version) {}
+
+  void Flush() override;
+
+  protected:
+  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+  void CloseImpl() override;
+
+  Version version_;
+};
+
+// Binary reader for the MrdNoiseCovariance protocol.
+class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::binary::BinaryReader {
+  public:
+  MrdNoiseCovarianceReader(std::istream& stream)
+      : yardl::binary::BinaryReader(stream), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+
+  MrdNoiseCovarianceReader(std::string file_name)
+      : yardl::binary::BinaryReader(file_name), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+
+  Version GetVersion() { return version_; }
+
+  protected:
+  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
+  void CloseImpl() override;
+
+  Version version_;
 };
 
 } // namespace mrd::binary

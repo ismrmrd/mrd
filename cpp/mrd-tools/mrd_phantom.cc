@@ -198,12 +198,12 @@ int main(int argc, char** argv) {
   std::array<size_t, 2> acq_shape = {ncoils, nkx};
   acq.data.resize(acq_shape);
   for (unsigned int c = 0; c < ncoils; c++) {
-    acq.channel_order.push_back(c);
+    acq.head.channel_order.push_back(c);
   }
-  acq.center_sample = std::round(nkx / 2.0);
-  acq.read_dir[0] = 1.0;
-  acq.phase_dir[1] = 1.0;
-  acq.slice_dir[1] = 1.0;
+  acq.head.center_sample = std::round(nkx / 2.0);
+  acq.head.read_dir[0] = 1.0;
+  acq.head.phase_dir[1] = 1.0;
+  acq.head.slice_dir[1] = 1.0;
 
   uint32_t scan_counter = 0;
 
@@ -211,8 +211,8 @@ int main(int argc, char** argv) {
   for (unsigned int n = 0; n < 32; n++) {
     std::array<size_t, 2> noise_shape = {ncoils, nkx};
     auto noise = generate_noise(noise_shape, noise_sigma);
-    acq.scan_counter = scan_counter++;
-    acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsNoiseMeasurement);
+    acq.head.scan_counter = scan_counter++;
+    acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsNoiseMeasurement);
     xt::view(acq.data, xt::all(), xt::all()) = noise;
     w->WriteData(acq);
   }
@@ -225,23 +225,23 @@ int main(int argc, char** argv) {
     auto kspace = xt::xtensor<std::complex<float>, 4>(phan) + noise;
 
     for (size_t line = 0; line < nky; line++) {
-      acq.flags.Clear();
-      acq.scan_counter = scan_counter++;
+      acq.head.flags.Clear();
+      acq.head.scan_counter = scan_counter++;
 
       if (line == 0) {
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
       }
       if (line == matrix - 1) {
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
       }
-      acq.idx.kspace_encode_step_1 = line;
-      acq.idx.kspace_encode_step_2 = 0;
-      acq.idx.slice = 0;
-      acq.idx.repetition = r;
+      acq.head.idx.kspace_encode_step_1 = line;
+      acq.head.idx.kspace_encode_step_2 = 0;
+      acq.head.idx.slice = 0;
+      acq.head.idx.repetition = r;
       acq.data = xt::view(kspace, xt::all(), 0, line, xt::all());
       w->WriteData(acq);
     }

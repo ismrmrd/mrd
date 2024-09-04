@@ -15,6 +15,7 @@ if (NOT CMAKE_BUILD_TYPE)
             "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
             FORCE)
 endif ()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 if(NOT CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 17)

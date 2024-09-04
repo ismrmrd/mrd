@@ -4,6 +4,7 @@ set shell := ['bash', '-ceuo', 'pipefail']
 export MRD_VERSION_STRING := `cat VERSION`
 
 cpp_version := "20"
+build_type := "Release"
 
 matlab := "disabled"
 matlab-test-cmd := if matlab != "disabled" { "run-matlab-command buildtool" } else { "echo Skipping MATLAB tests..." }
@@ -17,6 +18,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
 @configure: ensure-build-dir
     cd cpp/build; \
     cmake -GNinja \
+        -D CMAKE_BUILD_TYPE={{ build_type }} \
         -D CMAKE_CXX_STANDARD={{ cpp_version }} \
         -D CMAKE_INSTALL_PREFIX=$(mamba info --json | jq -r .default_prefix) \
         ..
@@ -48,7 +50,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd > mrd_testdata.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
-    diff direct.bin roundtrip.bin & diff recon_direct.bin recon_rountrip.bin
+    diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
 
 @conda-cpp-test: build
     cd cpp/build; \

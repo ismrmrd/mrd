@@ -90,7 +90,7 @@ using AcquisitionData = yardl::NDArray<std::complex<float>, 2>;
 
 using TrajectoryData = yardl::NDArray<float, 2>;
 
-struct Acquisition {
+struct AcquisitionHeader {
   // A bit mask of common attributes applicable to individual acquisition
   mrd::AcquisitionFlags flags{};
   // Encoding loop counters
@@ -131,32 +131,8 @@ struct Acquisition {
   std::vector<int32_t> user_int{};
   // User-defined float parameters
   std::vector<float> user_float{};
-  // Raw k-space samples array
-  mrd::AcquisitionData data{};
-  // Trajectory array
-  mrd::TrajectoryData trajectory{};
 
-  yardl::Size Coils() const {
-    return data.shape(0);
-  }
-
-  yardl::Size Samples() const {
-    return data.shape(1);
-  }
-
-  yardl::Size ActiveChannels() const {
-    return channel_order.size();
-  }
-
-  yardl::Size TrajectoryDimensions() const {
-    return trajectory.shape(0);
-  }
-
-  yardl::Size TrajectorySamples() const {
-    return trajectory.shape(1);
-  }
-
-  bool operator==(const Acquisition& other) const {
+  bool operator==(const AcquisitionHeader& other) const {
     return flags == other.flags &&
       idx == other.idx &&
       measurement_uid == other.measurement_uid &&
@@ -175,7 +151,44 @@ struct Acquisition {
       slice_dir == other.slice_dir &&
       patient_table_position == other.patient_table_position &&
       user_int == other.user_int &&
-      user_float == other.user_float &&
+      user_float == other.user_float;
+  }
+
+  bool operator!=(const AcquisitionHeader& other) const {
+    return !(*this == other);
+  }
+};
+
+struct Acquisition {
+  // Acquisition header
+  mrd::AcquisitionHeader head{};
+  // Raw k-space samples array
+  mrd::AcquisitionData data{};
+  // Trajectory array
+  mrd::TrajectoryData trajectory{};
+
+  yardl::Size Coils() const {
+    return yardl::shape(data, 0);
+  }
+
+  yardl::Size Samples() const {
+    return yardl::shape(data, 1);
+  }
+
+  yardl::Size ActiveChannels() const {
+    return head.channel_order.size();
+  }
+
+  yardl::Size TrajectoryDimensions() const {
+    return yardl::shape(trajectory, 0);
+  }
+
+  yardl::Size TrajectorySamples() const {
+    return yardl::shape(trajectory, 1);
+  }
+
+  bool operator==(const Acquisition& other) const {
+    return head == other.head &&
       data == other.data &&
       trajectory == other.trajectory;
   }
@@ -578,11 +591,12 @@ struct AccelerationFactorType {
 };
 
 enum class CalibrationMode {
-  kEmbedded = 0,
-  kInterleaved = 1,
-  kSeparate = 2,
-  kExternal = 3,
-  kOther = 4,
+  kNoacceleration = 0,
+  kEmbedded = 1,
+  kInterleaved = 2,
+  kSeparate = 3,
+  kExternal = 4,
+  kOther = 5,
 };
 
 enum class InterleavingDimension {
@@ -863,22 +877,7 @@ enum class ImageType {
 template <typename Y>
 using ImageData = yardl::NDArray<Y, 4>;
 
-struct ImageMetaData {
-  std::string name{};
-  std::string value{};
-
-  bool operator==(const ImageMetaData& other) const {
-    return name == other.name &&
-      value == other.value;
-  }
-
-  bool operator!=(const ImageMetaData& other) const {
-    return !(*this == other);
-  }
-};
-
-template <typename T>
-struct Image {
+struct ImageHeader {
   // A bit mask of common attributes applicable to individual images
   mrd::ImageFlags flags{};
   // Unique ID corresponding to the image
@@ -921,28 +920,8 @@ struct Image {
   std::vector<int32_t> user_int{};
   // User-defined float parameters
   std::vector<float> user_float{};
-  // Image data array
-  mrd::ImageData<T> data{};
-  // Meta attributes
-  std::unordered_map<std::string, std::vector<std::string>> meta{};
 
-  yardl::Size Channels() const {
-    return data.shape(0);
-  }
-
-  yardl::Size Slices() const {
-    return data.shape(1);
-  }
-
-  yardl::Size Rows() const {
-    return data.shape(2);
-  }
-
-  yardl::Size Cols() const {
-    return data.shape(3);
-  }
-
-  bool operator==(const Image& other) const {
+  bool operator==(const ImageHeader& other) const {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
       field_of_view == other.field_of_view &&
@@ -963,56 +942,50 @@ struct Image {
       image_index == other.image_index &&
       image_series_index == other.image_series_index &&
       user_int == other.user_int &&
-      user_float == other.user_float &&
+      user_float == other.user_float;
+  }
+
+  bool operator!=(const ImageHeader& other) const {
+    return !(*this == other);
+  }
+};
+
+using ImageMetaValue = std::variant<std::string, int64_t, double>;
+
+using ImageMeta = std::unordered_map<std::string, std::vector<mrd::ImageMetaValue>>;
+
+template <typename T>
+struct Image {
+  // Image header
+  mrd::ImageHeader head{};
+  // Image data array
+  mrd::ImageData<T> data{};
+  // Meta attributes
+  mrd::ImageMeta meta{};
+
+  yardl::Size Channels() const {
+    return yardl::shape(data, 0);
+  }
+
+  yardl::Size Slices() const {
+    return yardl::shape(data, 1);
+  }
+
+  yardl::Size Rows() const {
+    return yardl::shape(data, 2);
+  }
+
+  yardl::Size Cols() const {
+    return yardl::shape(data, 3);
+  }
+
+  bool operator==(const Image& other) const {
+    return head == other.head &&
       data == other.data &&
       meta == other.meta;
   }
 
   bool operator!=(const Image& other) const {
-    return !(*this == other);
-  }
-};
-
-using KspaceData = yardl::NDArray<std::complex<float>, 6>;
-
-using MaskData = yardl::NDArray<bool, 4>;
-
-struct Kspace {
-  mrd::Acquisition reference{};
-  mrd::KspaceData data{};
-  std::optional<mrd::MaskData> mask{};
-
-  yardl::Size Slices() const {
-    return data.shape(1);
-  }
-
-  yardl::Size Contrasts() const {
-    return data.shape(0);
-  }
-
-  yardl::Size Coils() const {
-    return data.shape(2);
-  }
-
-  yardl::Size Nz() const {
-    return data.shape(3);
-  }
-
-  yardl::Size Ny() const {
-    return data.shape(4);
-  }
-
-  yardl::Size Nx() const {
-    return data.shape(5);
-  }
-
-  bool operator==(const Kspace& other) const {
-    return reference == other.reference &&
-      data == other.data &&
-      mask == other.mask;
-  }
-
-  bool operator!=(const Kspace& other) const {
     return !(*this == other);
   }
 };
@@ -1042,6 +1015,51 @@ struct NoiseCovariance {
   }
 };
 
+struct MinMaxStat {
+  uint32_t minimum{};
+  uint32_t maximum{};
+
+  bool operator==(const MinMaxStat& other) const {
+    return minimum == other.minimum &&
+      maximum == other.maximum;
+  }
+
+  bool operator!=(const MinMaxStat& other) const {
+    return !(*this == other);
+  }
+};
+
+struct AcquisitionBucketStats {
+  mrd::MinMaxStat kspace_encode_step_1{};
+  mrd::MinMaxStat kspace_encode_step_2{};
+  mrd::MinMaxStat average{};
+  mrd::MinMaxStat slice{};
+  mrd::MinMaxStat contrast{};
+  mrd::MinMaxStat phase{};
+  mrd::MinMaxStat repetition{};
+  mrd::MinMaxStat set{};
+  mrd::MinMaxStat segment{};
+  // TODO: Remove after Yardl #171 is merged
+  std::string unused{};
+
+  bool operator==(const AcquisitionBucketStats& other) const {
+    return kspace_encode_step_1 == other.kspace_encode_step_1 &&
+      kspace_encode_step_2 == other.kspace_encode_step_2 &&
+      average == other.average &&
+      slice == other.slice &&
+      contrast == other.contrast &&
+      phase == other.phase &&
+      repetition == other.repetition &&
+      set == other.set &&
+      segment == other.segment &&
+      unused == other.unused;
+  }
+
+  bool operator!=(const AcquisitionBucketStats& other) const {
+    return !(*this == other);
+  }
+};
+
 template <typename T>
 using WaveformSamples = yardl::NDArray<T, 2>;
 
@@ -1063,11 +1081,11 @@ struct Waveform {
   mrd::WaveformSamples<T> data{};
 
   yardl::Size Channels() const {
-    return data.shape(0);
+    return yardl::shape(data, 0);
   }
 
   yardl::Size NumberOfSamples() const {
-    return data.shape(1);
+    return yardl::shape(data, 1);
   }
 
   bool operator==(const Waveform& other) const {
@@ -1087,6 +1105,177 @@ struct Waveform {
 
 using WaveformUint32 = mrd::Waveform<uint32_t>;
 
+struct AcquisitionBucket {
+  std::vector<mrd::Acquisition> data{};
+  std::vector<mrd::Acquisition> ref{};
+  std::vector<mrd::AcquisitionBucketStats> datastats{};
+  std::vector<mrd::AcquisitionBucketStats> refstats{};
+  std::vector<mrd::WaveformUint32> waveforms{};
+
+  bool operator==(const AcquisitionBucket& other) const {
+    return data == other.data &&
+      ref == other.ref &&
+      datastats == other.datastats &&
+      refstats == other.refstats &&
+      waveforms == other.waveforms;
+  }
+
+  bool operator!=(const AcquisitionBucket& other) const {
+    return !(*this == other);
+  }
+};
+
+// Sampled range along RO, E1, E2 (for asymmetric echo and partial fourier)
+struct SamplingLimits {
+  mrd::LimitType ro{};
+  mrd::LimitType e1{};
+  mrd::LimitType e2{};
+
+  bool operator==(const SamplingLimits& other) const {
+    return ro == other.ro &&
+      e1 == other.e1 &&
+      e2 == other.e2;
+  }
+
+  bool operator!=(const SamplingLimits& other) const {
+    return !(*this == other);
+  }
+};
+
+struct SamplingDescription {
+  mrd::FieldOfViewMm encoded_fov{};
+  mrd::FieldOfViewMm recon_fov{};
+  mrd::MatrixSizeType encoded_matrix{};
+  mrd::MatrixSizeType recon_matrix{};
+  mrd::SamplingLimits sampling_limits{};
+
+  bool operator==(const SamplingDescription& other) const {
+    return encoded_fov == other.encoded_fov &&
+      recon_fov == other.recon_fov &&
+      encoded_matrix == other.encoded_matrix &&
+      recon_matrix == other.recon_matrix &&
+      sampling_limits == other.sampling_limits;
+  }
+
+  bool operator!=(const SamplingDescription& other) const {
+    return !(*this == other);
+  }
+};
+
+struct BufferedData {
+  // Buffered Acquisition data
+  yardl::NDArray<std::complex<float>, 7> data{};
+  // Buffered Trajectory data
+  yardl::NDArray<float, 7> trajectory{};
+  // Buffered Density weights
+  std::optional<yardl::NDArray<float, 6>> density{};
+  // Buffered AcquisitionHeaders
+  yardl::NDArray<mrd::AcquisitionHeader, 5> headers{};
+  // Sampling details for these Acquisitions
+  mrd::SamplingDescription sampling{};
+
+  bool operator==(const BufferedData& other) const {
+    return data == other.data &&
+      trajectory == other.trajectory &&
+      density == other.density &&
+      headers == other.headers &&
+      sampling == other.sampling;
+  }
+
+  bool operator!=(const BufferedData& other) const {
+    return !(*this == other);
+  }
+};
+
+struct ReconBit {
+  mrd::BufferedData data{};
+  std::optional<mrd::BufferedData> ref{};
+
+  bool operator==(const ReconBit& other) const {
+    return data == other.data &&
+      ref == other.ref;
+  }
+
+  bool operator!=(const ReconBit& other) const {
+    return !(*this == other);
+  }
+};
+
+struct ReconData {
+  std::vector<mrd::ReconBit> rbits{};
+
+  bool operator==(const ReconData& other) const {
+    return rbits == other.rbits;
+  }
+
+  bool operator!=(const ReconData& other) const {
+    return !(*this == other);
+  }
+};
+
+struct ImageArray {
+  yardl::NDArray<std::complex<float>, 7> data{};
+  yardl::NDArray<mrd::ImageHeader, 3> headers{};
+  yardl::NDArray<mrd::ImageMeta, 3> meta{};
+  std::vector<mrd::WaveformUint32> waveforms{};
+
+  bool operator==(const ImageArray& other) const {
+    return data == other.data &&
+      headers == other.headers &&
+      meta == other.meta &&
+      waveforms == other.waveforms;
+  }
+
+  bool operator!=(const ImageArray& other) const {
+    return !(*this == other);
+  }
+};
+
+using KspaceData = yardl::NDArray<std::complex<float>, 6>;
+
+using MaskData = yardl::NDArray<bool, 4>;
+
+// TODO: The types below were added to support Wabakimi, and should be replaced with above types
+struct Kspace {
+  mrd::Acquisition reference{};
+  mrd::KspaceData data{};
+  std::optional<mrd::MaskData> mask{};
+
+  yardl::Size Contrasts() const {
+    return yardl::shape(data, 0);
+  }
+
+  yardl::Size Slices() const {
+    return yardl::shape(data, 1);
+  }
+
+  yardl::Size Coils() const {
+    return yardl::shape(data, 2);
+  }
+
+  yardl::Size Nz() const {
+    return yardl::shape(data, 3);
+  }
+
+  yardl::Size Ny() const {
+    return yardl::shape(data, 4);
+  }
+
+  yardl::Size Nx() const {
+    return yardl::shape(data, 5);
+  }
+
+  bool operator==(const Kspace& other) const {
+    return reference == other.reference &&
+      data == other.data &&
+      mask == other.mask;
+  }
+
+  bool operator!=(const Kspace& other) const {
+    return !(*this == other);
+  }
+};
+
 using ImageUint16 = mrd::Image<uint16_t>;
 
 using ImageInt16 = mrd::Image<int16_t>;
@@ -1103,7 +1292,7 @@ using ImageComplexFloat = mrd::Image<std::complex<float>>;
 
 using ImageComplexDouble = mrd::Image<std::complex<double>>;
 
-using StreamItem = std::variant<mrd::Acquisition, mrd::Kspace, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>;
 
 } // namespace mrd
 

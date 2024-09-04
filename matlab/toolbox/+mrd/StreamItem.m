@@ -6,44 +6,52 @@ classdef StreamItem < yardl.Union
       res = mrd.StreamItem(1, value);
     end
 
-    function res = Kspace(value)
+    function res = AcquisitionBucket(value)
       res = mrd.StreamItem(2, value);
     end
 
-    function res = WaveformUint32(value)
+    function res = ReconData(value)
       res = mrd.StreamItem(3, value);
     end
 
-    function res = ImageUint16(value)
+    function res = WaveformUint32(value)
       res = mrd.StreamItem(4, value);
     end
 
-    function res = ImageInt16(value)
+    function res = ImageUint16(value)
       res = mrd.StreamItem(5, value);
     end
 
-    function res = ImageUint(value)
+    function res = ImageInt16(value)
       res = mrd.StreamItem(6, value);
     end
 
-    function res = ImageInt(value)
+    function res = ImageUint(value)
       res = mrd.StreamItem(7, value);
     end
 
-    function res = ImageFloat(value)
+    function res = ImageInt(value)
       res = mrd.StreamItem(8, value);
     end
 
-    function res = ImageDouble(value)
+    function res = ImageFloat(value)
       res = mrd.StreamItem(9, value);
     end
 
-    function res = ImageComplexFloat(value)
+    function res = ImageDouble(value)
       res = mrd.StreamItem(10, value);
     end
 
-    function res = ImageComplexDouble(value)
+    function res = ImageComplexFloat(value)
       res = mrd.StreamItem(11, value);
+    end
+
+    function res = ImageComplexDouble(value)
+      res = mrd.StreamItem(12, value);
+    end
+
+    function res = ImageArray(value)
+      res = mrd.StreamItem(13, value);
     end
 
     function z = zeros(varargin)
@@ -65,44 +73,52 @@ classdef StreamItem < yardl.Union
       res = self.index == 1;
     end
 
-    function res = isKspace(self)
+    function res = isAcquisitionBucket(self)
       res = self.index == 2;
     end
 
-    function res = isWaveformUint32(self)
+    function res = isReconData(self)
       res = self.index == 3;
     end
 
-    function res = isImageUint16(self)
+    function res = isWaveformUint32(self)
       res = self.index == 4;
     end
 
-    function res = isImageInt16(self)
+    function res = isImageUint16(self)
       res = self.index == 5;
     end
 
-    function res = isImageUint(self)
+    function res = isImageInt16(self)
       res = self.index == 6;
     end
 
-    function res = isImageInt(self)
+    function res = isImageUint(self)
       res = self.index == 7;
     end
 
-    function res = isImageFloat(self)
+    function res = isImageInt(self)
       res = self.index == 8;
     end
 
-    function res = isImageDouble(self)
+    function res = isImageFloat(self)
       res = self.index == 9;
     end
 
-    function res = isImageComplexFloat(self)
+    function res = isImageDouble(self)
       res = self.index == 10;
     end
 
-    function res = isImageComplexDouble(self)
+    function res = isImageComplexFloat(self)
       res = self.index == 11;
+    end
+
+    function res = isImageComplexDouble(self)
+      res = self.index == 12;
+    end
+
+    function res = isImageArray(self)
+      res = self.index == 13;
     end
 
     function eq = eq(self, other)
@@ -114,7 +130,7 @@ classdef StreamItem < yardl.Union
     end
 
     function t = tag(self)
-      tags_ = ["Acquisition", "Kspace", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint", "ImageInt", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble"];
+      tags_ = ["Acquisition", "AcquisitionBucket", "ReconData", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint", "ImageInt", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "ImageArray"];
       t = tags_(self.index_);
     end
   end

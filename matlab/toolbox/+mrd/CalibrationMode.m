@@ -2,20 +2,23 @@
 
 classdef CalibrationMode < uint64
   methods (Static)
-    function v = EMBEDDED
+    function v = NOACCELERATION
       v = mrd.CalibrationMode(0);
     end
-    function v = INTERLEAVED
+    function v = EMBEDDED
       v = mrd.CalibrationMode(1);
     end
-    function v = SEPARATE
+    function v = INTERLEAVED
       v = mrd.CalibrationMode(2);
     end
-    function v = EXTERNAL
+    function v = SEPARATE
       v = mrd.CalibrationMode(3);
     end
-    function v = OTHER
+    function v = EXTERNAL
       v = mrd.CalibrationMode(4);
+    end
+    function v = OTHER
+      v = mrd.CalibrationMode(5);
     end
 
     function z = zeros(varargin)
