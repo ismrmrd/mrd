@@ -46,7 +46,7 @@ target_link_libraries(
 add_executable(
   ismrmrd_to_mrd
   ismrmrd_to_mrd.cc
-  ../mrd/converters.cc
+  converters.cc
 )
 
 target_link_libraries(
@@ -58,7 +58,7 @@ target_link_libraries(
 add_executable(
   mrd_to_ismrmrd
   mrd_to_ismrmrd.cc
-  ../mrd/converters.cc
+  converters.cc
 )
 
 target_link_libraries(

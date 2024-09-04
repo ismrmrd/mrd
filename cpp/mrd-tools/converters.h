@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "mrd/types.h"
 
 #include <ismrmrd/xml.h>
 #include <ismrmrd/waveform.h>

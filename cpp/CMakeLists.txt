@@ -41,13 +41,12 @@ string(REGEX MATCH "[0-9]+" MRD_SOVERSION ${MRD_VERSION_STRING})
 message(STATUS "MRD_SOVERSION: ${MRD_SOVERSION}")
 
 # MRD Library (libmrd)
-add_library(mrd SHARED $<TARGET_OBJECTS:mrd_generated> mrd/converters.cc)
+add_library(mrd SHARED $<TARGET_OBJECTS:mrd_generated>)
 add_library(mrd::mrd ALIAS mrd)
 
 target_include_directories(mrd PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
 
-# MRD links with ISMRMRD only as long as we need to provide a conversion API
-target_link_libraries(mrd PRIVATE mrd_generated PUBLIC ISMRMRD::ISMRMRD)
+target_link_libraries(mrd PRIVATE mrd_generated)
 set_target_properties(mrd PROPERTIES
   VERSION ${MRD_VERSION_STRING}
   SOVERSION ${MRD_SOVERSION}
