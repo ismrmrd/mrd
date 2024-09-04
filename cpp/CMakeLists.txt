@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
-project(mrd)
 
-set(MRD_VERSION_STRING $ENV{MRD_VERSION_STRING})
+file(STRINGS "../VERSION" MRD_VERSION_STRING)
+
+project(mrd VERSION ${MRD_VERSION_STRING})
+
 message(STATUS "MRD_VERSION_STRING: ${MRD_VERSION_STRING}")
-string(REGEX MATCH "[0-9]+" MRD_SOVERSION ${MRD_VERSION_STRING})
-message(STATUS "MRD_SOVERSION: ${MRD_SOVERSION}")
 
 SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
@@ -35,6 +35,10 @@ add_subdirectory(mrd-tools)
 add_executable(mrd_minimal_example minimal_example.cc)
 target_link_libraries(mrd_minimal_example mrd_generated)
 install(TARGETS mrd_minimal_example DESTINATION bin)
+
+
+string(REGEX MATCH "[0-9]+" MRD_SOVERSION ${MRD_VERSION_STRING})
+message(STATUS "MRD_SOVERSION: ${MRD_SOVERSION}")
 
 # MRD Library (libmrd)
 add_library(mrd SHARED $<TARGET_OBJECTS:mrd_generated> mrd/converters.cc)
