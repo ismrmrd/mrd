@@ -42,55 +42,50 @@ message(STATUS "MRD_SOVERSION: ${MRD_SOVERSION}")
 
 # MRD Library (libmrd)
 add_library(mrd SHARED $<TARGET_OBJECTS:mrd_generated> mrd/converters.cc)
+add_library(mrd::mrd ALIAS mrd)
+
+target_include_directories(mrd PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mrd>")
+
 # MRD links with ISMRMRD only as long as we need to provide a conversion API
 target_link_libraries(mrd PRIVATE mrd_generated PUBLIC ISMRMRD::ISMRMRD)
 set_target_properties(mrd PROPERTIES
   VERSION ${MRD_VERSION_STRING}
   SOVERSION ${MRD_SOVERSION}
-  EXPORT_NAME MRD
 )
-install(TARGETS mrd
-        EXPORT MRDTargets
-        DESTINATION lib
-        INCLUDES DESTINATION include
+
+# Installation (libmrd)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+install(TARGETS mrd EXPORT mrd-targets
+        COMPONENT Devel
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 install(DIRECTORY mrd
-        DESTINATION include
+        TYPE INCLUDE
         COMPONENT Devel
         FILES_MATCHING PATTERN "*.h"
 )
 
-include(CMakePackageConfigHelpers)
+set(MRD_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/mrd" CACHE STRING "Path to MRD CMake files")
+
+install(EXPORT mrd-targets
+  FILE mrd-targets.cmake
+  DESTINATION "${MRD_INSTALL_CMAKEDIR}"
+  NAMESPACE mrd::
+  COMPONENT Devel
+)
+
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/mrd/MRDConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/mrd-config-version.cmake"
   VERSION ${MRD_VERSION_STRING}
-  COMPATIBILITY AnyNewerVersion
+  COMPATIBILITY SameMajorVersion
 )
 
-export(EXPORT MRDTargets
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/mrd/MRDTargets.cmake"
-  NAMESPACE MRD::
-)
-configure_file(cmake/MRDConfig.cmake
-  "${CMAKE_CURRENT_BINARY_DIR}/mrd/MRDConfig.cmake"
-  COPYONLY
-)
-
-set(ConfigPackageLocation lib/cmake/mrd)
-install(EXPORT MRDTargets
-  FILE
-    MRDTargets.cmake
-  NAMESPACE
-    MRD::
-  DESTINATION
-    ${ConfigPackageLocation}
-)
 install(
   FILES
-    cmake/MRDConfig.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/mrd/MRDConfigVersion.cmake"
-  DESTINATION
-    ${ConfigPackageLocation}
-  COMPONENT
-    Devel
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/mrd-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/mrd-config-version.cmake"
+  DESTINATION "${MRD_INSTALL_CMAKEDIR}"
+  COMPONENT Devel
 )
