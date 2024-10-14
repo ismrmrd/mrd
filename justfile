@@ -4,7 +4,7 @@ set shell := ['bash', '-ceuo', 'pipefail']
 export MRD_VERSION_STRING := `cat VERSION`
 
 cpp_version := "20"
-build_type := "Release"
+build_type := "RelWithDebInfo"
 
 matlab := "disabled"
 matlab-test-cmd := if matlab != "disabled" { "run-matlab-command buildtool" } else { "echo Skipping MATLAB tests..." }
