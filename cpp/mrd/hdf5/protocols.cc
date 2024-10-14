@@ -122,23 +122,213 @@ H5::CompType InnerUnion3Ddl(bool nullable, H5::DataType const& t0, std::string c
   return rtn;
 }
 
-template <typename TInner0, typename TOuter0, typename TInner1, typename TOuter1, typename TInner2, typename TOuter2, typename TInner3, typename TOuter3, typename TInner4, typename TOuter4, typename TInner5, typename TOuter5, typename TInner6, typename TOuter6, typename TInner7, typename TOuter7, typename TInner8, typename TOuter8, typename TInner9, typename TOuter9, typename TInner10, typename TOuter10, typename TInner11, typename TOuter11, typename TInner12, typename TOuter12>
-class InnerUnion13 {
+template <typename TInner0, typename TOuter0, typename TInner1, typename TOuter1, typename TInner2, typename TOuter2, typename TInner3, typename TOuter3, typename TInner4, typename TOuter4, typename TInner5, typename TOuter5, typename TInner6, typename TOuter6, typename TInner7, typename TOuter7>
+class InnerUnion8 {
   public:
-  InnerUnion13() : type_index_(-1) {} 
-  InnerUnion13(std::variant<TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12> const& v) : type_index_(static_cast<int8_t>(v.index())) {
+  InnerUnion8() : type_index_(-1) {} 
+  InnerUnion8(std::variant<TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7> const& v) : type_index_(static_cast<int8_t>(v.index())) {
     Init(v);
   }
 
-  InnerUnion13(std::variant<std::monostate, TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12> const& v) : type_index_(static_cast<int8_t>(v.index()) - 1) {
+  InnerUnion8(std::variant<std::monostate, TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7> const& v) : type_index_(static_cast<int8_t>(v.index()) - 1) {
     Init(v);
   }
 
-  InnerUnion13(InnerUnion13 const& v) = delete;
+  InnerUnion8(InnerUnion8 const& v) = delete;
 
-  InnerUnion13 operator=(InnerUnion13 const&) = delete;
+  InnerUnion8 operator=(InnerUnion8 const&) = delete;
 
-  ~InnerUnion13() {
+  ~InnerUnion8() {
+    switch (type_index_) {
+    case 0:
+      value0_.~TInner0();
+      break;
+    case 1:
+      value1_.~TInner1();
+      break;
+    case 2:
+      value2_.~TInner2();
+      break;
+    case 3:
+      value3_.~TInner3();
+      break;
+    case 4:
+      value4_.~TInner4();
+      break;
+    case 5:
+      value5_.~TInner5();
+      break;
+    case 6:
+      value6_.~TInner6();
+      break;
+    case 7:
+      value7_.~TInner7();
+      break;
+    }
+  }
+
+  void ToOuter(std::variant<TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7>& o) const {
+    ToOuterImpl(o);
+  }
+
+  void ToOuter(std::variant<std::monostate, TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7>& o) const {
+    ToOuterImpl(o);
+  }
+
+  int8_t type_index_;
+  union {
+    char empty0_[sizeof(TInner0)]{};
+    TInner0 value0_;
+  };
+  union {
+    char empty1_[sizeof(TInner1)]{};
+    TInner1 value1_;
+  };
+  union {
+    char empty2_[sizeof(TInner2)]{};
+    TInner2 value2_;
+  };
+  union {
+    char empty3_[sizeof(TInner3)]{};
+    TInner3 value3_;
+  };
+  union {
+    char empty4_[sizeof(TInner4)]{};
+    TInner4 value4_;
+  };
+  union {
+    char empty5_[sizeof(TInner5)]{};
+    TInner5 value5_;
+  };
+  union {
+    char empty6_[sizeof(TInner6)]{};
+    TInner6 value6_;
+  };
+  union {
+    char empty7_[sizeof(TInner7)]{};
+    TInner7 value7_;
+  };
+
+  private:
+  template <typename T>
+  void Init(T const& v) {
+    constexpr size_t offset = GetOuterVariantOffset<std::remove_const_t<std::remove_reference_t<decltype(v)>>>();
+    switch (type_index_) {
+    case 0:
+      new (&value0_) TInner0(std::get<0 + offset>(v));
+      return;
+    case 1:
+      new (&value1_) TInner1(std::get<1 + offset>(v));
+      return;
+    case 2:
+      new (&value2_) TInner2(std::get<2 + offset>(v));
+      return;
+    case 3:
+      new (&value3_) TInner3(std::get<3 + offset>(v));
+      return;
+    case 4:
+      new (&value4_) TInner4(std::get<4 + offset>(v));
+      return;
+    case 5:
+      new (&value5_) TInner5(std::get<5 + offset>(v));
+      return;
+    case 6:
+      new (&value6_) TInner6(std::get<6 + offset>(v));
+      return;
+    case 7:
+      new (&value7_) TInner7(std::get<7 + offset>(v));
+      return;
+    }
+  }
+
+  template <typename TVariant>
+  void ToOuterImpl(TVariant& o) const {
+    constexpr size_t offset = GetOuterVariantOffset<TVariant>();
+    switch (type_index_) {
+    case -1:
+      if constexpr (offset == 1) {
+        o.template emplace<0>(std::monostate{});
+        return;
+      }
+    case 0:
+      o.template emplace<0 + offset>();
+      yardl::hdf5::ToOuter(value0_, std::get<0 + offset>(o));
+      return;
+    case 1:
+      o.template emplace<1 + offset>();
+      yardl::hdf5::ToOuter(value1_, std::get<1 + offset>(o));
+      return;
+    case 2:
+      o.template emplace<2 + offset>();
+      yardl::hdf5::ToOuter(value2_, std::get<2 + offset>(o));
+      return;
+    case 3:
+      o.template emplace<3 + offset>();
+      yardl::hdf5::ToOuter(value3_, std::get<3 + offset>(o));
+      return;
+    case 4:
+      o.template emplace<4 + offset>();
+      yardl::hdf5::ToOuter(value4_, std::get<4 + offset>(o));
+      return;
+    case 5:
+      o.template emplace<5 + offset>();
+      yardl::hdf5::ToOuter(value5_, std::get<5 + offset>(o));
+      return;
+    case 6:
+      o.template emplace<6 + offset>();
+      yardl::hdf5::ToOuter(value6_, std::get<6 + offset>(o));
+      return;
+    case 7:
+      o.template emplace<7 + offset>();
+      yardl::hdf5::ToOuter(value7_, std::get<7 + offset>(o));
+      return;
+    }
+    throw std::runtime_error("unrecognized type variant type index " + std::to_string(type_index_));
+  }
+
+  template <typename TVariant>
+  static constexpr size_t GetOuterVariantOffset() {
+    constexpr bool has_monostate = std::is_same_v<std::monostate, std::variant_alternative_t<0, TVariant>>;
+    if constexpr (has_monostate) {
+      return 1;
+    }
+      return 0;
+  }
+};
+
+template <typename TInner0, typename TOuter0, typename TInner1, typename TOuter1, typename TInner2, typename TOuter2, typename TInner3, typename TOuter3, typename TInner4, typename TOuter4, typename TInner5, typename TOuter5, typename TInner6, typename TOuter6, typename TInner7, typename TOuter7>
+H5::CompType InnerUnion8Ddl(bool nullable, H5::DataType const& t0, std::string const& tag0, H5::DataType const& t1, std::string const& tag1, H5::DataType const& t2, std::string const& tag2, H5::DataType const& t3, std::string const& tag3, H5::DataType const& t4, std::string const& tag4, H5::DataType const& t5, std::string const& tag5, H5::DataType const& t6, std::string const& tag6, H5::DataType const& t7, std::string const& tag7) {
+  using UnionType = ::InnerUnion8<TInner0, TOuter0, TInner1, TOuter1, TInner2, TOuter2, TInner3, TOuter3, TInner4, TOuter4, TInner5, TOuter5, TInner6, TOuter6, TInner7, TOuter7>;
+  H5::CompType rtn(sizeof(UnionType));
+  rtn.insertMember("$type", HOFFSET(UnionType, type_index_), yardl::hdf5::UnionTypeEnumDdl(nullable, tag0, tag1, tag2, tag3, tag4, tag5, tag6, tag7));
+  rtn.insertMember(tag0, HOFFSET(UnionType, value0_), t0);
+  rtn.insertMember(tag1, HOFFSET(UnionType, value1_), t1);
+  rtn.insertMember(tag2, HOFFSET(UnionType, value2_), t2);
+  rtn.insertMember(tag3, HOFFSET(UnionType, value3_), t3);
+  rtn.insertMember(tag4, HOFFSET(UnionType, value4_), t4);
+  rtn.insertMember(tag5, HOFFSET(UnionType, value5_), t5);
+  rtn.insertMember(tag6, HOFFSET(UnionType, value6_), t6);
+  rtn.insertMember(tag7, HOFFSET(UnionType, value7_), t7);
+  return rtn;
+}
+
+template <typename TInner0, typename TOuter0, typename TInner1, typename TOuter1, typename TInner2, typename TOuter2, typename TInner3, typename TOuter3, typename TInner4, typename TOuter4, typename TInner5, typename TOuter5, typename TInner6, typename TOuter6, typename TInner7, typename TOuter7, typename TInner8, typename TOuter8, typename TInner9, typename TOuter9, typename TInner10, typename TOuter10, typename TInner11, typename TOuter11, typename TInner12, typename TOuter12, typename TInner13, typename TOuter13>
+class InnerUnion14 {
+  public:
+  InnerUnion14() : type_index_(-1) {} 
+  InnerUnion14(std::variant<TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12, TOuter13> const& v) : type_index_(static_cast<int8_t>(v.index())) {
+    Init(v);
+  }
+
+  InnerUnion14(std::variant<std::monostate, TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12, TOuter13> const& v) : type_index_(static_cast<int8_t>(v.index()) - 1) {
+    Init(v);
+  }
+
+  InnerUnion14(InnerUnion14 const& v) = delete;
+
+  InnerUnion14 operator=(InnerUnion14 const&) = delete;
+
+  ~InnerUnion14() {
     switch (type_index_) {
     case 0:
       value0_.~TInner0();
@@ -179,14 +369,17 @@ class InnerUnion13 {
     case 12:
       value12_.~TInner12();
       break;
+    case 13:
+      value13_.~TInner13();
+      break;
     }
   }
 
-  void ToOuter(std::variant<TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12>& o) const {
+  void ToOuter(std::variant<TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12, TOuter13>& o) const {
     ToOuterImpl(o);
   }
 
-  void ToOuter(std::variant<std::monostate, TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12>& o) const {
+  void ToOuter(std::variant<std::monostate, TOuter0, TOuter1, TOuter2, TOuter3, TOuter4, TOuter5, TOuter6, TOuter7, TOuter8, TOuter9, TOuter10, TOuter11, TOuter12, TOuter13>& o) const {
     ToOuterImpl(o);
   }
 
@@ -243,6 +436,10 @@ class InnerUnion13 {
     char empty12_[sizeof(TInner12)]{};
     TInner12 value12_;
   };
+  union {
+    char empty13_[sizeof(TInner13)]{};
+    TInner13 value13_;
+  };
 
   private:
   template <typename T>
@@ -287,6 +484,9 @@ class InnerUnion13 {
       return;
     case 12:
       new (&value12_) TInner12(std::get<12 + offset>(v));
+      return;
+    case 13:
+      new (&value13_) TInner13(std::get<13 + offset>(v));
       return;
     }
   }
@@ -352,6 +552,10 @@ class InnerUnion13 {
       o.template emplace<12 + offset>();
       yardl::hdf5::ToOuter(value12_, std::get<12 + offset>(o));
       return;
+    case 13:
+      o.template emplace<13 + offset>();
+      yardl::hdf5::ToOuter(value13_, std::get<13 + offset>(o));
+      return;
     }
     throw std::runtime_error("unrecognized type variant type index " + std::to_string(type_index_));
   }
@@ -366,11 +570,11 @@ class InnerUnion13 {
   }
 };
 
-template <typename TInner0, typename TOuter0, typename TInner1, typename TOuter1, typename TInner2, typename TOuter2, typename TInner3, typename TOuter3, typename TInner4, typename TOuter4, typename TInner5, typename TOuter5, typename TInner6, typename TOuter6, typename TInner7, typename TOuter7, typename TInner8, typename TOuter8, typename TInner9, typename TOuter9, typename TInner10, typename TOuter10, typename TInner11, typename TOuter11, typename TInner12, typename TOuter12>
-H5::CompType InnerUnion13Ddl(bool nullable, H5::DataType const& t0, std::string const& tag0, H5::DataType const& t1, std::string const& tag1, H5::DataType const& t2, std::string const& tag2, H5::DataType const& t3, std::string const& tag3, H5::DataType const& t4, std::string const& tag4, H5::DataType const& t5, std::string const& tag5, H5::DataType const& t6, std::string const& tag6, H5::DataType const& t7, std::string const& tag7, H5::DataType const& t8, std::string const& tag8, H5::DataType const& t9, std::string const& tag9, H5::DataType const& t10, std::string const& tag10, H5::DataType const& t11, std::string const& tag11, H5::DataType const& t12, std::string const& tag12) {
-  using UnionType = ::InnerUnion13<TInner0, TOuter0, TInner1, TOuter1, TInner2, TOuter2, TInner3, TOuter3, TInner4, TOuter4, TInner5, TOuter5, TInner6, TOuter6, TInner7, TOuter7, TInner8, TOuter8, TInner9, TOuter9, TInner10, TOuter10, TInner11, TOuter11, TInner12, TOuter12>;
+template <typename TInner0, typename TOuter0, typename TInner1, typename TOuter1, typename TInner2, typename TOuter2, typename TInner3, typename TOuter3, typename TInner4, typename TOuter4, typename TInner5, typename TOuter5, typename TInner6, typename TOuter6, typename TInner7, typename TOuter7, typename TInner8, typename TOuter8, typename TInner9, typename TOuter9, typename TInner10, typename TOuter10, typename TInner11, typename TOuter11, typename TInner12, typename TOuter12, typename TInner13, typename TOuter13>
+H5::CompType InnerUnion14Ddl(bool nullable, H5::DataType const& t0, std::string const& tag0, H5::DataType const& t1, std::string const& tag1, H5::DataType const& t2, std::string const& tag2, H5::DataType const& t3, std::string const& tag3, H5::DataType const& t4, std::string const& tag4, H5::DataType const& t5, std::string const& tag5, H5::DataType const& t6, std::string const& tag6, H5::DataType const& t7, std::string const& tag7, H5::DataType const& t8, std::string const& tag8, H5::DataType const& t9, std::string const& tag9, H5::DataType const& t10, std::string const& tag10, H5::DataType const& t11, std::string const& tag11, H5::DataType const& t12, std::string const& tag12, H5::DataType const& t13, std::string const& tag13) {
+  using UnionType = ::InnerUnion14<TInner0, TOuter0, TInner1, TOuter1, TInner2, TOuter2, TInner3, TOuter3, TInner4, TOuter4, TInner5, TOuter5, TInner6, TOuter6, TInner7, TOuter7, TInner8, TOuter8, TInner9, TOuter9, TInner10, TOuter10, TInner11, TOuter11, TInner12, TOuter12, TInner13, TOuter13>;
   H5::CompType rtn(sizeof(UnionType));
-  rtn.insertMember("$type", HOFFSET(UnionType, type_index_), yardl::hdf5::UnionTypeEnumDdl(nullable, tag0, tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10, tag11, tag12));
+  rtn.insertMember("$type", HOFFSET(UnionType, type_index_), yardl::hdf5::UnionTypeEnumDdl(nullable, tag0, tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10, tag11, tag12, tag13));
   rtn.insertMember(tag0, HOFFSET(UnionType, value0_), t0);
   rtn.insertMember(tag1, HOFFSET(UnionType, value1_), t1);
   rtn.insertMember(tag2, HOFFSET(UnionType, value2_), t2);
@@ -384,6 +588,7 @@ H5::CompType InnerUnion13Ddl(bool nullable, H5::DataType const& t0, std::string 
   rtn.insertMember(tag10, HOFFSET(UnionType, value10_), t10);
   rtn.insertMember(tag11, HOFFSET(UnionType, value11_), t11);
   rtn.insertMember(tag12, HOFFSET(UnionType, value12_), t12);
+  rtn.insertMember(tag13, HOFFSET(UnionType, value13_), t13);
   return rtn;
 }
 }
@@ -645,11 +850,11 @@ struct _Inner_AcquisitionHeader {
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> center_sample;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> encoding_space_ref;
   yardl::hdf5::InnerOptional<float, float> sample_time_us;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> position;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> read_dir;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> phase_dir;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> slice_dir;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> patient_table_position;
+  yardl::FixedNDArray<float, 3> position;
+  yardl::FixedNDArray<float, 3> read_dir;
+  yardl::FixedNDArray<float, 3> phase_dir;
+  yardl::FixedNDArray<float, 3> slice_dir;
+  yardl::FixedNDArray<float, 3> patient_table_position;
   yardl::hdf5::InnerVlen<int32_t, int32_t> user_int;
   yardl::hdf5::InnerVlen<float, float> user_float;
 };
@@ -1283,12 +1488,12 @@ struct _Inner_ImageHeader {
 
   mrd::ImageFlags flags;
   uint32_t measurement_uid;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> field_of_view;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> position;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> col_dir;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> line_dir;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> slice_dir;
-  yardl::hdf5::InnerFixedNdArray<float, float, 3> patient_table_position;
+  yardl::FixedNDArray<float, 3> field_of_view;
+  yardl::FixedNDArray<float, 3> position;
+  yardl::FixedNDArray<float, 3> col_dir;
+  yardl::FixedNDArray<float, 3> line_dir;
+  yardl::FixedNDArray<float, 3> slice_dir;
+  yardl::FixedNDArray<float, 3> patient_table_position;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> average;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> slice;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> contrast;
@@ -1349,46 +1554,6 @@ struct _Inner_NoiseCovariance {
   yardl::hdf5::InnerNdArray<std::complex<float>, std::complex<float>, 2> matrix;
 };
 
-struct _Inner_AcquisitionBucketStats {
-  _Inner_AcquisitionBucketStats() {} 
-  _Inner_AcquisitionBucketStats(mrd::AcquisitionBucketStats const& o) 
-      : kspace_encode_step_1(o.kspace_encode_step_1),
-      kspace_encode_step_2(o.kspace_encode_step_2),
-      average(o.average),
-      slice(o.slice),
-      contrast(o.contrast),
-      phase(o.phase),
-      repetition(o.repetition),
-      set(o.set),
-      segment(o.segment),
-      unused(o.unused) {
-  }
-
-  void ToOuter (mrd::AcquisitionBucketStats& o) const {
-    yardl::hdf5::ToOuter(kspace_encode_step_1, o.kspace_encode_step_1);
-    yardl::hdf5::ToOuter(kspace_encode_step_2, o.kspace_encode_step_2);
-    yardl::hdf5::ToOuter(average, o.average);
-    yardl::hdf5::ToOuter(slice, o.slice);
-    yardl::hdf5::ToOuter(contrast, o.contrast);
-    yardl::hdf5::ToOuter(phase, o.phase);
-    yardl::hdf5::ToOuter(repetition, o.repetition);
-    yardl::hdf5::ToOuter(set, o.set);
-    yardl::hdf5::ToOuter(segment, o.segment);
-    yardl::hdf5::ToOuter(unused, o.unused);
-  }
-
-  mrd::MinMaxStat kspace_encode_step_1;
-  mrd::MinMaxStat kspace_encode_step_2;
-  mrd::MinMaxStat average;
-  mrd::MinMaxStat slice;
-  mrd::MinMaxStat contrast;
-  mrd::MinMaxStat phase;
-  mrd::MinMaxStat repetition;
-  mrd::MinMaxStat set;
-  mrd::MinMaxStat segment;
-  yardl::hdf5::InnerVlenString unused;
-};
-
 template <typename _T_Inner, typename T>
 struct _Inner_Waveform {
   _Inner_Waveform() {} 
@@ -1441,8 +1606,8 @@ struct _Inner_AcquisitionBucket {
 
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition> data;
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition> ref;
-  yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_AcquisitionBucketStats, mrd::AcquisitionBucketStats> datastats;
-  yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_AcquisitionBucketStats, mrd::AcquisitionBucketStats> refstats;
+  yardl::hdf5::InnerVlen<mrd::AcquisitionBucketStats, mrd::AcquisitionBucketStats> datastats;
+  yardl::hdf5::InnerVlen<mrd::AcquisitionBucketStats, mrd::AcquisitionBucketStats> refstats;
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32> waveforms;
 };
 
@@ -1522,25 +1687,6 @@ struct _Inner_ImageArray {
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32> waveforms;
 };
 
-struct _Inner_Kspace {
-  _Inner_Kspace() {} 
-  _Inner_Kspace(mrd::Kspace const& o) 
-      : reference(o.reference),
-      data(o.data),
-      mask(o.mask) {
-  }
-
-  void ToOuter (mrd::Kspace& o) const {
-    yardl::hdf5::ToOuter(reference, o.reference);
-    yardl::hdf5::ToOuter(data, o.data);
-    yardl::hdf5::ToOuter(mask, o.mask);
-  }
-
-  mrd::hdf5::_Inner_Acquisition reference;
-  yardl::hdf5::InnerNdArray<std::complex<float>, std::complex<float>, 6> data;
-  yardl::hdf5::InnerOptional<yardl::hdf5::InnerNdArray<bool, bool, 4>, mrd::MaskData> mask;
-};
-
 [[maybe_unused]] H5::CompType GetEncodingCountersHdf5Ddl() {
   using RecordType = mrd::hdf5::_Inner_EncodingCounters;
   H5::CompType t(sizeof(RecordType));
@@ -1572,11 +1718,11 @@ struct _Inner_Kspace {
   t.insertMember("centerSample", HOFFSET(RecordType, center_sample), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("encodingSpaceRef", HOFFSET(RecordType, encoding_space_ref), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("sampleTimeUs", HOFFSET(RecordType, sample_time_us), yardl::hdf5::OptionalTypeDdl<float, float>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("readDir", HOFFSET(RecordType, read_dir), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("phaseDir", HOFFSET(RecordType, phase_dir), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("sliceDir", HOFFSET(RecordType, slice_dir), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("patientTablePosition", HOFFSET(RecordType, patient_table_position), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
+  t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("readDir", HOFFSET(RecordType, read_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("phaseDir", HOFFSET(RecordType, phase_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("sliceDir", HOFFSET(RecordType, slice_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("patientTablePosition", HOFFSET(RecordType, patient_table_position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("userInt", HOFFSET(RecordType, user_int), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_INT32));
   t.insertMember("userFloat", HOFFSET(RecordType, user_float), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_FLOAT));
   return t;
@@ -1914,12 +2060,12 @@ struct _Inner_Kspace {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("flags", HOFFSET(RecordType, flags), H5::PredType::NATIVE_UINT64);
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
-  t.insertMember("fieldOfView", HOFFSET(RecordType, field_of_view), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("colDir", HOFFSET(RecordType, col_dir), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("lineDir", HOFFSET(RecordType, line_dir), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("sliceDir", HOFFSET(RecordType, slice_dir), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
-  t.insertMember("patientTablePosition", HOFFSET(RecordType, patient_table_position), yardl::hdf5::FixedNDArrayDdl<float, float, 3>(H5::PredType::NATIVE_FLOAT));
+  t.insertMember("fieldOfView", HOFFSET(RecordType, field_of_view), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("colDir", HOFFSET(RecordType, col_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("lineDir", HOFFSET(RecordType, line_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("sliceDir", HOFFSET(RecordType, slice_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
+  t.insertMember("patientTablePosition", HOFFSET(RecordType, patient_table_position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("average", HOFFSET(RecordType, average), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("slice", HOFFSET(RecordType, slice), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("contrast", HOFFSET(RecordType, contrast), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
@@ -1966,7 +2112,7 @@ template <typename _T_Inner, typename T>
 }
 
 [[maybe_unused]] H5::CompType GetAcquisitionBucketStatsHdf5Ddl() {
-  using RecordType = mrd::hdf5::_Inner_AcquisitionBucketStats;
+  using RecordType = mrd::AcquisitionBucketStats;
   H5::CompType t(sizeof(RecordType));
   t.insertMember("kspaceEncodeStep1", HOFFSET(RecordType, kspace_encode_step_1), mrd::hdf5::GetMinMaxStatHdf5Ddl());
   t.insertMember("kspaceEncodeStep2", HOFFSET(RecordType, kspace_encode_step_2), mrd::hdf5::GetMinMaxStatHdf5Ddl());
@@ -1977,7 +2123,6 @@ template <typename _T_Inner, typename T>
   t.insertMember("repetition", HOFFSET(RecordType, repetition), mrd::hdf5::GetMinMaxStatHdf5Ddl());
   t.insertMember("set", HOFFSET(RecordType, set), mrd::hdf5::GetMinMaxStatHdf5Ddl());
   t.insertMember("segment", HOFFSET(RecordType, segment), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("unused", HOFFSET(RecordType, unused), yardl::hdf5::InnerVlenStringDdl());
   return t;
 }
 
@@ -2062,82 +2207,7 @@ template <typename _T_Inner, typename T>
   return t;
 }
 
-[[maybe_unused]] H5::CompType GetKspaceHdf5Ddl() {
-  using RecordType = mrd::hdf5::_Inner_Kspace;
-  H5::CompType t(sizeof(RecordType));
-  t.insertMember("reference", HOFFSET(RecordType, reference), mrd::hdf5::GetAcquisitionHdf5Ddl());
-  t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<std::complex<float>, std::complex<float>, 6>(yardl::hdf5::ComplexTypeDdl<float>()));
-  t.insertMember("mask", HOFFSET(RecordType, mask), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerNdArray<bool, bool, 4>, mrd::MaskData>(yardl::hdf5::NDArrayDdl<bool, bool, 4>(H5::PredType::NATIVE_HBOOL)));
-  return t;
-}
-
 } // namespace 
-
-KspaceProtocolWriter::KspaceProtocolWriter(std::string path)
-    : yardl::hdf5::Hdf5Writer::Hdf5Writer(path, "KspaceProtocol", schema_) {
-}
-
-void KspaceProtocolWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
-  yardl::hdf5::WriteScalarDataset<yardl::hdf5::InnerOptional<mrd::hdf5::_Inner_Header, mrd::Header>, std::optional<mrd::Header>>(group_, "header", yardl::hdf5::OptionalTypeDdl<mrd::hdf5::_Inner_Header, mrd::Header>(mrd::hdf5::GetHeaderHdf5Ddl()), value);
-}
-
-void KspaceProtocolWriter::WriteKspaceImpl(mrd::Kspace const& value) {
-  if (!kspace_dataset_state_) {
-    kspace_dataset_state_ = std::make_unique<yardl::hdf5::DatasetWriter>(group_, "kspace", mrd::hdf5::GetKspaceHdf5Ddl(), std::max(sizeof(mrd::hdf5::_Inner_Kspace), sizeof(mrd::Kspace)));
-  }
-
-  kspace_dataset_state_->Append<mrd::hdf5::_Inner_Kspace, mrd::Kspace>(value);
-}
-
-void KspaceProtocolWriter::WriteKspaceImpl(std::vector<mrd::Kspace> const& values) {
-  if (!kspace_dataset_state_) {
-    kspace_dataset_state_ = std::make_unique<yardl::hdf5::DatasetWriter>(group_, "kspace", mrd::hdf5::GetKspaceHdf5Ddl(), std::max(sizeof(mrd::hdf5::_Inner_Kspace), sizeof(mrd::Kspace)));
-  }
-
-  kspace_dataset_state_->AppendBatch<mrd::hdf5::_Inner_Kspace, mrd::Kspace>(values);
-}
-
-void KspaceProtocolWriter::EndKspaceImpl() {
-  if (!kspace_dataset_state_) {
-    kspace_dataset_state_ = std::make_unique<yardl::hdf5::DatasetWriter>(group_, "kspace", mrd::hdf5::GetKspaceHdf5Ddl(), std::max(sizeof(mrd::hdf5::_Inner_Kspace), sizeof(mrd::Kspace)));
-  }
-
-  kspace_dataset_state_.reset();
-}
-
-KspaceProtocolReader::KspaceProtocolReader(std::string path)
-    : yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "KspaceProtocol", schema_) {
-}
-
-void KspaceProtocolReader::ReadHeaderImpl(std::optional<mrd::Header>& value) {
-  yardl::hdf5::ReadScalarDataset<yardl::hdf5::InnerOptional<mrd::hdf5::_Inner_Header, mrd::Header>, std::optional<mrd::Header>>(group_, "header", yardl::hdf5::OptionalTypeDdl<mrd::hdf5::_Inner_Header, mrd::Header>(mrd::hdf5::GetHeaderHdf5Ddl()), value);
-}
-
-bool KspaceProtocolReader::ReadKspaceImpl(mrd::Kspace& value) {
-  if (!kspace_dataset_state_) {
-    kspace_dataset_state_ = std::make_unique<yardl::hdf5::DatasetReader>(group_, "kspace", mrd::hdf5::GetKspaceHdf5Ddl(), std::max(sizeof(mrd::hdf5::_Inner_Kspace), sizeof(mrd::Kspace)));
-  }
-
-  bool has_value = kspace_dataset_state_->Read<mrd::hdf5::_Inner_Kspace, mrd::Kspace>(value);
-  if (!has_value) {
-    kspace_dataset_state_.reset();
-  }
-
-  return has_value;
-}
-
-bool KspaceProtocolReader::ReadKspaceImpl(std::vector<mrd::Kspace>& values) {
-  if (!kspace_dataset_state_) {
-    kspace_dataset_state_ = std::make_unique<yardl::hdf5::DatasetReader>(group_, "kspace", mrd::hdf5::GetKspaceHdf5Ddl());
-  }
-
-  bool has_more = kspace_dataset_state_->ReadBatch<mrd::hdf5::_Inner_Kspace, mrd::Kspace>(values);
-  if (!has_more) {
-    kspace_dataset_state_.reset();
-  }
-
-  return has_more;
-}
 
 MrdWriter::MrdWriter(std::string path)
     : yardl::hdf5::Hdf5Writer::Hdf5Writer(path, "Mrd", schema_) {
@@ -2149,7 +2219,7 @@ void MrdWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
 
 void MrdWriter::WriteDataImpl(mrd::StreamItem const& value) {
   if (!data_dataset_state_) {
-    data_dataset_state_ = std::make_unique<yardl::hdf5::UnionDatasetWriter<13>>(group_, "data", false, std::make_tuple(mrd::hdf5::GetAcquisitionHdf5Ddl(), "Acquisition", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetAcquisitionBucketHdf5Ddl(), "AcquisitionBucket", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetReconDataHdf5Ddl(), "ReconData", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "WaveformUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint16_t, uint16_t>(H5::PredType::NATIVE_UINT16), "ImageUint16", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int16_t, int16_t>(H5::PredType::NATIVE_INT16), "ImageInt16", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "ImageUint", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int32_t, int32_t>(H5::PredType::NATIVE_INT32), "ImageInt", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<float, float>(H5::PredType::NATIVE_FLOAT), "ImageFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<double, double>(H5::PredType::NATIVE_DOUBLE), "ImageDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ImageComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<double>, std::complex<double>>(yardl::hdf5::ComplexTypeDdl<double>()), "ImageComplexDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageArrayHdf5Ddl(), "ImageArray", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))));
+    data_dataset_state_ = std::make_unique<yardl::hdf5::UnionDatasetWriter<14>>(group_, "data", false, std::make_tuple(mrd::hdf5::GetAcquisitionHdf5Ddl(), "Acquisition", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "WaveformUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint16_t, uint16_t>(H5::PredType::NATIVE_UINT16), "ImageUint16", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int16_t, int16_t>(H5::PredType::NATIVE_INT16), "ImageInt16", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "ImageUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int32_t, int32_t>(H5::PredType::NATIVE_INT32), "ImageInt32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<float, float>(H5::PredType::NATIVE_FLOAT), "ImageFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<double, double>(H5::PredType::NATIVE_DOUBLE), "ImageDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ImageComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<double>, std::complex<double>>(yardl::hdf5::ComplexTypeDdl<double>()), "ImageComplexDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetAcquisitionBucketHdf5Ddl(), "AcquisitionBucket", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetReconDataHdf5Ddl(), "ReconData", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(yardl::hdf5::DynamicNDArrayDdl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ArrayComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageArrayHdf5Ddl(), "ImageArray", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))));
   }
 
   std::visit(
@@ -2157,20 +2227,16 @@ void MrdWriter::WriteDataImpl(mrd::StreamItem const& value) {
       using T = std::decay_t<decltype(arg)>;
       if constexpr (std::is_same_v<T, mrd::Acquisition>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition>(static_cast<int8_t>(value.index()), arg);
-      } else if constexpr (std::is_same_v<T, mrd::AcquisitionBucket>) {
-        data_dataset_state_->Append<mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket>(static_cast<int8_t>(value.index()), arg);
-      } else if constexpr (std::is_same_v<T, mrd::ReconData>) {
-        data_dataset_state_->Append<mrd::hdf5::_Inner_ReconData, mrd::ReconData>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::WaveformUint32>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::ImageUint16>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::ImageInt16>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16>(static_cast<int8_t>(value.index()), arg);
-      } else if constexpr (std::is_same_v<T, mrd::ImageUint>) {
-        data_dataset_state_->Append<mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint>(static_cast<int8_t>(value.index()), arg);
-      } else if constexpr (std::is_same_v<T, mrd::ImageInt>) {
-        data_dataset_state_->Append<mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt>(static_cast<int8_t>(value.index()), arg);
+      } else if constexpr (std::is_same_v<T, mrd::ImageUint32>) {
+        data_dataset_state_->Append<mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32>(static_cast<int8_t>(value.index()), arg);
+      } else if constexpr (std::is_same_v<T, mrd::ImageInt32>) {
+        data_dataset_state_->Append<mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::ImageFloat>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::ImageDouble>) {
@@ -2179,6 +2245,12 @@ void MrdWriter::WriteDataImpl(mrd::StreamItem const& value) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::ImageComplexDouble>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble>(static_cast<int8_t>(value.index()), arg);
+      } else if constexpr (std::is_same_v<T, mrd::AcquisitionBucket>) {
+        data_dataset_state_->Append<mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket>(static_cast<int8_t>(value.index()), arg);
+      } else if constexpr (std::is_same_v<T, mrd::ReconData>) {
+        data_dataset_state_->Append<mrd::hdf5::_Inner_ReconData, mrd::ReconData>(static_cast<int8_t>(value.index()), arg);
+      } else if constexpr (std::is_same_v<T, mrd::ArrayComplexFloat>) {
+        data_dataset_state_->Append<yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat>(static_cast<int8_t>(value.index()), arg);
       } else if constexpr (std::is_same_v<T, mrd::ImageArray>) {
         data_dataset_state_->Append<mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>(static_cast<int8_t>(value.index()), arg);
       } else {
@@ -2190,7 +2262,7 @@ void MrdWriter::WriteDataImpl(mrd::StreamItem const& value) {
 
 void MrdWriter::EndDataImpl() {
   if (!data_dataset_state_) {
-    data_dataset_state_ = std::make_unique<yardl::hdf5::UnionDatasetWriter<13>>(group_, "data", false, std::make_tuple(mrd::hdf5::GetAcquisitionHdf5Ddl(), "Acquisition", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetAcquisitionBucketHdf5Ddl(), "AcquisitionBucket", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetReconDataHdf5Ddl(), "ReconData", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "WaveformUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint16_t, uint16_t>(H5::PredType::NATIVE_UINT16), "ImageUint16", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int16_t, int16_t>(H5::PredType::NATIVE_INT16), "ImageInt16", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "ImageUint", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int32_t, int32_t>(H5::PredType::NATIVE_INT32), "ImageInt", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<float, float>(H5::PredType::NATIVE_FLOAT), "ImageFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<double, double>(H5::PredType::NATIVE_DOUBLE), "ImageDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ImageComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<double>, std::complex<double>>(yardl::hdf5::ComplexTypeDdl<double>()), "ImageComplexDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageArrayHdf5Ddl(), "ImageArray", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))));
+    data_dataset_state_ = std::make_unique<yardl::hdf5::UnionDatasetWriter<14>>(group_, "data", false, std::make_tuple(mrd::hdf5::GetAcquisitionHdf5Ddl(), "Acquisition", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "WaveformUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint16_t, uint16_t>(H5::PredType::NATIVE_UINT16), "ImageUint16", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int16_t, int16_t>(H5::PredType::NATIVE_INT16), "ImageInt16", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "ImageUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int32_t, int32_t>(H5::PredType::NATIVE_INT32), "ImageInt32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<float, float>(H5::PredType::NATIVE_FLOAT), "ImageFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<double, double>(H5::PredType::NATIVE_DOUBLE), "ImageDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ImageComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<double>, std::complex<double>>(yardl::hdf5::ComplexTypeDdl<double>()), "ImageComplexDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetAcquisitionBucketHdf5Ddl(), "AcquisitionBucket", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetReconDataHdf5Ddl(), "ReconData", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(yardl::hdf5::DynamicNDArrayDdl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ArrayComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageArrayHdf5Ddl(), "ImageArray", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))));
   }
 
   data_dataset_state_.reset();
@@ -2212,7 +2284,7 @@ void MrdReader::ReadHeaderImpl(std::optional<mrd::Header>& value) {
 
 bool MrdReader::ReadDataImpl(mrd::StreamItem& value) {
   if (!data_dataset_state_) {
-    data_dataset_state_ = std::make_unique<yardl::hdf5::UnionDatasetReader<13>>(group_, "data", false, std::make_tuple(mrd::hdf5::GetAcquisitionHdf5Ddl(), "Acquisition", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetAcquisitionBucketHdf5Ddl(), "AcquisitionBucket", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetReconDataHdf5Ddl(), "ReconData", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "WaveformUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint16_t, uint16_t>(H5::PredType::NATIVE_UINT16), "ImageUint16", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int16_t, int16_t>(H5::PredType::NATIVE_INT16), "ImageInt16", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "ImageUint", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int32_t, int32_t>(H5::PredType::NATIVE_INT32), "ImageInt", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<float, float>(H5::PredType::NATIVE_FLOAT), "ImageFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<double, double>(H5::PredType::NATIVE_DOUBLE), "ImageDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ImageComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<double>, std::complex<double>>(yardl::hdf5::ComplexTypeDdl<double>()), "ImageComplexDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageArrayHdf5Ddl(), "ImageArray", static_cast<size_t>(std::max(sizeof(::InnerUnion13<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>)))));
+    data_dataset_state_ = std::make_unique<yardl::hdf5::UnionDatasetReader<14>>(group_, "data", false, std::make_tuple(mrd::hdf5::GetAcquisitionHdf5Ddl(), "Acquisition", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "WaveformUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint16_t, uint16_t>(H5::PredType::NATIVE_UINT16), "ImageUint16", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int16_t, int16_t>(H5::PredType::NATIVE_INT16), "ImageInt16", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32), "ImageUint32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<int32_t, int32_t>(H5::PredType::NATIVE_INT32), "ImageInt32", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<float, float>(H5::PredType::NATIVE_FLOAT), "ImageFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<double, double>(H5::PredType::NATIVE_DOUBLE), "ImageDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ImageComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageHdf5Ddl<std::complex<double>, std::complex<double>>(yardl::hdf5::ComplexTypeDdl<double>()), "ImageComplexDouble", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetAcquisitionBucketHdf5Ddl(), "AcquisitionBucket", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetReconDataHdf5Ddl(), "ReconData", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(yardl::hdf5::DynamicNDArrayDdl<std::complex<float>, std::complex<float>>(yardl::hdf5::ComplexTypeDdl<float>()), "ArrayComplexFloat", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))), std::make_tuple(mrd::hdf5::GetImageArrayHdf5Ddl(), "ImageArray", static_cast<size_t>(std::max(sizeof(::InnerUnion14<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition, mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32, mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16, mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16, mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32, mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32, mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat, mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble, mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat, mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble, mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket, mrd::hdf5::_Inner_ReconData, mrd::ReconData, yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat, mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>), sizeof(std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>)))));
   }
 
   auto [has_result, type_index, reader] = data_dataset_state_->ReadIndex();
@@ -2228,62 +2300,67 @@ bool MrdReader::ReadDataImpl(mrd::StreamItem& value) {
     break;
   }
   case 1: {
-    mrd::AcquisitionBucket& ref = value.emplace<1>();
-    reader->Read<mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket>(ref);
-    break;
-  }
-  case 2: {
-    mrd::ReconData& ref = value.emplace<2>();
-    reader->Read<mrd::hdf5::_Inner_ReconData, mrd::ReconData>(ref);
-    break;
-  }
-  case 3: {
-    mrd::WaveformUint32& ref = value.emplace<3>();
+    mrd::WaveformUint32& ref = value.emplace<1>();
     reader->Read<mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32>(ref);
     break;
   }
-  case 4: {
-    mrd::ImageUint16& ref = value.emplace<4>();
+  case 2: {
+    mrd::ImageUint16& ref = value.emplace<2>();
     reader->Read<mrd::hdf5::_Inner_Image<uint16_t, uint16_t>, mrd::ImageUint16>(ref);
     break;
   }
-  case 5: {
-    mrd::ImageInt16& ref = value.emplace<5>();
+  case 3: {
+    mrd::ImageInt16& ref = value.emplace<3>();
     reader->Read<mrd::hdf5::_Inner_Image<int16_t, int16_t>, mrd::ImageInt16>(ref);
     break;
   }
+  case 4: {
+    mrd::ImageUint32& ref = value.emplace<4>();
+    reader->Read<mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint32>(ref);
+    break;
+  }
+  case 5: {
+    mrd::ImageInt32& ref = value.emplace<5>();
+    reader->Read<mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt32>(ref);
+    break;
+  }
   case 6: {
-    mrd::ImageUint& ref = value.emplace<6>();
-    reader->Read<mrd::hdf5::_Inner_Image<uint32_t, uint32_t>, mrd::ImageUint>(ref);
-    break;
-  }
-  case 7: {
-    mrd::ImageInt& ref = value.emplace<7>();
-    reader->Read<mrd::hdf5::_Inner_Image<int32_t, int32_t>, mrd::ImageInt>(ref);
-    break;
-  }
-  case 8: {
-    mrd::ImageFloat& ref = value.emplace<8>();
+    mrd::ImageFloat& ref = value.emplace<6>();
     reader->Read<mrd::hdf5::_Inner_Image<float, float>, mrd::ImageFloat>(ref);
     break;
   }
-  case 9: {
-    mrd::ImageDouble& ref = value.emplace<9>();
+  case 7: {
+    mrd::ImageDouble& ref = value.emplace<7>();
     reader->Read<mrd::hdf5::_Inner_Image<double, double>, mrd::ImageDouble>(ref);
     break;
   }
-  case 10: {
-    mrd::ImageComplexFloat& ref = value.emplace<10>();
+  case 8: {
+    mrd::ImageComplexFloat& ref = value.emplace<8>();
     reader->Read<mrd::hdf5::_Inner_Image<std::complex<float>, std::complex<float>>, mrd::ImageComplexFloat>(ref);
     break;
   }
-  case 11: {
-    mrd::ImageComplexDouble& ref = value.emplace<11>();
+  case 9: {
+    mrd::ImageComplexDouble& ref = value.emplace<9>();
     reader->Read<mrd::hdf5::_Inner_Image<std::complex<double>, std::complex<double>>, mrd::ImageComplexDouble>(ref);
     break;
   }
+  case 10: {
+    mrd::AcquisitionBucket& ref = value.emplace<10>();
+    reader->Read<mrd::hdf5::_Inner_AcquisitionBucket, mrd::AcquisitionBucket>(ref);
+    break;
+  }
+  case 11: {
+    mrd::ReconData& ref = value.emplace<11>();
+    reader->Read<mrd::hdf5::_Inner_ReconData, mrd::ReconData>(ref);
+    break;
+  }
   case 12: {
-    mrd::ImageArray& ref = value.emplace<12>();
+    mrd::ArrayComplexFloat& ref = value.emplace<12>();
+    reader->Read<yardl::hdf5::InnerDynamicNdArray<std::complex<float>, std::complex<float>>, mrd::ArrayComplexFloat>(ref);
+    break;
+  }
+  case 13: {
+    mrd::ImageArray& ref = value.emplace<13>();
     reader->Read<mrd::hdf5::_Inner_ImageArray, mrd::ImageArray>(ref);
     break;
   }

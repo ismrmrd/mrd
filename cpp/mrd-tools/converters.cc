@@ -1102,6 +1102,11 @@ int convert(ImageArray&) {
   return 0;
 }
 
+// Convert mrd::Array - no equivalent in ISMRMRD::
+int convert(ArrayComplexFloat&) {
+  return 0;
+}
+
 
 yardl::Date date_from_string(const std::string& s) {
   std::stringstream ss{s};
@@ -2069,12 +2074,15 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
 
   image.data = xt::view(data, xt::all(), xt::all(), xt::all(), xt::all());
 
-  ISMRMRD::MetaContainer meta;
-  ISMRMRD::deserialize(im.getAttributeString(), meta);
-
-  for (auto it = meta.begin(); it != meta.end(); it++) {
-    for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
-      image.meta[it->first].push_back(it2->as_str());
+  std::string attrib;
+  im.getAttributeString(attrib);
+  if (attrib.length() > 0) {
+    ISMRMRD::MetaContainer meta;
+    ISMRMRD::deserialize(attrib.c_str(), meta);
+    for (auto it = meta.begin(); it != meta.end(); it++) {
+      for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+        image.meta[it->first].push_back(it2->as_str());
+      }
     }
   }
 

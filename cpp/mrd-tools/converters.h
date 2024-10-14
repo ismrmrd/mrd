@@ -21,6 +21,7 @@ ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im);
 int convert(AcquisitionBucket&);
 int convert(ReconData&);
 int convert(ImageArray&);
+int convert(ArrayComplexFloat&);
 
 Header convert(ISMRMRD::IsmrmrdHeader& hdr);
 Acquisition convert(ISMRMRD::Acquisition& acq);

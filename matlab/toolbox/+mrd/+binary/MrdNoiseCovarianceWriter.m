@@ -2,6 +2,7 @@
 
 classdef MrdNoiseCovarianceWriter < yardl.binary.BinaryProtocolWriter & mrd.MrdNoiseCovarianceWriterBase
   % Binary writer for the MrdNoiseCovariance protocol
+  % Protocol for serializing a noise covariance matrix
   properties (Access=protected)
     noise_covariance_serializer
   end

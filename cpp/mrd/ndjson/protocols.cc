@@ -181,9 +181,6 @@ void from_json(ordered_json const& j, mrd::ReconData& value);
 void to_json(ordered_json& j, mrd::ImageArray const& value);
 void from_json(ordered_json const& j, mrd::ImageArray& value);
 
-void to_json(ordered_json& j, mrd::Kspace const& value);
-void from_json(ordered_json const& j, mrd::Kspace& value);
-
 } // namespace mrd
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
@@ -225,72 +222,41 @@ struct adl_serializer<std::variant<std::string, int64_t, double>> {
 };
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::ImageArray>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::ImageArray> const& value) {
+struct adl_serializer<std::variant<mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>> const& value) {
     switch (value.index()) {
       case 0:
-        j = ordered_json{ {"Acquisition", std::get<mrd::Acquisition>(value)} };
-        break;
-      case 1:
-        j = ordered_json{ {"AcquisitionBucket", std::get<mrd::AcquisitionBucket>(value)} };
-        break;
-      case 2:
-        j = ordered_json{ {"ReconData", std::get<mrd::ReconData>(value)} };
-        break;
-      case 3:
-        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
-        break;
-      case 4:
         j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
         break;
-      case 5:
+      case 1:
         j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
         break;
-      case 6:
-        j = ordered_json{ {"ImageUint", std::get<mrd::Image<uint32_t>>(value)} };
+      case 2:
+        j = ordered_json{ {"ImageUint32", std::get<mrd::Image<uint32_t>>(value)} };
         break;
-      case 7:
-        j = ordered_json{ {"ImageInt", std::get<mrd::Image<int32_t>>(value)} };
+      case 3:
+        j = ordered_json{ {"ImageInt32", std::get<mrd::Image<int32_t>>(value)} };
         break;
-      case 8:
+      case 4:
         j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
         break;
-      case 9:
+      case 5:
         j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
         break;
-      case 10:
+      case 6:
         j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
         break;
-      case 11:
+      case 7:
         j = ordered_json{ {"ImageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
-        break;
-      case 12:
-        j = ordered_json{ {"ImageArray", std::get<mrd::ImageArray>(value)} };
         break;
       default:
         throw std::runtime_error("Invalid union value");
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::ImageArray>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>>& value) {
     auto it = j.begin();
     std::string tag = it.key();
-    if (tag == "Acquisition") {
-      value = it.value().get<mrd::Acquisition>();
-      return;
-    }
-    if (tag == "AcquisitionBucket") {
-      value = it.value().get<mrd::AcquisitionBucket>();
-      return;
-    }
-    if (tag == "ReconData") {
-      value = it.value().get<mrd::ReconData>();
-      return;
-    }
-    if (tag == "WaveformUint32") {
-      value = it.value().get<mrd::Waveform<uint32_t>>();
-      return;
-    }
     if (tag == "ImageUint16") {
       value = it.value().get<mrd::Image<uint16_t>>();
       return;
@@ -299,11 +265,11 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd
       value = it.value().get<mrd::Image<int16_t>>();
       return;
     }
-    if (tag == "ImageUint") {
+    if (tag == "ImageUint32") {
       value = it.value().get<mrd::Image<uint32_t>>();
       return;
     }
-    if (tag == "ImageInt") {
+    if (tag == "ImageInt32") {
       value = it.value().get<mrd::Image<int32_t>>();
       return;
     }
@@ -321,6 +287,115 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd
     }
     if (tag == "ImageComplexDouble") {
       value = it.value().get<mrd::Image<std::complex<double>>>();
+      return;
+    }
+  }
+};
+
+template <>
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray> const& value) {
+    switch (value.index()) {
+      case 0:
+        j = ordered_json{ {"Acquisition", std::get<mrd::Acquisition>(value)} };
+        break;
+      case 1:
+        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
+        break;
+      case 2:
+        j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
+        break;
+      case 3:
+        j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
+        break;
+      case 4:
+        j = ordered_json{ {"ImageUint32", std::get<mrd::Image<uint32_t>>(value)} };
+        break;
+      case 5:
+        j = ordered_json{ {"ImageInt32", std::get<mrd::Image<int32_t>>(value)} };
+        break;
+      case 6:
+        j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
+        break;
+      case 7:
+        j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
+        break;
+      case 8:
+        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
+        break;
+      case 9:
+        j = ordered_json{ {"ImageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
+        break;
+      case 10:
+        j = ordered_json{ {"AcquisitionBucket", std::get<mrd::AcquisitionBucket>(value)} };
+        break;
+      case 11:
+        j = ordered_json{ {"ReconData", std::get<mrd::ReconData>(value)} };
+        break;
+      case 12:
+        j = ordered_json{ {"ArrayComplexFloat", std::get<yardl::DynamicNDArray<std::complex<float>>>(value)} };
+        break;
+      case 13:
+        j = ordered_json{ {"ImageArray", std::get<mrd::ImageArray>(value)} };
+        break;
+      default:
+        throw std::runtime_error("Invalid union value");
+    }
+  }
+
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray>& value) {
+    auto it = j.begin();
+    std::string tag = it.key();
+    if (tag == "Acquisition") {
+      value = it.value().get<mrd::Acquisition>();
+      return;
+    }
+    if (tag == "WaveformUint32") {
+      value = it.value().get<mrd::Waveform<uint32_t>>();
+      return;
+    }
+    if (tag == "ImageUint16") {
+      value = it.value().get<mrd::Image<uint16_t>>();
+      return;
+    }
+    if (tag == "ImageInt16") {
+      value = it.value().get<mrd::Image<int16_t>>();
+      return;
+    }
+    if (tag == "ImageUint32") {
+      value = it.value().get<mrd::Image<uint32_t>>();
+      return;
+    }
+    if (tag == "ImageInt32") {
+      value = it.value().get<mrd::Image<int32_t>>();
+      return;
+    }
+    if (tag == "ImageFloat") {
+      value = it.value().get<mrd::Image<float>>();
+      return;
+    }
+    if (tag == "ImageDouble") {
+      value = it.value().get<mrd::Image<double>>();
+      return;
+    }
+    if (tag == "ImageComplexFloat") {
+      value = it.value().get<mrd::Image<std::complex<float>>>();
+      return;
+    }
+    if (tag == "ImageComplexDouble") {
+      value = it.value().get<mrd::Image<std::complex<double>>>();
+      return;
+    }
+    if (tag == "AcquisitionBucket") {
+      value = it.value().get<mrd::AcquisitionBucket>();
+      return;
+    }
+    if (tag == "ReconData") {
+      value = it.value().get<mrd::ReconData>();
+      return;
+    }
+    if (tag == "ArrayComplexFloat") {
+      value = it.value().get<yardl::DynamicNDArray<std::complex<float>>>();
       return;
     }
     if (tag == "ImageArray") {
@@ -2758,9 +2833,6 @@ void to_json(ordered_json& j, mrd::AcquisitionBucketStats const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.segment)) {
     j.push_back({"segment", value.segment});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.unused)) {
-    j.push_back({"unused", value.unused});
-  }
 }
 
 void from_json(ordered_json const& j, mrd::AcquisitionBucketStats& value) {
@@ -2790,9 +2862,6 @@ void from_json(ordered_json const& j, mrd::AcquisitionBucketStats& value) {
   }
   if (auto it = j.find("segment"); it != j.end()) {
     it->get_to(value.segment);
-  }
-  if (auto it = j.find("unused"); it != j.end()) {
-    it->get_to(value.unused);
   }
 }
 
@@ -3046,62 +3115,9 @@ void from_json(ordered_json const& j, mrd::ImageArray& value) {
   }
 }
 
-void to_json(ordered_json& j, mrd::Kspace const& value) {
-  j = ordered_json::object();
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.reference)) {
-    j.push_back({"reference", value.reference});
-  }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.data)) {
-    j.push_back({"data", value.data});
-  }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.mask)) {
-    j.push_back({"mask", value.mask});
-  }
-}
-
-void from_json(ordered_json const& j, mrd::Kspace& value) {
-  if (auto it = j.find("reference"); it != j.end()) {
-    it->get_to(value.reference);
-  }
-  if (auto it = j.find("data"); it != j.end()) {
-    it->get_to(value.data);
-  }
-  if (auto it = j.find("mask"); it != j.end()) {
-    it->get_to(value.mask);
-  }
-}
-
 } // namespace mrd
 
 namespace mrd::ndjson {
-void KspaceProtocolWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
-  ordered_json json_value = value;
-  yardl::ndjson::WriteProtocolValue(stream_, "header", json_value);}
-
-void KspaceProtocolWriter::WriteKspaceImpl(mrd::Kspace const& value) {
-  ordered_json json_value = value;
-  yardl::ndjson::WriteProtocolValue(stream_, "kspace", json_value);}
-
-void KspaceProtocolWriter::Flush() {
-  stream_.flush();
-}
-
-void KspaceProtocolWriter::CloseImpl() {
-  stream_.flush();
-}
-
-void KspaceProtocolReader::ReadHeaderImpl(std::optional<mrd::Header>& value) {
-  yardl::ndjson::ReadProtocolValue(stream_, line_, "header", true, unused_step_, value);
-}
-
-bool KspaceProtocolReader::ReadKspaceImpl(mrd::Kspace& value) {
-  return yardl::ndjson::ReadProtocolValue(stream_, line_, "kspace", false, unused_step_, value);
-}
-
-void KspaceProtocolReader::CloseImpl() {
-  VerifyFinished();
-}
-
 void MrdWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
   ordered_json json_value = value;
   yardl::ndjson::WriteProtocolValue(stream_, "header", json_value);}

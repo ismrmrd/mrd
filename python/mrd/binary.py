@@ -19,37 +19,11 @@ from .protocols import *
 from . import _binary
 from . import yardl_types as yardl
 
-class BinaryKspaceProtocolWriter(_binary.BinaryProtocolWriter, KspaceProtocolWriterBase):
-    """Binary writer for the KspaceProtocol protocol."""
-
-
-    def __init__(self, stream: typing.Union[typing.BinaryIO, str]) -> None:
-        KspaceProtocolWriterBase.__init__(self)
-        _binary.BinaryProtocolWriter.__init__(self, stream, KspaceProtocolWriterBase.schema)
-
-    def _write_header(self, value: typing.Optional[Header]) -> None:
-        _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
-
-    def _write_kspace(self, value: collections.abc.Iterable[Kspace]) -> None:
-        _binary.StreamSerializer(KspaceSerializer()).write(self._stream, value)
-
-
-class BinaryKspaceProtocolReader(_binary.BinaryProtocolReader, KspaceProtocolReaderBase):
-    """Binary writer for the KspaceProtocol protocol."""
-
-
-    def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str]) -> None:
-        KspaceProtocolReaderBase.__init__(self)
-        _binary.BinaryProtocolReader.__init__(self, stream, KspaceProtocolReaderBase.schema)
-
-    def _read_header(self) -> typing.Optional[Header]:
-        return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
-
-    def _read_kspace(self) -> collections.abc.Iterable[Kspace]:
-        return _binary.StreamSerializer(KspaceSerializer()).read(self._stream)
-
 class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
-    """Binary writer for the Mrd protocol."""
+    """Binary writer for the Mrd protocol.
+
+    The MRD Protocol
+    """
 
 
     def __init__(self, stream: typing.Union[typing.BinaryIO, str]) -> None:
@@ -60,11 +34,14 @@ class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
         _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).write(self._stream, value)
+        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).write(self._stream, value)
 
 
 class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
-    """Binary writer for the Mrd protocol."""
+    """Binary writer for the Mrd protocol.
+
+    The MRD Protocol
+    """
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str]) -> None:
@@ -75,10 +52,13 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).read(self._stream)
+        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).read(self._stream)
 
 class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovarianceWriterBase):
-    """Binary writer for the MrdNoiseCovariance protocol."""
+    """Binary writer for the MrdNoiseCovariance protocol.
+
+    Protocol for serializing a noise covariance matrix
+    """
 
 
     def __init__(self, stream: typing.Union[typing.BinaryIO, str]) -> None:
@@ -90,7 +70,10 @@ class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovar
 
 
 class BinaryMrdNoiseCovarianceReader(_binary.BinaryProtocolReader, MrdNoiseCovarianceReaderBase):
-    """Binary writer for the MrdNoiseCovariance protocol."""
+    """Binary writer for the MrdNoiseCovariance protocol.
+
+    Protocol for serializing a noise covariance matrix
+    """
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str]) -> None:
@@ -768,20 +751,20 @@ class MinMaxStatSerializer(_binary.RecordSerializer[MinMaxStat]):
 
 class AcquisitionBucketStatsSerializer(_binary.RecordSerializer[AcquisitionBucketStats]):
     def __init__(self) -> None:
-        super().__init__([("kspace_encode_step_1", MinMaxStatSerializer()), ("kspace_encode_step_2", MinMaxStatSerializer()), ("average", MinMaxStatSerializer()), ("slice", MinMaxStatSerializer()), ("contrast", MinMaxStatSerializer()), ("phase", MinMaxStatSerializer()), ("repetition", MinMaxStatSerializer()), ("set", MinMaxStatSerializer()), ("segment", MinMaxStatSerializer()), ("unused", _binary.string_serializer)])
+        super().__init__([("kspace_encode_step_1", MinMaxStatSerializer()), ("kspace_encode_step_2", MinMaxStatSerializer()), ("average", MinMaxStatSerializer()), ("slice", MinMaxStatSerializer()), ("contrast", MinMaxStatSerializer()), ("phase", MinMaxStatSerializer()), ("repetition", MinMaxStatSerializer()), ("set", MinMaxStatSerializer()), ("segment", MinMaxStatSerializer())])
 
     def write(self, stream: _binary.CodedOutputStream, value: AcquisitionBucketStats) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
-        self._write(stream, value.kspace_encode_step_1, value.kspace_encode_step_2, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.segment, value.unused)
+        self._write(stream, value.kspace_encode_step_1, value.kspace_encode_step_2, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.segment)
 
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
-        self._write(stream, value['kspace_encode_step_1'], value['kspace_encode_step_2'], value['average'], value['slice'], value['contrast'], value['phase'], value['repetition'], value['set'], value['segment'], value['unused'])
+        self._write(stream, value['kspace_encode_step_1'], value['kspace_encode_step_2'], value['average'], value['slice'], value['contrast'], value['phase'], value['repetition'], value['set'], value['segment'])
 
     def read(self, stream: _binary.CodedInputStream) -> AcquisitionBucketStats:
         field_values = self._read(stream)
-        return AcquisitionBucketStats(kspace_encode_step_1=field_values[0], kspace_encode_step_2=field_values[1], average=field_values[2], slice=field_values[3], contrast=field_values[4], phase=field_values[5], repetition=field_values[6], set=field_values[7], segment=field_values[8], unused=field_values[9])
+        return AcquisitionBucketStats(kspace_encode_step_1=field_values[0], kspace_encode_step_2=field_values[1], average=field_values[2], slice=field_values[3], contrast=field_values[4], phase=field_values[5], repetition=field_values[6], set=field_values[7], segment=field_values[8])
 
 
 class WaveformSerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[Waveform[T_NP]]):
@@ -926,23 +909,5 @@ class ImageArraySerializer(_binary.RecordSerializer[ImageArray]):
     def read(self, stream: _binary.CodedInputStream) -> ImageArray:
         field_values = self._read(stream)
         return ImageArray(data=field_values[0], headers=field_values[1], meta=field_values[2], waveforms=field_values[3])
-
-
-class KspaceSerializer(_binary.RecordSerializer[Kspace]):
-    def __init__(self) -> None:
-        super().__init__([("reference", AcquisitionSerializer()), ("data", _binary.NDArraySerializer(_binary.complexfloat32_serializer, 6)), ("mask", _binary.OptionalSerializer(_binary.NDArraySerializer(_binary.bool_serializer, 4)))])
-
-    def write(self, stream: _binary.CodedOutputStream, value: Kspace) -> None:
-        if isinstance(value, np.void):
-            self.write_numpy(stream, value)
-            return
-        self._write(stream, value.reference, value.data, value.mask)
-
-    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
-        self._write(stream, value['reference'], value['data'], value['mask'])
-
-    def read(self, stream: _binary.CodedInputStream) -> Kspace:
-        field_values = self._read(stream)
-        return Kspace(reference=field_values[0], data=field_values[1], mask=field_values[2])
 
 

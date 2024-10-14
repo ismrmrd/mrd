@@ -94,3 +94,23 @@ Image<T>: !record
     slices: size(data, "z")
     rows: size(data, "y")
     cols: size(data, "x")
+
+ImageUint16: Image<uint16>
+ImageInt16: Image<int16>
+ImageUint32: Image<uint>
+ImageInt32: Image<int>
+ImageFloat: Image<float>
+ImageDouble: Image<double>
+ImageComplexFloat: Image<complexfloat>
+ImageComplexDouble: Image<complexdouble>
+
+# Union of all MRD Image types
+AnyImage:
+  - ImageUint16
+  - ImageInt16
+  - ImageUint32
+  - ImageInt32
+  - ImageFloat
+  - ImageDouble
+  - ImageComplexFloat
+  - ImageComplexDouble

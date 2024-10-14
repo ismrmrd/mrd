@@ -1698,6 +1698,45 @@ class Image(typing.Generic[T_NP]):
         return f"Image(head={repr(self.head)}, data={repr(self.data)}, meta={repr(self.meta)})"
 
 
+ImageUint16 = Image[np.uint16]
+
+ImageInt16 = Image[np.int16]
+
+ImageUint32 = Image[np.uint32]
+
+ImageInt32 = Image[np.int32]
+
+ImageFloat = Image[np.float32]
+
+ImageDouble = Image[np.float64]
+
+ImageComplexFloat = Image[np.complex64]
+
+ImageComplexDouble = Image[np.complex128]
+
+class AnyImage:
+    ImageUint16: typing.ClassVar[type["AnyImageUnionCase[ImageUint16]"]]
+    ImageInt16: typing.ClassVar[type["AnyImageUnionCase[ImageInt16]"]]
+    ImageUint32: typing.ClassVar[type["AnyImageUnionCase[ImageUint32]"]]
+    ImageInt32: typing.ClassVar[type["AnyImageUnionCase[ImageInt32]"]]
+    ImageFloat: typing.ClassVar[type["AnyImageUnionCase[ImageFloat]"]]
+    ImageDouble: typing.ClassVar[type["AnyImageUnionCase[ImageDouble]"]]
+    ImageComplexFloat: typing.ClassVar[type["AnyImageUnionCase[ImageComplexFloat]"]]
+    ImageComplexDouble: typing.ClassVar[type["AnyImageUnionCase[ImageComplexDouble]"]]
+
+class AnyImageUnionCase(AnyImage, yardl.UnionCase[_T]):
+    pass
+
+AnyImage.ImageUint16 = type("AnyImage.ImageUint16", (AnyImageUnionCase,), {"index": 0, "tag": "ImageUint16"})
+AnyImage.ImageInt16 = type("AnyImage.ImageInt16", (AnyImageUnionCase,), {"index": 1, "tag": "ImageInt16"})
+AnyImage.ImageUint32 = type("AnyImage.ImageUint32", (AnyImageUnionCase,), {"index": 2, "tag": "ImageUint32"})
+AnyImage.ImageInt32 = type("AnyImage.ImageInt32", (AnyImageUnionCase,), {"index": 3, "tag": "ImageInt32"})
+AnyImage.ImageFloat = type("AnyImage.ImageFloat", (AnyImageUnionCase,), {"index": 4, "tag": "ImageFloat"})
+AnyImage.ImageDouble = type("AnyImage.ImageDouble", (AnyImageUnionCase,), {"index": 5, "tag": "ImageDouble"})
+AnyImage.ImageComplexFloat = type("AnyImage.ImageComplexFloat", (AnyImageUnionCase,), {"index": 6, "tag": "ImageComplexFloat"})
+AnyImage.ImageComplexDouble = type("AnyImage.ImageComplexDouble", (AnyImageUnionCase,), {"index": 7, "tag": "ImageComplexDouble"})
+del AnyImageUnionCase
+
 class NoiseCovariance:
     coil_labels: list[CoilLabelType]
     """Comes from Header.acquisitionSystemInformation.coilLabel"""
@@ -1780,9 +1819,6 @@ class AcquisitionBucketStats:
     repetition: MinMaxStat
     set: MinMaxStat
     segment: MinMaxStat
-    unused: str
-    """TODO: Remove after Yardl #171 is merged"""
-
 
     def __init__(self, *,
         kspace_encode_step_1: typing.Optional[MinMaxStat] = None,
@@ -1794,7 +1830,6 @@ class AcquisitionBucketStats:
         repetition: typing.Optional[MinMaxStat] = None,
         set: typing.Optional[MinMaxStat] = None,
         segment: typing.Optional[MinMaxStat] = None,
-        unused: str = "",
     ):
         self.kspace_encode_step_1 = kspace_encode_step_1 if kspace_encode_step_1 is not None else MinMaxStat()
         self.kspace_encode_step_2 = kspace_encode_step_2 if kspace_encode_step_2 is not None else MinMaxStat()
@@ -1805,7 +1840,6 @@ class AcquisitionBucketStats:
         self.repetition = repetition if repetition is not None else MinMaxStat()
         self.set = set if set is not None else MinMaxStat()
         self.segment = segment if segment is not None else MinMaxStat()
-        self.unused = unused
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -1819,14 +1853,13 @@ class AcquisitionBucketStats:
             and self.repetition == other.repetition
             and self.set == other.set
             and self.segment == other.segment
-            and self.unused == other.unused
         )
 
     def __str__(self) -> str:
-        return f"AcquisitionBucketStats(kspaceEncodeStep1={self.kspace_encode_step_1}, kspaceEncodeStep2={self.kspace_encode_step_2}, average={self.average}, slice={self.slice}, contrast={self.contrast}, phase={self.phase}, repetition={self.repetition}, set={self.set}, segment={self.segment}, unused={self.unused})"
+        return f"AcquisitionBucketStats(kspaceEncodeStep1={self.kspace_encode_step_1}, kspaceEncodeStep2={self.kspace_encode_step_2}, average={self.average}, slice={self.slice}, contrast={self.contrast}, phase={self.phase}, repetition={self.repetition}, set={self.set}, segment={self.segment})"
 
     def __repr__(self) -> str:
-        return f"AcquisitionBucketStats(kspaceEncodeStep1={repr(self.kspace_encode_step_1)}, kspaceEncodeStep2={repr(self.kspace_encode_step_2)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, segment={repr(self.segment)}, unused={repr(self.unused)})"
+        return f"AcquisitionBucketStats(kspaceEncodeStep1={repr(self.kspace_encode_step_1)}, kspaceEncodeStep2={repr(self.kspace_encode_step_2)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, segment={repr(self.segment)})"
 
 
 WaveformSamples = npt.NDArray[T_NP]
@@ -2129,106 +2162,43 @@ class ImageArray:
         return f"ImageArray(data={repr(self.data)}, headers={repr(self.headers)}, meta={repr(self.meta)}, waveforms={repr(self.waveforms)})"
 
 
-KspaceData = npt.NDArray[np.complex64]
+Array = npt.NDArray[T_NP]
 
-MaskData = npt.NDArray[np.bool_]
-
-class Kspace:
-    """TODO: The types below were added to support Wabakimi, and should be replaced with above types"""
-
-    reference: Acquisition
-    data: KspaceData
-    mask: typing.Optional[MaskData]
-
-    def __init__(self, *,
-        reference: typing.Optional[Acquisition] = None,
-        data: typing.Optional[KspaceData] = None,
-        mask: typing.Optional[MaskData] = None,
-    ):
-        self.reference = reference if reference is not None else Acquisition()
-        self.data = data if data is not None else np.zeros((0, 0, 0, 0, 0, 0), dtype=np.dtype(np.complex64))
-        self.mask = mask
-
-    def contrasts(self) -> yardl.Size:
-        return self.data.shape[0]
-
-    def slices(self) -> yardl.Size:
-        return self.data.shape[1]
-
-    def coils(self) -> yardl.Size:
-        return self.data.shape[2]
-
-    def nz(self) -> yardl.Size:
-        return self.data.shape[3]
-
-    def ny(self) -> yardl.Size:
-        return self.data.shape[4]
-
-    def nx(self) -> yardl.Size:
-        return self.data.shape[5]
-
-    def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, Kspace)
-            and self.reference == other.reference
-            and yardl.structural_equal(self.data, other.data)
-            and (other.mask is None if self.mask is None else (other.mask is not None and yardl.structural_equal(self.mask, other.mask)))
-        )
-
-    def __str__(self) -> str:
-        return f"Kspace(reference={self.reference}, data={self.data}, mask={self.mask})"
-
-    def __repr__(self) -> str:
-        return f"Kspace(reference={repr(self.reference)}, data={repr(self.data)}, mask={repr(self.mask)})"
-
-
-ImageUint16 = Image[np.uint16]
-
-ImageInt16 = Image[np.int16]
-
-ImageUint = Image[np.uint32]
-
-ImageInt = Image[np.int32]
-
-ImageFloat = Image[np.float32]
-
-ImageDouble = Image[np.float64]
-
-ImageComplexFloat = Image[np.complex64]
-
-ImageComplexDouble = Image[np.complex128]
+ArrayComplexFloat = Array[np.complex64]
 
 class StreamItem:
     Acquisition: typing.ClassVar[type["StreamItemUnionCase[Acquisition]"]]
-    AcquisitionBucket: typing.ClassVar[type["StreamItemUnionCase[AcquisitionBucket]"]]
-    ReconData: typing.ClassVar[type["StreamItemUnionCase[ReconData]"]]
     WaveformUint32: typing.ClassVar[type["StreamItemUnionCase[WaveformUint32]"]]
     ImageUint16: typing.ClassVar[type["StreamItemUnionCase[ImageUint16]"]]
     ImageInt16: typing.ClassVar[type["StreamItemUnionCase[ImageInt16]"]]
-    ImageUint: typing.ClassVar[type["StreamItemUnionCase[ImageUint]"]]
-    ImageInt: typing.ClassVar[type["StreamItemUnionCase[ImageInt]"]]
+    ImageUint32: typing.ClassVar[type["StreamItemUnionCase[ImageUint32]"]]
+    ImageInt32: typing.ClassVar[type["StreamItemUnionCase[ImageInt32]"]]
     ImageFloat: typing.ClassVar[type["StreamItemUnionCase[ImageFloat]"]]
     ImageDouble: typing.ClassVar[type["StreamItemUnionCase[ImageDouble]"]]
     ImageComplexFloat: typing.ClassVar[type["StreamItemUnionCase[ImageComplexFloat]"]]
     ImageComplexDouble: typing.ClassVar[type["StreamItemUnionCase[ImageComplexDouble]"]]
+    AcquisitionBucket: typing.ClassVar[type["StreamItemUnionCase[AcquisitionBucket]"]]
+    ReconData: typing.ClassVar[type["StreamItemUnionCase[ReconData]"]]
+    ArrayComplexFloat: typing.ClassVar[type["StreamItemUnionCase[ArrayComplexFloat]"]]
     ImageArray: typing.ClassVar[type["StreamItemUnionCase[ImageArray]"]]
 
 class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
 
 StreamItem.Acquisition = type("StreamItem.Acquisition", (StreamItemUnionCase,), {"index": 0, "tag": "Acquisition"})
-StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 1, "tag": "AcquisitionBucket"})
-StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 2, "tag": "ReconData"})
-StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 3, "tag": "WaveformUint32"})
-StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 4, "tag": "ImageUint16"})
-StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 5, "tag": "ImageInt16"})
-StreamItem.ImageUint = type("StreamItem.ImageUint", (StreamItemUnionCase,), {"index": 6, "tag": "ImageUint"})
-StreamItem.ImageInt = type("StreamItem.ImageInt", (StreamItemUnionCase,), {"index": 7, "tag": "ImageInt"})
-StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 8, "tag": "ImageFloat"})
-StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 9, "tag": "ImageDouble"})
-StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 10, "tag": "ImageComplexFloat"})
-StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 11, "tag": "ImageComplexDouble"})
-StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 12, "tag": "ImageArray"})
+StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 1, "tag": "WaveformUint32"})
+StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 2, "tag": "ImageUint16"})
+StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 3, "tag": "ImageInt16"})
+StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 4, "tag": "ImageUint32"})
+StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 5, "tag": "ImageInt32"})
+StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 6, "tag": "ImageFloat"})
+StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 7, "tag": "ImageDouble"})
+StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 8, "tag": "ImageComplexFloat"})
+StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 9, "tag": "ImageComplexDouble"})
+StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 10, "tag": "AcquisitionBucket"})
+StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 11, "tag": "ReconData"})
+StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 12, "tag": "ArrayComplexFloat"})
+StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 13, "tag": "ImageArray"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():
@@ -2282,9 +2252,18 @@ def _mk_get_dtype():
     dtype_map.setdefault(ImageHeader, np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('physiology_time_stamp', np.dtype(np.object_)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageMetaValue, np.dtype(np.object_))
     dtype_map.setdefault(Image, lambda type_args: np.dtype([('head', get_dtype(ImageHeader)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(ImageUint16, get_dtype(types.GenericAlias(Image, (yardl.UInt16,))))
+    dtype_map.setdefault(ImageInt16, get_dtype(types.GenericAlias(Image, (yardl.Int16,))))
+    dtype_map.setdefault(ImageUint32, get_dtype(types.GenericAlias(Image, (yardl.UInt32,))))
+    dtype_map.setdefault(ImageInt32, get_dtype(types.GenericAlias(Image, (yardl.Int32,))))
+    dtype_map.setdefault(ImageFloat, get_dtype(types.GenericAlias(Image, (yardl.Float32,))))
+    dtype_map.setdefault(ImageDouble, get_dtype(types.GenericAlias(Image, (yardl.Float64,))))
+    dtype_map.setdefault(ImageComplexFloat, get_dtype(types.GenericAlias(Image, (yardl.ComplexFloat,))))
+    dtype_map.setdefault(ImageComplexDouble, get_dtype(types.GenericAlias(Image, (yardl.ComplexDouble,))))
+    dtype_map.setdefault(AnyImage, np.dtype(np.object_))
     dtype_map.setdefault(NoiseCovariance, np.dtype([('coil_labels', np.dtype(np.object_)), ('receiver_noise_bandwidth', np.dtype(np.float32)), ('noise_dwell_time_us', np.dtype(np.float32)), ('sample_count', np.dtype(np.uint64)), ('matrix', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(MinMaxStat, np.dtype([('minimum', np.dtype(np.uint32)), ('maximum', np.dtype(np.uint32))], align=True))
-    dtype_map.setdefault(AcquisitionBucketStats, np.dtype([('kspace_encode_step_1', get_dtype(MinMaxStat)), ('kspace_encode_step_2', get_dtype(MinMaxStat)), ('average', get_dtype(MinMaxStat)), ('slice', get_dtype(MinMaxStat)), ('contrast', get_dtype(MinMaxStat)), ('phase', get_dtype(MinMaxStat)), ('repetition', get_dtype(MinMaxStat)), ('set', get_dtype(MinMaxStat)), ('segment', get_dtype(MinMaxStat)), ('unused', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(AcquisitionBucketStats, np.dtype([('kspace_encode_step_1', get_dtype(MinMaxStat)), ('kspace_encode_step_2', get_dtype(MinMaxStat)), ('average', get_dtype(MinMaxStat)), ('slice', get_dtype(MinMaxStat)), ('contrast', get_dtype(MinMaxStat)), ('phase', get_dtype(MinMaxStat)), ('repetition', get_dtype(MinMaxStat)), ('set', get_dtype(MinMaxStat)), ('segment', get_dtype(MinMaxStat))], align=True))
     dtype_map.setdefault(Waveform, lambda type_args: np.dtype([('flags', np.dtype(np.uint64)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype(np.uint32)), ('time_stamp', np.dtype(np.uint32)), ('sample_time_us', np.dtype(np.float32)), ('waveform_id', np.dtype(np.uint32)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(WaveformUint32, get_dtype(types.GenericAlias(Waveform, (yardl.UInt32,))))
     dtype_map.setdefault(AcquisitionBucket, np.dtype([('data', np.dtype(np.object_)), ('ref', np.dtype(np.object_)), ('datastats', np.dtype(np.object_)), ('refstats', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
@@ -2294,15 +2273,6 @@ def _mk_get_dtype():
     dtype_map.setdefault(ReconBit, np.dtype([('data', get_dtype(BufferedData)), ('ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(BufferedData))], align=True))], align=True))
     dtype_map.setdefault(ReconData, np.dtype([('rbits', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageArray, np.dtype([('data', np.dtype(np.object_)), ('headers', np.dtype(np.object_)), ('meta', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(Kspace, np.dtype([('reference', get_dtype(Acquisition)), ('data', np.dtype(np.object_)), ('mask', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))
-    dtype_map.setdefault(ImageUint16, get_dtype(types.GenericAlias(Image, (yardl.UInt16,))))
-    dtype_map.setdefault(ImageInt16, get_dtype(types.GenericAlias(Image, (yardl.Int16,))))
-    dtype_map.setdefault(ImageUint, get_dtype(types.GenericAlias(Image, (yardl.UInt32,))))
-    dtype_map.setdefault(ImageInt, get_dtype(types.GenericAlias(Image, (yardl.Int32,))))
-    dtype_map.setdefault(ImageFloat, get_dtype(types.GenericAlias(Image, (yardl.Float32,))))
-    dtype_map.setdefault(ImageDouble, get_dtype(types.GenericAlias(Image, (yardl.Float64,))))
-    dtype_map.setdefault(ImageComplexFloat, get_dtype(types.GenericAlias(Image, (yardl.ComplexFloat,))))
-    dtype_map.setdefault(ImageComplexDouble, get_dtype(types.GenericAlias(Image, (yardl.ComplexDouble,))))
     dtype_map.setdefault(StreamItem, np.dtype(np.object_))
 
     return get_dtype

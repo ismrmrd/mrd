@@ -559,9 +559,8 @@ struct IsTriviallySerializable<mrd::AcquisitionBucketStats> {
     IsTriviallySerializable<decltype(__T__::repetition)>::value &&
     IsTriviallySerializable<decltype(__T__::set)>::value &&
     IsTriviallySerializable<decltype(__T__::segment)>::value &&
-    IsTriviallySerializable<decltype(__T__::unused)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::kspace_encode_step_1) + sizeof(__T__::kspace_encode_step_2) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::segment) + sizeof(__T__::unused))) &&
-    offsetof(__T__, kspace_encode_step_1) < offsetof(__T__, kspace_encode_step_2) && offsetof(__T__, kspace_encode_step_2) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, segment) && offsetof(__T__, segment) < offsetof(__T__, unused);
+    (sizeof(__T__) == (sizeof(__T__::kspace_encode_step_1) + sizeof(__T__::kspace_encode_step_2) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::segment))) &&
+    offsetof(__T__, kspace_encode_step_1) < offsetof(__T__, kspace_encode_step_2) && offsetof(__T__, kspace_encode_step_2) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, segment);
 };
 
 template <typename T>
@@ -667,18 +666,6 @@ struct IsTriviallySerializable<mrd::ImageArray> {
     offsetof(__T__, data) < offsetof(__T__, headers) && offsetof(__T__, headers) < offsetof(__T__, meta) && offsetof(__T__, meta) < offsetof(__T__, waveforms);
 };
 
-template <>
-struct IsTriviallySerializable<mrd::Kspace> {
-  using __T__ = mrd::Kspace;
-  static constexpr bool value = 
-    std::is_standard_layout_v<__T__> &&
-    IsTriviallySerializable<decltype(__T__::reference)>::value &&
-    IsTriviallySerializable<decltype(__T__::data)>::value &&
-    IsTriviallySerializable<decltype(__T__::mask)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::reference) + sizeof(__T__::data) + sizeof(__T__::mask))) &&
-    offsetof(__T__, reference) < offsetof(__T__, data) && offsetof(__T__, data) < offsetof(__T__, mask);
-};
-
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop // #pragma GCC diagnostic ignored "-Winvalid-offsetof" 
 #endif
@@ -735,8 +722,113 @@ void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2>
   }
 }
 
-template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2, typename T3, yardl::binary::Writer<T3> WriteT3, typename T4, yardl::binary::Writer<T4> WriteT4, typename T5, yardl::binary::Writer<T5> WriteT5, typename T6, yardl::binary::Writer<T6> WriteT6, typename T7, yardl::binary::Writer<T7> WriteT7, typename T8, yardl::binary::Writer<T8> WriteT8, typename T9, yardl::binary::Writer<T9> WriteT9, typename T10, yardl::binary::Writer<T10> WriteT10, typename T11, yardl::binary::Writer<T11> WriteT11, typename T12, yardl::binary::Writer<T12> WriteT12>
-void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> const& value) {
+template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2, typename T3, yardl::binary::Writer<T3> WriteT3, typename T4, yardl::binary::Writer<T4> WriteT4, typename T5, yardl::binary::Writer<T5> WriteT5, typename T6, yardl::binary::Writer<T6> WriteT6, typename T7, yardl::binary::Writer<T7> WriteT7>
+void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7> const& value) {
+  yardl::binary::WriteInteger(stream, value.index());
+  switch (value.index()) {
+  case 0: {
+    T0 const& v = std::get<0>(value);
+    WriteT0(stream, v);
+    break;
+  }
+  case 1: {
+    T1 const& v = std::get<1>(value);
+    WriteT1(stream, v);
+    break;
+  }
+  case 2: {
+    T2 const& v = std::get<2>(value);
+    WriteT2(stream, v);
+    break;
+  }
+  case 3: {
+    T3 const& v = std::get<3>(value);
+    WriteT3(stream, v);
+    break;
+  }
+  case 4: {
+    T4 const& v = std::get<4>(value);
+    WriteT4(stream, v);
+    break;
+  }
+  case 5: {
+    T5 const& v = std::get<5>(value);
+    WriteT5(stream, v);
+    break;
+  }
+  case 6: {
+    T6 const& v = std::get<6>(value);
+    WriteT6(stream, v);
+    break;
+  }
+  case 7: {
+    T7 const& v = std::get<7>(value);
+    WriteT7(stream, v);
+    break;
+  }
+  default: throw std::runtime_error("Invalid union index.");
+  }
+}
+
+template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2, typename T3, yardl::binary::Reader<T3> ReadT3, typename T4, yardl::binary::Reader<T4> ReadT4, typename T5, yardl::binary::Reader<T5> ReadT5, typename T6, yardl::binary::Reader<T6> ReadT6, typename T7, yardl::binary::Reader<T7> ReadT7>
+void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7>& value) {
+  size_t index;
+  yardl::binary::ReadInteger(stream, index);
+  switch (index) {
+    case 0: {
+      T0 v;
+      ReadT0(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 1: {
+      T1 v;
+      ReadT1(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 2: {
+      T2 v;
+      ReadT2(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 3: {
+      T3 v;
+      ReadT3(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 4: {
+      T4 v;
+      ReadT4(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 5: {
+      T5 v;
+      ReadT5(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 6: {
+      T6 v;
+      ReadT6(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 7: {
+      T7 v;
+      ReadT7(stream, v);
+      value = std::move(v);
+      break;
+    }
+    default: throw std::runtime_error("Invalid union index.");
+  }
+}
+
+template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2, typename T3, yardl::binary::Writer<T3> WriteT3, typename T4, yardl::binary::Writer<T4> WriteT4, typename T5, yardl::binary::Writer<T5> WriteT5, typename T6, yardl::binary::Writer<T6> WriteT6, typename T7, yardl::binary::Writer<T7> WriteT7, typename T8, yardl::binary::Writer<T8> WriteT8, typename T9, yardl::binary::Writer<T9> WriteT9, typename T10, yardl::binary::Writer<T10> WriteT10, typename T11, yardl::binary::Writer<T11> WriteT11, typename T12, yardl::binary::Writer<T12> WriteT12, typename T13, yardl::binary::Writer<T13> WriteT13>
+void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> const& value) {
   yardl::binary::WriteInteger(stream, value.index());
   switch (value.index()) {
   case 0: {
@@ -804,12 +896,17 @@ void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T
     WriteT12(stream, v);
     break;
   }
+  case 13: {
+    T13 const& v = std::get<13>(value);
+    WriteT13(stream, v);
+    break;
+  }
   default: throw std::runtime_error("Invalid union index.");
   }
 }
 
-template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2, typename T3, yardl::binary::Reader<T3> ReadT3, typename T4, yardl::binary::Reader<T4> ReadT4, typename T5, yardl::binary::Reader<T5> ReadT5, typename T6, yardl::binary::Reader<T6> ReadT6, typename T7, yardl::binary::Reader<T7> ReadT7, typename T8, yardl::binary::Reader<T8> ReadT8, typename T9, yardl::binary::Reader<T9> ReadT9, typename T10, yardl::binary::Reader<T10> ReadT10, typename T11, yardl::binary::Reader<T11> ReadT11, typename T12, yardl::binary::Reader<T12> ReadT12>
-void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>& value) {
+template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2, typename T3, yardl::binary::Reader<T3> ReadT3, typename T4, yardl::binary::Reader<T4> ReadT4, typename T5, yardl::binary::Reader<T5> ReadT5, typename T6, yardl::binary::Reader<T6> ReadT6, typename T7, yardl::binary::Reader<T7> ReadT7, typename T8, yardl::binary::Reader<T8> ReadT8, typename T9, yardl::binary::Reader<T9> ReadT9, typename T10, yardl::binary::Reader<T10> ReadT10, typename T11, yardl::binary::Reader<T11> ReadT11, typename T12, yardl::binary::Reader<T12> ReadT12, typename T13, yardl::binary::Reader<T13> ReadT13>
+void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>& value) {
   size_t index;
   yardl::binary::ReadInteger(stream, index);
   switch (index) {
@@ -888,6 +985,12 @@ void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2,
     case 12: {
       T12 v;
       ReadT12(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 13: {
+      T13 v;
+      ReadT13(stream, v);
       value = std::move(v);
       break;
     }
@@ -1940,6 +2043,168 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadImageMeta(stream, value.meta);
 }
 
+[[maybe_unused]] void WriteImageUint16(yardl::binary::CodedOutputStream& stream, mrd::ImageUint16 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint16>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<uint16_t, yardl::binary::WriteInteger>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageUint16(yardl::binary::CodedInputStream& stream, mrd::ImageUint16& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint16>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<uint16_t, yardl::binary::ReadInteger>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageInt16(yardl::binary::CodedOutputStream& stream, mrd::ImageInt16 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt16>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<int16_t, yardl::binary::WriteInteger>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageInt16(yardl::binary::CodedInputStream& stream, mrd::ImageInt16& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt16>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<int16_t, yardl::binary::ReadInteger>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageUint32(yardl::binary::CodedOutputStream& stream, mrd::ImageUint32 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint32>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<uint32_t, yardl::binary::WriteInteger>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageUint32(yardl::binary::CodedInputStream& stream, mrd::ImageUint32& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint32>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<uint32_t, yardl::binary::ReadInteger>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageInt32(yardl::binary::CodedOutputStream& stream, mrd::ImageInt32 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt32>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<int32_t, yardl::binary::WriteInteger>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageInt32(yardl::binary::CodedInputStream& stream, mrd::ImageInt32& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt32>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<int32_t, yardl::binary::ReadInteger>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageFloat(yardl::binary::CodedOutputStream& stream, mrd::ImageFloat const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageFloat>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<float, yardl::binary::WriteFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageFloat(yardl::binary::CodedInputStream& stream, mrd::ImageFloat& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageFloat>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<float, yardl::binary::ReadFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageDouble(yardl::binary::CodedOutputStream& stream, mrd::ImageDouble const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageDouble>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<double, yardl::binary::WriteFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageDouble(yardl::binary::CodedInputStream& stream, mrd::ImageDouble& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageDouble>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<double, yardl::binary::ReadFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageComplexFloat(yardl::binary::CodedOutputStream& stream, mrd::ImageComplexFloat const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexFloat>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<std::complex<float>, yardl::binary::WriteFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageComplexFloat(yardl::binary::CodedInputStream& stream, mrd::ImageComplexFloat& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexFloat>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<std::complex<float>, yardl::binary::ReadFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageComplexDouble(yardl::binary::CodedOutputStream& stream, mrd::ImageComplexDouble const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexDouble>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImage<std::complex<double>, yardl::binary::WriteFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageComplexDouble(yardl::binary::CodedInputStream& stream, mrd::ImageComplexDouble& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexDouble>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImage<std::complex<double>, yardl::binary::ReadFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void WriteAnyImage(yardl::binary::CodedOutputStream& stream, mrd::AnyImage const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AnyImage>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  WriteUnion<mrd::ImageUint16, mrd::binary::WriteImageUint16, mrd::ImageInt16, mrd::binary::WriteImageInt16, mrd::ImageUint32, mrd::binary::WriteImageUint32, mrd::ImageInt32, mrd::binary::WriteImageInt32, mrd::ImageFloat, mrd::binary::WriteImageFloat, mrd::ImageDouble, mrd::binary::WriteImageDouble, mrd::ImageComplexFloat, mrd::binary::WriteImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::WriteImageComplexDouble>(stream, value);
+}
+
+[[maybe_unused]] void ReadAnyImage(yardl::binary::CodedInputStream& stream, mrd::AnyImage& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AnyImage>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  ReadUnion<mrd::ImageUint16, mrd::binary::ReadImageUint16, mrd::ImageInt16, mrd::binary::ReadImageInt16, mrd::ImageUint32, mrd::binary::ReadImageUint32, mrd::ImageInt32, mrd::binary::ReadImageInt32, mrd::ImageFloat, mrd::binary::ReadImageFloat, mrd::ImageDouble, mrd::binary::ReadImageDouble, mrd::ImageComplexFloat, mrd::binary::ReadImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::ReadImageComplexDouble>(stream, value);
+}
+
 [[maybe_unused]] void WriteNoiseCovariance(yardl::binary::CodedOutputStream& stream, mrd::NoiseCovariance const& value) {
   if constexpr (yardl::binary::IsTriviallySerializable<mrd::NoiseCovariance>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
@@ -2001,7 +2266,6 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::WriteMinMaxStat(stream, value.repetition);
   mrd::binary::WriteMinMaxStat(stream, value.set);
   mrd::binary::WriteMinMaxStat(stream, value.segment);
-  yardl::binary::WriteString(stream, value.unused);
 }
 
 [[maybe_unused]] void ReadAcquisitionBucketStats(yardl::binary::CodedInputStream& stream, mrd::AcquisitionBucketStats& value) {
@@ -2019,7 +2283,6 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadMinMaxStat(stream, value.repetition);
   mrd::binary::ReadMinMaxStat(stream, value.set);
   mrd::binary::ReadMinMaxStat(stream, value.segment);
-  yardl::binary::ReadString(stream, value.unused);
 }
 
 template<typename T, yardl::binary::Writer<T> WriteT>
@@ -2254,206 +2517,42 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   yardl::binary::ReadVector<mrd::WaveformUint32, mrd::binary::ReadWaveformUint32>(stream, value.waveforms);
 }
 
-[[maybe_unused]] void WriteKspaceData(yardl::binary::CodedOutputStream& stream, mrd::KspaceData const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::KspaceData>::value) {
+template<typename T, yardl::binary::Writer<T> WriteT>
+[[maybe_unused]] void WriteArray(yardl::binary::CodedOutputStream& stream, mrd::Array<T> const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Array<T>>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
 
-  yardl::binary::WriteNDArray<std::complex<float>, yardl::binary::WriteFloatingPoint, 6>(stream, value);
+  yardl::binary::WriteDynamicNDArray<T, WriteT>(stream, value);
 }
 
-[[maybe_unused]] void ReadKspaceData(yardl::binary::CodedInputStream& stream, mrd::KspaceData& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::KspaceData>::value) {
+template<typename T, yardl::binary::Reader<T> ReadT>
+[[maybe_unused]] void ReadArray(yardl::binary::CodedInputStream& stream, mrd::Array<T>& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Array<T>>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
 
-  yardl::binary::ReadNDArray<std::complex<float>, yardl::binary::ReadFloatingPoint, 6>(stream, value);
+  yardl::binary::ReadDynamicNDArray<T, ReadT>(stream, value);
 }
 
-[[maybe_unused]] void WriteMaskData(yardl::binary::CodedOutputStream& stream, mrd::MaskData const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::MaskData>::value) {
+[[maybe_unused]] void WriteArrayComplexFloat(yardl::binary::CodedOutputStream& stream, mrd::ArrayComplexFloat const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ArrayComplexFloat>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
 
-  yardl::binary::WriteNDArray<bool, yardl::binary::WriteInteger, 4>(stream, value);
+  mrd::binary::WriteArray<std::complex<float>, yardl::binary::WriteFloatingPoint>(stream, value);
 }
 
-[[maybe_unused]] void ReadMaskData(yardl::binary::CodedInputStream& stream, mrd::MaskData& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::MaskData>::value) {
+[[maybe_unused]] void ReadArrayComplexFloat(yardl::binary::CodedInputStream& stream, mrd::ArrayComplexFloat& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ArrayComplexFloat>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
 
-  yardl::binary::ReadNDArray<bool, yardl::binary::ReadInteger, 4>(stream, value);
-}
-
-[[maybe_unused]] void WriteKspace(yardl::binary::CodedOutputStream& stream, mrd::Kspace const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Kspace>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteAcquisition(stream, value.reference);
-  mrd::binary::WriteKspaceData(stream, value.data);
-  yardl::binary::WriteOptional<mrd::MaskData, mrd::binary::WriteMaskData>(stream, value.mask);
-}
-
-[[maybe_unused]] void ReadKspace(yardl::binary::CodedInputStream& stream, mrd::Kspace& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Kspace>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadAcquisition(stream, value.reference);
-  mrd::binary::ReadKspaceData(stream, value.data);
-  yardl::binary::ReadOptional<mrd::MaskData, mrd::binary::ReadMaskData>(stream, value.mask);
-}
-
-[[maybe_unused]] void WriteImageUint16(yardl::binary::CodedOutputStream& stream, mrd::ImageUint16 const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint16>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<uint16_t, yardl::binary::WriteInteger>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageUint16(yardl::binary::CodedInputStream& stream, mrd::ImageUint16& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint16>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<uint16_t, yardl::binary::ReadInteger>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageInt16(yardl::binary::CodedOutputStream& stream, mrd::ImageInt16 const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt16>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<int16_t, yardl::binary::WriteInteger>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageInt16(yardl::binary::CodedInputStream& stream, mrd::ImageInt16& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt16>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<int16_t, yardl::binary::ReadInteger>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageUint(yardl::binary::CodedOutputStream& stream, mrd::ImageUint const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<uint32_t, yardl::binary::WriteInteger>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageUint(yardl::binary::CodedInputStream& stream, mrd::ImageUint& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<uint32_t, yardl::binary::ReadInteger>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageInt(yardl::binary::CodedOutputStream& stream, mrd::ImageInt const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<int32_t, yardl::binary::WriteInteger>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageInt(yardl::binary::CodedInputStream& stream, mrd::ImageInt& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<int32_t, yardl::binary::ReadInteger>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageFloat(yardl::binary::CodedOutputStream& stream, mrd::ImageFloat const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageFloat>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<float, yardl::binary::WriteFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageFloat(yardl::binary::CodedInputStream& stream, mrd::ImageFloat& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageFloat>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<float, yardl::binary::ReadFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageDouble(yardl::binary::CodedOutputStream& stream, mrd::ImageDouble const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageDouble>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<double, yardl::binary::WriteFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageDouble(yardl::binary::CodedInputStream& stream, mrd::ImageDouble& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageDouble>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<double, yardl::binary::ReadFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageComplexFloat(yardl::binary::CodedOutputStream& stream, mrd::ImageComplexFloat const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexFloat>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<std::complex<float>, yardl::binary::WriteFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageComplexFloat(yardl::binary::CodedInputStream& stream, mrd::ImageComplexFloat& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexFloat>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<std::complex<float>, yardl::binary::ReadFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void WriteImageComplexDouble(yardl::binary::CodedOutputStream& stream, mrd::ImageComplexDouble const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexDouble>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteImage<std::complex<double>, yardl::binary::WriteFloatingPoint>(stream, value);
-}
-
-[[maybe_unused]] void ReadImageComplexDouble(yardl::binary::CodedInputStream& stream, mrd::ImageComplexDouble& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageComplexDouble>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadImage<std::complex<double>, yardl::binary::ReadFloatingPoint>(stream, value);
+  mrd::binary::ReadArray<std::complex<float>, yardl::binary::ReadFloatingPoint>(stream, value);
 }
 
 [[maybe_unused]] void WriteStreamItem(yardl::binary::CodedOutputStream& stream, mrd::StreamItem const& value) {
@@ -2462,7 +2561,7 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  WriteUnion<mrd::Acquisition, mrd::binary::WriteAcquisition, mrd::AcquisitionBucket, mrd::binary::WriteAcquisitionBucket, mrd::ReconData, mrd::binary::WriteReconData, mrd::WaveformUint32, mrd::binary::WriteWaveformUint32, mrd::ImageUint16, mrd::binary::WriteImageUint16, mrd::ImageInt16, mrd::binary::WriteImageInt16, mrd::ImageUint, mrd::binary::WriteImageUint, mrd::ImageInt, mrd::binary::WriteImageInt, mrd::ImageFloat, mrd::binary::WriteImageFloat, mrd::ImageDouble, mrd::binary::WriteImageDouble, mrd::ImageComplexFloat, mrd::binary::WriteImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::WriteImageComplexDouble, mrd::ImageArray, mrd::binary::WriteImageArray>(stream, value);
+  WriteUnion<mrd::Acquisition, mrd::binary::WriteAcquisition, mrd::WaveformUint32, mrd::binary::WriteWaveformUint32, mrd::ImageUint16, mrd::binary::WriteImageUint16, mrd::ImageInt16, mrd::binary::WriteImageInt16, mrd::ImageUint32, mrd::binary::WriteImageUint32, mrd::ImageInt32, mrd::binary::WriteImageInt32, mrd::ImageFloat, mrd::binary::WriteImageFloat, mrd::ImageDouble, mrd::binary::WriteImageDouble, mrd::ImageComplexFloat, mrd::binary::WriteImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::WriteImageComplexDouble, mrd::AcquisitionBucket, mrd::binary::WriteAcquisitionBucket, mrd::ReconData, mrd::binary::WriteReconData, mrd::ArrayComplexFloat, mrd::binary::WriteArrayComplexFloat, mrd::ImageArray, mrd::binary::WriteImageArray>(stream, value);
 }
 
 [[maybe_unused]] void ReadStreamItem(yardl::binary::CodedInputStream& stream, mrd::StreamItem& value) {
@@ -2471,55 +2570,10 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  ReadUnion<mrd::Acquisition, mrd::binary::ReadAcquisition, mrd::AcquisitionBucket, mrd::binary::ReadAcquisitionBucket, mrd::ReconData, mrd::binary::ReadReconData, mrd::WaveformUint32, mrd::binary::ReadWaveformUint32, mrd::ImageUint16, mrd::binary::ReadImageUint16, mrd::ImageInt16, mrd::binary::ReadImageInt16, mrd::ImageUint, mrd::binary::ReadImageUint, mrd::ImageInt, mrd::binary::ReadImageInt, mrd::ImageFloat, mrd::binary::ReadImageFloat, mrd::ImageDouble, mrd::binary::ReadImageDouble, mrd::ImageComplexFloat, mrd::binary::ReadImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::ReadImageComplexDouble, mrd::ImageArray, mrd::binary::ReadImageArray>(stream, value);
+  ReadUnion<mrd::Acquisition, mrd::binary::ReadAcquisition, mrd::WaveformUint32, mrd::binary::ReadWaveformUint32, mrd::ImageUint16, mrd::binary::ReadImageUint16, mrd::ImageInt16, mrd::binary::ReadImageInt16, mrd::ImageUint32, mrd::binary::ReadImageUint32, mrd::ImageInt32, mrd::binary::ReadImageInt32, mrd::ImageFloat, mrd::binary::ReadImageFloat, mrd::ImageDouble, mrd::binary::ReadImageDouble, mrd::ImageComplexFloat, mrd::binary::ReadImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::ReadImageComplexDouble, mrd::AcquisitionBucket, mrd::binary::ReadAcquisitionBucket, mrd::ReconData, mrd::binary::ReadReconData, mrd::ArrayComplexFloat, mrd::binary::ReadArrayComplexFloat, mrd::ImageArray, mrd::binary::ReadImageArray>(stream, value);
 }
 
 } // namespace
-
-void KspaceProtocolWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
-  yardl::binary::WriteOptional<mrd::Header, mrd::binary::WriteHeader>(stream_, value);
-}
-
-void KspaceProtocolWriter::WriteKspaceImpl(mrd::Kspace const& value) {
-  yardl::binary::WriteBlock<mrd::Kspace, mrd::binary::WriteKspace>(stream_, value);
-}
-
-void KspaceProtocolWriter::WriteKspaceImpl(std::vector<mrd::Kspace> const& values) {
-  if (!values.empty()) {
-    yardl::binary::WriteVector<mrd::Kspace, mrd::binary::WriteKspace>(stream_, values);
-  }
-}
-
-void KspaceProtocolWriter::EndKspaceImpl() {
-  yardl::binary::WriteInteger(stream_, 0U);
-}
-
-void KspaceProtocolWriter::Flush() {
-  stream_.Flush();
-}
-
-void KspaceProtocolWriter::CloseImpl() {
-  stream_.Flush();
-}
-
-void KspaceProtocolReader::ReadHeaderImpl(std::optional<mrd::Header>& value) {
-  yardl::binary::ReadOptional<mrd::Header, mrd::binary::ReadHeader>(stream_, value);
-}
-
-bool KspaceProtocolReader::ReadKspaceImpl(mrd::Kspace& value) {
-  bool read_block_successful = false;
-  read_block_successful = yardl::binary::ReadBlock<mrd::Kspace, mrd::binary::ReadKspace>(stream_, current_block_remaining_, value);
-  return read_block_successful;
-}
-
-bool KspaceProtocolReader::ReadKspaceImpl(std::vector<mrd::Kspace>& values) {
-  yardl::binary::ReadBlocksIntoVector<mrd::Kspace, mrd::binary::ReadKspace>(stream_, current_block_remaining_, values);
-  return current_block_remaining_ != 0;
-}
-
-void KspaceProtocolReader::CloseImpl() {
-  stream_.VerifyFinished();
-}
 
 void MrdWriter::WriteHeaderImpl(std::optional<mrd::Header> const& value) {
   yardl::binary::WriteOptional<mrd::Header, mrd::binary::WriteHeader>(stream_, value);

@@ -2752,7 +2752,6 @@ class AcquisitionBucketStatsConverter(_ndjson.JsonConverter[AcquisitionBucketSta
         self._repetition_converter = MinMaxStatConverter()
         self._set_converter = MinMaxStatConverter()
         self._segment_converter = MinMaxStatConverter()
-        self._unused_converter = _ndjson.string_converter
         super().__init__(np.dtype([
             ("kspace_encode_step_1", self._kspace_encode_step_1_converter.overall_dtype()),
             ("kspace_encode_step_2", self._kspace_encode_step_2_converter.overall_dtype()),
@@ -2763,7 +2762,6 @@ class AcquisitionBucketStatsConverter(_ndjson.JsonConverter[AcquisitionBucketSta
             ("repetition", self._repetition_converter.overall_dtype()),
             ("set", self._set_converter.overall_dtype()),
             ("segment", self._segment_converter.overall_dtype()),
-            ("unused", self._unused_converter.overall_dtype()),
         ]))
 
     def to_json(self, value: AcquisitionBucketStats) -> object:
@@ -2780,7 +2778,6 @@ class AcquisitionBucketStatsConverter(_ndjson.JsonConverter[AcquisitionBucketSta
         json_object["repetition"] = self._repetition_converter.to_json(value.repetition)
         json_object["set"] = self._set_converter.to_json(value.set)
         json_object["segment"] = self._segment_converter.to_json(value.segment)
-        json_object["unused"] = self._unused_converter.to_json(value.unused)
         return json_object
 
     def numpy_to_json(self, value: np.void) -> object:
@@ -2797,7 +2794,6 @@ class AcquisitionBucketStatsConverter(_ndjson.JsonConverter[AcquisitionBucketSta
         json_object["repetition"] = self._repetition_converter.numpy_to_json(value["repetition"])
         json_object["set"] = self._set_converter.numpy_to_json(value["set"])
         json_object["segment"] = self._segment_converter.numpy_to_json(value["segment"])
-        json_object["unused"] = self._unused_converter.numpy_to_json(value["unused"])
         return json_object
 
     def from_json(self, json_object: object) -> AcquisitionBucketStats:
@@ -2813,7 +2809,6 @@ class AcquisitionBucketStatsConverter(_ndjson.JsonConverter[AcquisitionBucketSta
             repetition=self._repetition_converter.from_json(json_object["repetition"],),
             set=self._set_converter.from_json(json_object["set"],),
             segment=self._segment_converter.from_json(json_object["segment"],),
-            unused=self._unused_converter.from_json(json_object["unused"],),
         )
 
     def from_json_to_numpy(self, json_object: object) -> np.void:
@@ -2829,7 +2824,6 @@ class AcquisitionBucketStatsConverter(_ndjson.JsonConverter[AcquisitionBucketSta
             self._repetition_converter.from_json_to_numpy(json_object["repetition"]),
             self._set_converter.from_json_to_numpy(json_object["set"]),
             self._segment_converter.from_json_to_numpy(json_object["segment"]),
-            self._unused_converter.from_json_to_numpy(json_object["unused"]),
         ) # type:ignore 
 
 
@@ -3285,98 +3279,11 @@ class ImageArrayConverter(_ndjson.JsonConverter[ImageArray, np.void]):
         ) # type:ignore 
 
 
-class KspaceConverter(_ndjson.JsonConverter[Kspace, np.void]):
-    def __init__(self) -> None:
-        self._reference_converter = AcquisitionConverter()
-        self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 6)
-        self._mask_converter = _ndjson.OptionalConverter(_ndjson.NDArrayConverter(_ndjson.bool_converter, 4))
-        super().__init__(np.dtype([
-            ("reference", self._reference_converter.overall_dtype()),
-            ("data", self._data_converter.overall_dtype()),
-            ("mask", self._mask_converter.overall_dtype()),
-        ]))
-
-    def to_json(self, value: Kspace) -> object:
-        if not isinstance(value, Kspace): # pyright: ignore [reportUnnecessaryIsInstance]
-            raise TypeError("Expected 'Kspace' instance")
-        json_object = {}
-
-        json_object["reference"] = self._reference_converter.to_json(value.reference)
-        json_object["data"] = self._data_converter.to_json(value.data)
-        if value.mask is not None:
-            json_object["mask"] = self._mask_converter.to_json(value.mask)
-        return json_object
-
-    def numpy_to_json(self, value: np.void) -> object:
-        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
-            raise TypeError("Expected 'np.void' instance")
-        json_object = {}
-
-        json_object["reference"] = self._reference_converter.numpy_to_json(value["reference"])
-        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
-        if (field_val := value["mask"]) is not None:
-            json_object["mask"] = self._mask_converter.numpy_to_json(field_val)
-        return json_object
-
-    def from_json(self, json_object: object) -> Kspace:
-        if not isinstance(json_object, dict):
-            raise TypeError("Expected 'dict' instance")
-        return Kspace(
-            reference=self._reference_converter.from_json(json_object["reference"],),
-            data=self._data_converter.from_json(json_object["data"],),
-            mask=self._mask_converter.from_json(json_object.get("mask")),
-        )
-
-    def from_json_to_numpy(self, json_object: object) -> np.void:
-        if not isinstance(json_object, dict):
-            raise TypeError("Expected 'dict' instance")
-        return (
-            self._reference_converter.from_json_to_numpy(json_object["reference"]),
-            self._data_converter.from_json_to_numpy(json_object["data"]),
-            self._mask_converter.from_json_to_numpy(json_object.get("mask")),
-        ) # type:ignore 
-
-
-class NDJsonKspaceProtocolWriter(_ndjson.NDJsonProtocolWriter, KspaceProtocolWriterBase):
-    """NDJson writer for the KspaceProtocol protocol."""
-
-
-    def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
-        KspaceProtocolWriterBase.__init__(self)
-        _ndjson.NDJsonProtocolWriter.__init__(self, stream, KspaceProtocolWriterBase.schema)
-
-    def _write_header(self, value: typing.Optional[Header]) -> None:
-        converter = _ndjson.OptionalConverter(HeaderConverter())
-        json_value = converter.to_json(value)
-        self._write_json_line({"header": json_value})
-
-    def _write_kspace(self, value: collections.abc.Iterable[Kspace]) -> None:
-        converter = KspaceConverter()
-        for item in value:
-            json_item = converter.to_json(item)
-            self._write_json_line({"kspace": json_item})
-
-
-class NDJsonKspaceProtocolReader(_ndjson.NDJsonProtocolReader, KspaceProtocolReaderBase):
-    """NDJson writer for the KspaceProtocol protocol."""
-
-
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
-        KspaceProtocolReaderBase.__init__(self)
-        _ndjson.NDJsonProtocolReader.__init__(self, stream, KspaceProtocolReaderBase.schema)
-
-    def _read_header(self) -> typing.Optional[Header]:
-        json_object = self._read_json_line("header", True)
-        converter = _ndjson.OptionalConverter(HeaderConverter())
-        return converter.from_json(json_object)
-
-    def _read_kspace(self) -> collections.abc.Iterable[Kspace]:
-        converter = KspaceConverter()
-        while (json_object := self._read_json_line("kspace", False)) is not _ndjson.MISSING_SENTINEL:
-            yield converter.from_json(json_object)
-
 class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
-    """NDJson writer for the Mrd protocol."""
+    """NDJson writer for the Mrd protocol.
+
+    The MRD Protocol
+    """
 
 
     def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
@@ -3389,14 +3296,17 @@ class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
         self._write_json_line({"header": json_value})
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict])], False)
         for item in value:
             json_item = converter.to_json(item)
             self._write_json_line({"data": json_item})
 
 
 class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
-    """NDJson writer for the Mrd protocol."""
+    """NDJson writer for the Mrd protocol.
+
+    The MRD Protocol
+    """
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
@@ -3409,12 +3319,15 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
         return converter.from_json(json_object)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict])], False)
         while (json_object := self._read_json_line("data", False)) is not _ndjson.MISSING_SENTINEL:
             yield converter.from_json(json_object)
 
 class NDJsonMrdNoiseCovarianceWriter(_ndjson.NDJsonProtocolWriter, MrdNoiseCovarianceWriterBase):
-    """NDJson writer for the MrdNoiseCovariance protocol."""
+    """NDJson writer for the MrdNoiseCovariance protocol.
+
+    Protocol for serializing a noise covariance matrix
+    """
 
 
     def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
@@ -3428,7 +3341,10 @@ class NDJsonMrdNoiseCovarianceWriter(_ndjson.NDJsonProtocolWriter, MrdNoiseCovar
 
 
 class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovarianceReaderBase):
-    """NDJson writer for the MrdNoiseCovariance protocol."""
+    """NDJson writer for the MrdNoiseCovariance protocol.
+
+    Protocol for serializing a noise covariance matrix
+    """
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:

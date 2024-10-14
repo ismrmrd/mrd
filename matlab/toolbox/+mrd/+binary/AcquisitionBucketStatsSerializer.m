@@ -12,7 +12,6 @@ classdef AcquisitionBucketStatsSerializer < yardl.binary.RecordSerializer
       field_serializers{7} = mrd.binary.MinMaxStatSerializer();
       field_serializers{8} = mrd.binary.MinMaxStatSerializer();
       field_serializers{9} = mrd.binary.MinMaxStatSerializer();
-      field_serializers{10} = yardl.binary.StringSerializer;
       self@yardl.binary.RecordSerializer('mrd.AcquisitionBucketStats', field_serializers);
     end
 
@@ -22,12 +21,12 @@ classdef AcquisitionBucketStatsSerializer < yardl.binary.RecordSerializer
         outstream (1,1) yardl.binary.CodedOutputStream
         value (1,1) mrd.AcquisitionBucketStats
       end
-      self.write_(outstream, value.kspace_encode_step_1, value.kspace_encode_step_2, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.segment, value.unused);
+      self.write_(outstream, value.kspace_encode_step_1, value.kspace_encode_step_2, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.segment);
     end
 
     function value = read(self, instream)
       fields = self.read_(instream);
-      value = mrd.AcquisitionBucketStats(kspace_encode_step_1=fields{1}, kspace_encode_step_2=fields{2}, average=fields{3}, slice=fields{4}, contrast=fields{5}, phase=fields{6}, repetition=fields{7}, set=fields{8}, segment=fields{9}, unused=fields{10});
+      value = mrd.AcquisitionBucketStats(kspace_encode_step_1=fields{1}, kspace_encode_step_2=fields{2}, average=fields{3}, slice=fields{4}, contrast=fields{5}, phase=fields{6}, repetition=fields{7}, set=fields{8}, segment=fields{9});
     end
   end
 end

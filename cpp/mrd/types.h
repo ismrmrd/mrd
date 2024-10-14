@@ -990,6 +990,25 @@ struct Image {
   }
 };
 
+using ImageUint16 = mrd::Image<uint16_t>;
+
+using ImageInt16 = mrd::Image<int16_t>;
+
+using ImageUint32 = mrd::Image<uint32_t>;
+
+using ImageInt32 = mrd::Image<int32_t>;
+
+using ImageFloat = mrd::Image<float>;
+
+using ImageDouble = mrd::Image<double>;
+
+using ImageComplexFloat = mrd::Image<std::complex<float>>;
+
+using ImageComplexDouble = mrd::Image<std::complex<double>>;
+
+// Union of all MRD Image types
+using AnyImage = std::variant<mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>;
+
 struct NoiseCovariance {
   // Comes from Header.acquisitionSystemInformation.coilLabel
   std::vector<mrd::CoilLabelType> coil_labels{};
@@ -1039,8 +1058,6 @@ struct AcquisitionBucketStats {
   mrd::MinMaxStat repetition{};
   mrd::MinMaxStat set{};
   mrd::MinMaxStat segment{};
-  // TODO: Remove after Yardl #171 is merged
-  std::string unused{};
 
   bool operator==(const AcquisitionBucketStats& other) const {
     return kspace_encode_step_1 == other.kspace_encode_step_1 &&
@@ -1051,8 +1068,7 @@ struct AcquisitionBucketStats {
       phase == other.phase &&
       repetition == other.repetition &&
       set == other.set &&
-      segment == other.segment &&
-      unused == other.unused;
+      segment == other.segment;
   }
 
   bool operator!=(const AcquisitionBucketStats& other) const {
@@ -1231,68 +1247,13 @@ struct ImageArray {
   }
 };
 
-using KspaceData = yardl::NDArray<std::complex<float>, 6>;
+template <typename T>
+using Array = yardl::DynamicNDArray<T>;
 
-using MaskData = yardl::NDArray<bool, 4>;
+using ArrayComplexFloat = mrd::Array<std::complex<float>>;
 
-// TODO: The types below were added to support Wabakimi, and should be replaced with above types
-struct Kspace {
-  mrd::Acquisition reference{};
-  mrd::KspaceData data{};
-  std::optional<mrd::MaskData> mask{};
-
-  yardl::Size Contrasts() const {
-    return yardl::shape(data, 0);
-  }
-
-  yardl::Size Slices() const {
-    return yardl::shape(data, 1);
-  }
-
-  yardl::Size Coils() const {
-    return yardl::shape(data, 2);
-  }
-
-  yardl::Size Nz() const {
-    return yardl::shape(data, 3);
-  }
-
-  yardl::Size Ny() const {
-    return yardl::shape(data, 4);
-  }
-
-  yardl::Size Nx() const {
-    return yardl::shape(data, 5);
-  }
-
-  bool operator==(const Kspace& other) const {
-    return reference == other.reference &&
-      data == other.data &&
-      mask == other.mask;
-  }
-
-  bool operator!=(const Kspace& other) const {
-    return !(*this == other);
-  }
-};
-
-using ImageUint16 = mrd::Image<uint16_t>;
-
-using ImageInt16 = mrd::Image<int16_t>;
-
-using ImageUint = mrd::Image<uint32_t>;
-
-using ImageInt = mrd::Image<int32_t>;
-
-using ImageFloat = mrd::Image<float>;
-
-using ImageDouble = mrd::Image<double>;
-
-using ImageComplexFloat = mrd::Image<std::complex<float>>;
-
-using ImageComplexDouble = mrd::Image<std::complex<double>>;
-
-using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionBucket, mrd::ReconData, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint, mrd::ImageInt, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::ImageArray>;
+// Union of all primary types that can be streamed in the MRD Protocol
+using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>;
 
 } // namespace mrd
 

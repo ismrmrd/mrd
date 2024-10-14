@@ -11,8 +11,6 @@ classdef AcquisitionBucketStats < handle
     repetition
     set
     segment
-    % TODO: Remove after Yardl #171 is merged
-    unused
   end
 
   methods
@@ -27,7 +25,6 @@ classdef AcquisitionBucketStats < handle
         kwargs.repetition = mrd.MinMaxStat();
         kwargs.set = mrd.MinMaxStat();
         kwargs.segment = mrd.MinMaxStat();
-        kwargs.unused = "";
       end
       self.kspace_encode_step_1 = kwargs.kspace_encode_step_1;
       self.kspace_encode_step_2 = kwargs.kspace_encode_step_2;
@@ -38,7 +35,6 @@ classdef AcquisitionBucketStats < handle
       self.repetition = kwargs.repetition;
       self.set = kwargs.set;
       self.segment = kwargs.segment;
-      self.unused = kwargs.unused;
     end
 
     function res = eq(self, other)
@@ -52,8 +48,7 @@ classdef AcquisitionBucketStats < handle
         isequal(self.phase, other.phase) && ...
         isequal(self.repetition, other.repetition) && ...
         isequal(self.set, other.set) && ...
-        isequal(self.segment, other.segment) && ...
-        isequal(self.unused, other.unused);
+        isequal(self.segment, other.segment);
     end
 
     function res = ne(self, other)

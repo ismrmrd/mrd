@@ -11,40 +11,8 @@
 #include "../yardl/detail/hdf5/io.h"
 
 namespace mrd::hdf5 {
-// HDF5 writer for the KspaceProtocol protocol.
-class KspaceProtocolWriter : public mrd::KspaceProtocolWriterBase, public yardl::hdf5::Hdf5Writer {
-  public:
-  KspaceProtocolWriter(std::string path);
-
-  protected:
-  void WriteHeaderImpl(std::optional<mrd::Header> const& value) override;
-
-  void WriteKspaceImpl(mrd::Kspace const& value) override;
-
-  void WriteKspaceImpl(std::vector<mrd::Kspace> const& values) override;
-
-  void EndKspaceImpl() override;
-
-  private:
-  std::unique_ptr<yardl::hdf5::DatasetWriter> kspace_dataset_state_;
-};
-
-// HDF5 reader for the KspaceProtocol protocol.
-class KspaceProtocolReader : public mrd::KspaceProtocolReaderBase, public yardl::hdf5::Hdf5Reader {
-  public:
-  KspaceProtocolReader(std::string path);
-
-  void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
-
-  bool ReadKspaceImpl(mrd::Kspace& value) override;
-
-  bool ReadKspaceImpl(std::vector<mrd::Kspace>& values) override;
-
-  private:
-  std::unique_ptr<yardl::hdf5::DatasetReader> kspace_dataset_state_;
-};
-
 // HDF5 writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   public:
   MrdWriter(std::string path);
@@ -60,10 +28,11 @@ class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   void Flush() override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<13>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<14>> data_dataset_state_;
 };
 
 // HDF5 reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
   MrdReader(std::string path);
@@ -73,10 +42,11 @@ class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   bool ReadDataImpl(mrd::StreamItem& value) override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetReader<13>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetReader<14>> data_dataset_state_;
 };
 
 // HDF5 writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, public yardl::hdf5::Hdf5Writer {
   public:
   MrdNoiseCovarianceWriter(std::string path);
@@ -88,6 +58,7 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, publi
 };
 
 // HDF5 reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
   MrdNoiseCovarianceReader(std::string path);

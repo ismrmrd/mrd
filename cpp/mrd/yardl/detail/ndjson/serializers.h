@@ -211,7 +211,6 @@ struct adl_serializer<yardl::NDArray<T, N>> {
   }
 
   static void from_json(ordered_json const& j, yardl::NDArray<T, N>& value) {
-    // yardl::resize(value, j.at("shape").get<std::vector<size_t>>());
     yardl::resize(value, j.at("shape").get<std::array<size_t, N>>());
     auto data_array = j.at("data").get<std::vector<T>>();
     size_t i = 0;

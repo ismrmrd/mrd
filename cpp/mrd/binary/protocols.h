@@ -12,51 +12,8 @@
 #include "../yardl/detail/binary/reader_writer.h"
 
 namespace mrd::binary {
-// Binary writer for the KspaceProtocol protocol.
-class KspaceProtocolWriter : public mrd::KspaceProtocolWriterBase, yardl::binary::BinaryWriter {
-  public:
-  KspaceProtocolWriter(std::ostream& stream, Version version = Version::Current)
-      : yardl::binary::BinaryWriter(stream, mrd::KspaceProtocolWriterBase::SchemaFromVersion(version)), version_(version) {}
-
-  KspaceProtocolWriter(std::string file_name, Version version = Version::Current)
-      : yardl::binary::BinaryWriter(file_name, mrd::KspaceProtocolWriterBase::SchemaFromVersion(version)), version_(version) {}
-
-  void Flush() override;
-
-  protected:
-  void WriteHeaderImpl(std::optional<mrd::Header> const& value) override;
-  void WriteKspaceImpl(mrd::Kspace const& value) override;
-  void WriteKspaceImpl(std::vector<mrd::Kspace> const& values) override;
-  void EndKspaceImpl() override;
-  void CloseImpl() override;
-
-  Version version_;
-};
-
-// Binary reader for the KspaceProtocol protocol.
-class KspaceProtocolReader : public mrd::KspaceProtocolReaderBase, yardl::binary::BinaryReader {
-  public:
-  KspaceProtocolReader(std::istream& stream)
-      : yardl::binary::BinaryReader(stream), version_(mrd::KspaceProtocolReaderBase::VersionFromSchema(schema_read_)) {}
-
-  KspaceProtocolReader(std::string file_name)
-      : yardl::binary::BinaryReader(file_name), version_(mrd::KspaceProtocolReaderBase::VersionFromSchema(schema_read_)) {}
-
-  Version GetVersion() { return version_; }
-
-  protected:
-  void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
-  bool ReadKspaceImpl(mrd::Kspace& value) override;
-  bool ReadKspaceImpl(std::vector<mrd::Kspace>& values) override;
-  void CloseImpl() override;
-
-  Version version_;
-
-  private:
-  size_t current_block_remaining_ = 0;
-};
-
 // Binary writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, yardl::binary::BinaryWriter {
   public:
   MrdWriter(std::ostream& stream, Version version = Version::Current)
@@ -78,6 +35,7 @@ class MrdWriter : public mrd::MrdWriterBase, yardl::binary::BinaryWriter {
 };
 
 // Binary reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, yardl::binary::BinaryReader {
   public:
   MrdReader(std::istream& stream)
@@ -101,6 +59,7 @@ class MrdReader : public mrd::MrdReaderBase, yardl::binary::BinaryReader {
 };
 
 // Binary writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::binary::BinaryWriter {
   public:
   MrdNoiseCovarianceWriter(std::ostream& stream, Version version = Version::Current)
@@ -119,6 +78,7 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl
 };
 
 // Binary reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::binary::BinaryReader {
   public:
   MrdNoiseCovarianceReader(std::istream& stream)

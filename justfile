@@ -107,6 +107,10 @@ validate-with-no-changes: validate
 @build-pypi-package:
     ./utils/pypi/package.sh
 
+@localinstall-python-package:
+    cd python; \
+    pip install .
+
 @build-matlab-toolbox:
     cd matlab; \
     run-matlab-command buildtool

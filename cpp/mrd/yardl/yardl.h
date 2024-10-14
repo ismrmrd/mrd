@@ -7,11 +7,7 @@
 
 #include <date/date.h>
 
-#if __has_include("ndarray_custom.h")
-#include "ndarray_custom.h"
-#else
-#include "./detail/ndarray_default.h"
-#endif
+#include "detail/ndarray/impl.h"
 
 namespace yardl {
 

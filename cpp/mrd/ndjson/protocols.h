@@ -12,44 +12,8 @@
 #include "../protocols.h"
 
 namespace mrd::ndjson {
-// NDJSON writer for the KspaceProtocol protocol.
-class KspaceProtocolWriter : public mrd::KspaceProtocolWriterBase, yardl::ndjson::NDJsonWriter {
-  public:
-  KspaceProtocolWriter(std::ostream& stream)
-      : yardl::ndjson::NDJsonWriter(stream, schema_) {
-  }
-
-  KspaceProtocolWriter(std::string file_name)
-      : yardl::ndjson::NDJsonWriter(file_name, schema_) {
-  }
-
-  void Flush() override;
-
-  protected:
-  void WriteHeaderImpl(std::optional<mrd::Header> const& value) override;
-  void WriteKspaceImpl(mrd::Kspace const& value) override;
-  void EndKspaceImpl() override {}
-  void CloseImpl() override;
-};
-
-// NDJSON reader for the KspaceProtocol protocol.
-class KspaceProtocolReader : public mrd::KspaceProtocolReaderBase, yardl::ndjson::NDJsonReader {
-  public:
-  KspaceProtocolReader(std::istream& stream)
-      : yardl::ndjson::NDJsonReader(stream, schema_) {
-  }
-
-  KspaceProtocolReader(std::string file_name)
-      : yardl::ndjson::NDJsonReader(file_name, schema_) {
-  }
-
-  protected:
-  void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
-  bool ReadKspaceImpl(mrd::Kspace& value) override;
-  void CloseImpl() override;
-};
-
 // NDJSON writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, yardl::ndjson::NDJsonWriter {
   public:
   MrdWriter(std::ostream& stream)
@@ -70,6 +34,7 @@ class MrdWriter : public mrd::MrdWriterBase, yardl::ndjson::NDJsonWriter {
 };
 
 // NDJSON reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, yardl::ndjson::NDJsonReader {
   public:
   MrdReader(std::istream& stream)
@@ -87,6 +52,7 @@ class MrdReader : public mrd::MrdReaderBase, yardl::ndjson::NDJsonReader {
 };
 
 // NDJSON writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::ndjson::NDJsonWriter {
   public:
   MrdNoiseCovarianceWriter(std::ostream& stream)
@@ -105,6 +71,7 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl
 };
 
 // NDJSON reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::ndjson::NDJsonReader {
   public:
   MrdNoiseCovarianceReader(std::istream& stream)
