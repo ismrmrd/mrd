@@ -17,6 +17,7 @@ The MRD Protocol describes an MRD stream or file, which contains:
     1.  [Raw k-space data](#mrd-acquisition), stored as individual readout acquisitions.
     2.  [Image data](#mrd-image), stored as sets of 2D or 3D arrays.
     3.  [Waveforms](#mrd-waveform), storing physiological data such as electrocardiograms, pulse oximetry, or external triggering sources.
+    4.  [Intermediate data](#mrd-intermediate-types), commonly used in MR image reconstruction pipelines.
 
 ::: details Click to view MRD Protocol definitions
 <<< @/../model/mrd_protocol.yml
@@ -75,4 +76,14 @@ Waveform data is streamed as an `uint32` array with dimensions `[channels, sampl
 
 ::: details Click to view MRD Waveform definitions
 <<< @/../model/mrd_waveform.yml
+:::
+
+
+## MRD Intermediate Types
+
+MRD includes definitions for intermediate data types commonly used in MR image reconstruction, including `Acquisitions` "bucketed" by encoding parameters,
+buffered k-space data, arrays of `Images`, and dynamic multi-dimensional arrays.
+
+::: details Click to view MRD Intermediate definitions
+<<< @/../model/mrd_intermediate.yml
 :::
