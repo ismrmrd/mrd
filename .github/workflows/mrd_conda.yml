@@ -36,9 +36,7 @@ jobs:
         with:
           auto-activate-base: true
           activate-environment: ""
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          python-version: 3.10
+          miniforge-version: 24.3.0-0
 
       - name: Set up just command runner
         uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
