@@ -25,4 +25,7 @@ docker run --rm -i ghcr.io/ismrmrd/mrd-tools mrd_phantom \
 if [ ! -f "${READDIR}/image_000000.png" ]; then
     echo "Failed to identify image file(s)"
     exit 1
+else
+    echo "Success!"
+    exit 0
 fi

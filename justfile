@@ -117,3 +117,9 @@ validate-with-no-changes: validate
 
 @build-cmake-fetch-src:
     tar -czf mrd-cmake-src-${MRD_VERSION_STRING}.tar.gz -C ./cpp/ CMakeLists.txt mrd/ mrd-tools/
+
+@build-docker-images:
+    ./docker/build-images.sh
+
+@test-docker-images:
+    ./docker/test-docker-images.sh
