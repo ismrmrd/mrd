@@ -10,10 +10,10 @@
 
 #include "../yardl/detail/ndjson/reader_writer.h"
 #include "../protocols.h"
-#include "../types.h"
 
 namespace mrd::ndjson {
 // NDJSON writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, yardl::ndjson::NDJsonWriter {
   public:
   MrdWriter(std::ostream& stream)
@@ -34,6 +34,7 @@ class MrdWriter : public mrd::MrdWriterBase, yardl::ndjson::NDJsonWriter {
 };
 
 // NDJSON reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, yardl::ndjson::NDJsonReader {
   public:
   MrdReader(std::istream& stream)
@@ -47,6 +48,42 @@ class MrdReader : public mrd::MrdReaderBase, yardl::ndjson::NDJsonReader {
   protected:
   void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
   bool ReadDataImpl(mrd::StreamItem& value) override;
+  void CloseImpl() override;
+};
+
+// NDJSON writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
+class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::ndjson::NDJsonWriter {
+  public:
+  MrdNoiseCovarianceWriter(std::ostream& stream)
+      : yardl::ndjson::NDJsonWriter(stream, schema_) {
+  }
+
+  MrdNoiseCovarianceWriter(std::string file_name)
+      : yardl::ndjson::NDJsonWriter(file_name, schema_) {
+  }
+
+  void Flush() override;
+
+  protected:
+  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+  void CloseImpl() override;
+};
+
+// NDJSON reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
+class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::ndjson::NDJsonReader {
+  public:
+  MrdNoiseCovarianceReader(std::istream& stream)
+      : yardl::ndjson::NDJsonReader(stream, schema_) {
+  }
+
+  MrdNoiseCovarianceReader(std::string file_name)
+      : yardl::ndjson::NDJsonReader(file_name, schema_) {
+  }
+
+  protected:
+  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
   void CloseImpl() override;
 };
 

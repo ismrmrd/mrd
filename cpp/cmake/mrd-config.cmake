@@ -1,0 +1,21 @@
+include(CMakeFindDependencyMacro)
+
+set(ISMRMRD_MINIMUM_VERSION "1.13.4")
+find_dependency(ISMRMRD ${ISMRMRD_MINIMUM_VERSION} REQUIRED)
+
+find_dependency(ImageMagick COMPONENTS Magick++ REQUIRED)
+find_dependency(fmt REQUIRED)
+
+set(HOWARD_HINNANT_DATE_MINIMUM_VERSION "3.0.0")
+find_dependency(date ${HOWARD_HINNANT_DATE_MINIMUM_VERSION} REQUIRED)
+
+set(HDF5_MINIMUM_VERSION "1.10.5")
+find_dependency(HDF5 ${HDF5_MINIMUM_VERSION} REQUIRED COMPONENTS C CXX)
+
+set(XTENSOR_MINIMUM_VERSION "0.21.10")
+find_dependency(xtensor ${XTENSOR_MINIMUM_VERSION} REQUIRED)
+
+set(NLOHMANN_JSON_MINIMUM_VERSION "3.11.1")
+find_dependency(nlohmann_json ${NLOHMANN_JSON_MINIMUM_VERSION} REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/MRDTargets.cmake")

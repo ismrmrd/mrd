@@ -171,6 +171,7 @@ AccelerationFactorType: !record
 
 CalibrationMode: !enum
     values:
+    - noacceleration
     - embedded
     - interleaved
     - separate
