@@ -3,8 +3,8 @@
 #include <ismrmrd/meta.h>
 #include <ismrmrd/version.h>
 
-#include <xtensor/xview.hpp>
 #include <date/date.h>
+#include <xtensor/xview.hpp>
 
 namespace mrd::converters {
 
@@ -1035,8 +1035,8 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
       mrd::ImageMetaValue& val = *it2;
       if (auto* v = std::get_if<std::string>(&val)) {
         meta.append(key.c_str(), v->c_str());
-      } else if (auto* v = std::get_if<long>(&val)) {
-        meta.append(key.c_str(), *v);
+      } else if (auto* v = std::get_if<int64_t>(&val)) {
+        meta.append(key.c_str(), static_cast<long>(*v));
       } else if (auto* v = std::get_if<double>(&val)) {
         meta.append(key.c_str(), *v);
       } else {
@@ -1063,28 +1063,28 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
 }
 
 ISMRMRD::Image<unsigned short> convert(Image<unsigned short>& im) {
-    return convert<unsigned short>(im);
+  return convert<unsigned short>(im);
 }
 ISMRMRD::Image<short> convert(Image<short>& im) {
-    return convert<short>(im);
+  return convert<short>(im);
 }
 ISMRMRD::Image<unsigned int> convert(Image<unsigned int>& im) {
-    return convert<unsigned int>(im);
+  return convert<unsigned int>(im);
 }
 ISMRMRD::Image<int> convert(Image<int>& im) {
-    return convert<int>(im);
+  return convert<int>(im);
 }
 ISMRMRD::Image<float> convert(Image<float>& im) {
-    return convert<float>(im);
+  return convert<float>(im);
 }
 ISMRMRD::Image<double> convert(Image<double>& im) {
-    return convert<double>(im);
+  return convert<double>(im);
 }
 ISMRMRD::Image<std::complex<float>> convert(Image<std::complex<float>>& im) {
-    return convert<std::complex<float>>(im);
+  return convert<std::complex<float>>(im);
 }
 ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im) {
-    return convert<std::complex<double>>(im);
+  return convert<std::complex<double>>(im);
 }
 
 // Convert mrd::AcquisitionBucket - no equivalent in ISMRMRD::
@@ -1106,7 +1106,6 @@ int convert(ImageArray&) {
 int convert(ArrayComplexFloat&) {
   return 0;
 }
-
 
 yardl::Date date_from_string(const std::string& s) {
   std::stringstream ss{s};
@@ -2090,29 +2089,28 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
 }
 
 Image<unsigned short> convert(ISMRMRD::Image<unsigned short>& im) {
-    return convert<unsigned short>(im);
+  return convert<unsigned short>(im);
 }
 Image<short> convert(ISMRMRD::Image<short>& im) {
-    return convert<short>(im);
+  return convert<short>(im);
 }
 Image<unsigned int> convert(ISMRMRD::Image<unsigned int>& im) {
-    return convert<unsigned int>(im);
+  return convert<unsigned int>(im);
 }
 Image<int> convert(ISMRMRD::Image<int>& im) {
-    return convert<int>(im);
+  return convert<int>(im);
 }
 Image<float> convert(ISMRMRD::Image<float>& im) {
-    return convert<float>(im);
+  return convert<float>(im);
 }
 Image<double> convert(ISMRMRD::Image<double>& im) {
-    return convert<double>(im);
+  return convert<double>(im);
 }
 Image<std::complex<float>> convert(ISMRMRD::Image<std::complex<float>>& im) {
-    return convert<std::complex<float>>(im);
+  return convert<std::complex<float>>(im);
 }
 Image<std::complex<double>> convert(ISMRMRD::Image<std::complex<double>>& im) {
-    return convert<std::complex<double>>(im);
+  return convert<std::complex<double>>(im);
 }
-
 
 }
