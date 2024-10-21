@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.19)
 
-if (NOT DEFINED MRD_VERSION_STRING)
+if (DEFINED ENV{MRD_VERSION_STRING})
+  # Get the current version of MRD from the environment if possible
   set(MRD_VERSION_STRING $ENV{MRD_VERSION_STRING})
+else ()
+  # Otherwise, try to read it from the VERSION file at the top of this repo
+  if (IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
+    file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
+  endif ()
 endif ()
 
 project(mrd VERSION ${MRD_VERSION_STRING})
@@ -27,8 +33,6 @@ message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR})
-
-find_package(ISMRMRD 1.13.4 REQUIRED)
 
 add_compile_options(-Wall -Wextra -pedantic -Werror)
 add_subdirectory(mrd)

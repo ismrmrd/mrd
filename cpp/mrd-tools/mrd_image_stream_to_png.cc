@@ -93,9 +93,8 @@ int main(int argc, char** argv) {
     // Use fmt to generate filename from prefix and increment with 6 digits (e.g. prefix_000001.png)
     std::string filename = fmt::format("{}{:06d}.png", prefix, image_count++);
     image.write(filename);
-    std::cout << "Generated image " << filename << std::endl;
+    std::cerr << "Generated image " << filename << std::endl;
   }
-
 
   return 0;
 }

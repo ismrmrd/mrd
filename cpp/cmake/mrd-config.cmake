@@ -1,11 +1,5 @@
 include(CMakeFindDependencyMacro)
 
-set(ISMRMRD_MINIMUM_VERSION "1.13.4")
-find_dependency(ISMRMRD ${ISMRMRD_MINIMUM_VERSION} REQUIRED)
-
-find_dependency(ImageMagick COMPONENTS Magick++ REQUIRED)
-find_dependency(fmt REQUIRED)
-
 set(HOWARD_HINNANT_DATE_MINIMUM_VERSION "3.0.0")
 find_dependency(date ${HOWARD_HINNANT_DATE_MINIMUM_VERSION} REQUIRED)
 

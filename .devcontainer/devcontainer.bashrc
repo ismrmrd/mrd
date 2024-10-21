@@ -7,7 +7,7 @@ conda activate mrd
 source <(yardl completion bash)
 source <(just --completions bash)
 
-export MRD_VERSION_STRING=$(cat VERSION)
+export MRD_VERSION_STRING=$(cat "${CONTAINER_WORKSPACE_DIR}/VERSION")
 
 
 if [[ "${BASH_ENV:-}" == "$(readlink -f "${BASH_SOURCE[0]:-}")" ]]; then
