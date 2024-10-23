@@ -3,5 +3,5 @@
 set -e
 
 # conda deactivate
-mamba install -y -n base conda-build conda-verify anaconda-client boa
+conda install -y -n base conda-build anaconda-client
 conda activate base

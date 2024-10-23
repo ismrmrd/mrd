@@ -23,20 +23,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download MacOSX SDK
-        if: startsWith(matrix.os, 'macos')
-        run: |
-          curl -o MacOSX10.13.sdk.tar.xz -L https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.13.sdk.tar.xz && \
-          tar xf MacOSX10.13.sdk.tar.xz && \
-          sudo mv -v MacOSX10.13.sdk /opt/ && \
-          ls /opt/
-
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
           auto-activate-base: true
           activate-environment: ""
-          miniforge-variant: Miniforge3
           miniforge-version: latest
 
       - name: Set up just command runner

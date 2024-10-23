@@ -33,8 +33,8 @@ void remove_oversampling(mrd::Acquisition& acq, const mrd::EncodingType& enc) {
 
 void print_usage(std::string program_name) {
   std::cerr << "Usage: " << program_name << std::endl;
-  std::cerr << "  -i|--input-file   <input MRD stream> (default: stdin)" << std::endl;
-  std::cerr << "  -o|--output-file  <output MRD stream> (default: stdout)" << std::endl;
+  std::cerr << "  -i|--input   <input MRD stream> (default: stdin)" << std::endl;
+  std::cerr << "  -o|--output  <output MRD stream> (default: stdout)" << std::endl;
   std::cerr << "  -h|--help" << std::endl;
 }
 
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     if (*current_arg == "--help" || *current_arg == "-h") {
       print_usage(args[0]);
       return 0;
-    } else if (*current_arg == "--input-file" || *current_arg == "-i") {
+    } else if (*current_arg == "--input" || *current_arg == "-i") {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing input file" << std::endl;
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
       }
       input_path = *current_arg;
       current_arg++;
-    } else if (*current_arg == "--output-file" || *current_arg == "-o") {
+    } else if (*current_arg == "--output" || *current_arg == "-o") {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing output file" << std::endl;
