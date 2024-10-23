@@ -46,10 +46,10 @@ mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t n
 
 void print_usage(std::string program_name) {
   std::cerr << "Usage: " << program_name << std::endl;
-  std::cerr << "  -o|--output-file <output MRD stream> (default: stdout)" << std::endl;
-  std::cerr << "  -c|--coils       <number of coils>" << std::endl;
-  std::cerr << "  -m|--matrix      <matrix size>" << std::endl;
-  std::cerr << "  -r|--repetitions <number of repetitions>" << std::endl;
+  std::cerr << "  -o|--output       <output MRD stream> (default: stdout)" << std::endl;
+  std::cerr << "  -c|--coils        <number of coils>" << std::endl;
+  std::cerr << "  -m|--matrix       <matrix size>" << std::endl;
+  std::cerr << "  -r|--repetitions  <number of repetitions>" << std::endl;
   std::cerr << "  -s|--oversampling <oversampling>" << std::endl;
   std::cerr << "  -h|--help" << std::endl;
 }
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
     if (*current_arg == "--help" || *current_arg == "-h") {
       print_usage(args[0]);
       return 0;
-    } else if (*current_arg == "--output-file" || *current_arg == "-o") {
+    } else if (*current_arg == "--output" || *current_arg == "-o") {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing output file" << std::endl;
@@ -134,7 +134,6 @@ int main(int argc, char** argv) {
   if (filename.empty()) {
     w = std::make_unique<mrd::binary::MrdWriter>(std::cout);
   } else {
-    std::remove(filename.c_str());
     w = std::make_unique<mrd::binary::MrdWriter>(filename);
   }
 

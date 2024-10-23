@@ -2,8 +2,8 @@ name: Configure MRD Build Environment
 description: Configures the conda development environment
 
 # The following inputs are currently expected environment variables:
-# YARDL_VERSION, e.g. 0.5.0
-# CONDA_CACHE_NUMBER, e.g. 0
+# YARDL_VERSION
+# CONDA_CACHE_NUMBER
 
 runs:
   using: composite
@@ -20,7 +20,6 @@ runs:
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v3
       with:
-        miniforge-variant: Miniforge3
         miniforge-version: latest
         # Do not specify environment file - see Cache step below
         activate-environment: mrd

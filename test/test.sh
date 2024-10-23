@@ -43,5 +43,18 @@ cat py2py_images.bin    | python -m mrd.tools.export_png_images -o py2py
 ifmatlab && cat mat2mat_images.bin  | ./matlab_export_png_images.sh mat2mat
 
 
+echo Testing again using named pipes
+test -e recon_in.pipe || mkfifo recon_in.pipe
+test -e recon_out.pipe || mkfifo recon_out.pipe
+
+mrd_phantom --output recon_in.pipe &
+mrd_stream_recon --input recon_in.pipe --output recon_out.pipe &
+mrd_image_stream_to_png --input recon_out.pipe
+
+python -m mrd.tools.phantom --output recon_in.pipe &
+python -m mrd.tools.stream_recon --input recon_in.pipe --output recon_out.pipe &
+python -m mrd.tools.export_png_images --input recon_out.pipe
+
+
 echo Cleaning up
-rm -f ./*.bin ./*.png
+rm -f ./*.bin ./*.png ./*.pipe
