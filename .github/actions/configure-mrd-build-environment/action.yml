@@ -2,8 +2,8 @@ name: Configure MRD Build Environment
 description: Configures the conda development environment
 
 # The following inputs are currently expected environment variables:
-# YARDL_VERSION, e.g. 0.6.2
-# CONDA_CACHE_NUMBER, e.g. 0
+# YARDL_VERSION
+# CONDA_CACHE_NUMBER
 
 runs:
   using: composite

@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
   auto print_usage = [&]() {
     std::cerr << "Usage: " << argv[0] << std::endl;
-    std::cerr << "  -o|--output-file  <output stream>   (default: stdout)" << std::endl;
+    std::cerr << "  -o|--output       <output stream>   (default: stdout)" << std::endl;
     std::cerr << "  -c|--coils        <number of coils> (default: " << ncoils << ")" << std::endl;
     std::cerr << "  -m|--matrix       <matrix size>     (default: " << matrix << ")" << std::endl;
     std::cerr << "  -r|--repetitions  <repetitions>     (default: " << repetitions << ")" << std::endl;
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     if (*current_arg == "--help" || *current_arg == "-h") {
       print_usage();
       return 0;
-    } else if (*current_arg == "--output-file" || *current_arg == "-o") {
+    } else if (*current_arg == "--output" || *current_arg == "-o") {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing output file" << std::endl;
@@ -135,7 +135,6 @@ int main(int argc, char** argv) {
   if (filename.empty()) {
     w = std::make_unique<mrd::binary::MrdWriter>(std::cout);
   } else {
-    std::remove(filename.c_str());
     w = std::make_unique<mrd::binary::MrdWriter>(filename);
   }
 
