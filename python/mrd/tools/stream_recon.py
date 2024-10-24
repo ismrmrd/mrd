@@ -12,7 +12,7 @@ def acquisition_reader(input: Iterable[mrd.StreamItem]) -> Iterable[mrd.Acquisit
         if not isinstance(item, mrd.StreamItem.Acquisition):
             # Skip non-acquisition items
             continue
-        if item.value.flags & mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT:
+        if item.value.head.flags & mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT:
             # Currently ignoring noise scans
             continue
         yield item.value
@@ -41,7 +41,7 @@ def remove_oversampling(head: mrd.Header,input: Iterable[mrd.Acquisition]) -> It
             x0 = (eNx - rNx) // 2
             x1 = x0 + rNx
             xline = xline[:, x0:x1]
-            acq.center_sample = rNx // 2
+            acq.head.center_sample = rNx // 2
             acq.data = image_to_kspace(xline, [1])
         yield acq
 
@@ -87,8 +87,11 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
     current_rep = -1
     reference_acquisition = None
     buffer = None
+    image_index = 0
 
     def produce_image(buffer: np.ndarray, ref_acq: mrd.Acquisition) -> Iterable[mrd.Image[np.float32]]:
+        nonlocal image_index
+
         if buffer.shape[-3] > 1:
             img = kspace_to_image(buffer, dim=[-1, -2, -3])
         else:
@@ -111,27 +114,32 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
                 else:
                     raise Exception('Array img_combined should have 2 or 3 dimensions')
 
-                mrd_image = mrd.Image[np.float32](image_type=mrd.ImageType.MAGNITUDE, data=combined)
-                mrd_image.field_of_view[0] = rFOVx
-                mrd_image.field_of_view[1] = rFOVy
-                mrd_image.field_of_view[2] = rFOVz/rNz
-                mrd_image.position = ref_acq.position
-                mrd_image.col_dir = ref_acq.read_dir
-                mrd_image.line_dir = ref_acq.phase_dir
-                mrd_image.slice_dir = ref_acq.slice_dir
-                mrd_image.patient_table_position = ref_acq.patient_table_position
-                mrd_image.acquisition_time_stamp = ref_acq.acquisition_time_stamp
-                mrd_image.physiology_time_stamp = ref_acq.physiology_time_stamp
-                mrd_image.slice = ref_acq.idx.slice
-                mrd_image.contrast = contrast
-                mrd_image.repetition = ref_acq.idx.repetition
-                mrd_image.phase = ref_acq.idx.phase
-                mrd_image.average = ref_acq.idx.average
-                mrd_image.set = ref_acq.idx.set
+                imghdr = mrd.ImageHeader(image_type=mrd.ImageType.MAGNITUDE)
+                imghdr.measurement_uid = ref_acq.head.measurement_uid
+                imghdr.field_of_view[0] = rFOVx
+                imghdr.field_of_view[1] = rFOVy
+                imghdr.field_of_view[2] = rFOVz/rNz
+                imghdr.position = ref_acq.head.position
+                imghdr.col_dir = ref_acq.head.read_dir
+                imghdr.line_dir = ref_acq.head.phase_dir
+                imghdr.slice_dir = ref_acq.head.slice_dir
+                imghdr.patient_table_position = ref_acq.head.patient_table_position
+                imghdr.average = ref_acq.head.idx.average
+                imghdr.slice = ref_acq.head.idx.slice
+                imghdr.contrast = contrast
+                imghdr.phase = ref_acq.head.idx.phase
+                imghdr.repetition = ref_acq.head.idx.repetition
+                imghdr.set = ref_acq.head.idx.set
+                imghdr.acquisition_time_stamp = ref_acq.head.acquisition_time_stamp
+                imghdr.physiology_time_stamp = ref_acq.head.physiology_time_stamp
+                imghdr.image_index = image_index
+                image_index += 1
+
+                mrd_image = mrd.Image[np.float32](head=imghdr, data=combined)
                 yield mrd_image
 
     for acq in input:
-        if acq.idx.repetition != current_rep:
+        if acq.head.idx.repetition != current_rep:
             # If we have a current buffer pass it on
             if buffer is not None and reference_acquisition is not None:
                 yield from produce_image(buffer, reference_acquisition)
@@ -143,15 +151,15 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
                 readout_length = rNx  # Readout oversampling has been removed upstream
 
             buffer = np.zeros((ncontrasts, nslices, ncoils, eNz, eNy, readout_length), dtype=np.complex64)
-            current_rep = acq.idx.repetition
+            current_rep = acq.head.idx.repetition
             reference_acquisition = acq
 
         # Stuff into the buffer
         if buffer is not None:
-            contrast = acq.idx.contrast if acq.idx.contrast is not None else 0
-            slice = acq.idx.slice if acq.idx.slice is not None else 0
-            k1 = acq.idx.kspace_encode_step_1 if acq.idx.kspace_encode_step_1 is not None else 0
-            k2 = acq.idx.kspace_encode_step_2 if acq.idx.kspace_encode_step_2 is not None else 0
+            contrast = acq.head.idx.contrast if acq.head.idx.contrast is not None else 0
+            slice = acq.head.idx.slice if acq.head.idx.slice is not None else 0
+            k1 = acq.head.idx.kspace_encode_step_1 if acq.head.idx.kspace_encode_step_1 is not None else 0
+            k2 = acq.head.idx.kspace_encode_step_2 if acq.head.idx.kspace_encode_step_2 is not None else 0
             buffer[contrast, slice, :, k2, k1 + ky_offset, :] = acq.data
 
     if buffer is not None and reference_acquisition is not None:

@@ -18,11 +18,11 @@ classdef StreamItem < yardl.Union
       res = mrd.StreamItem(4, value);
     end
 
-    function res = ImageUint(value)
+    function res = ImageUint32(value)
       res = mrd.StreamItem(5, value);
     end
 
-    function res = ImageInt(value)
+    function res = ImageInt32(value)
       res = mrd.StreamItem(6, value);
     end
 
@@ -40,6 +40,22 @@ classdef StreamItem < yardl.Union
 
     function res = ImageComplexDouble(value)
       res = mrd.StreamItem(10, value);
+    end
+
+    function res = AcquisitionBucket(value)
+      res = mrd.StreamItem(11, value);
+    end
+
+    function res = ReconData(value)
+      res = mrd.StreamItem(12, value);
+    end
+
+    function res = ArrayComplexFloat(value)
+      res = mrd.StreamItem(13, value);
+    end
+
+    function res = ImageArray(value)
+      res = mrd.StreamItem(14, value);
     end
 
     function z = zeros(varargin)
@@ -73,11 +89,11 @@ classdef StreamItem < yardl.Union
       res = self.index == 4;
     end
 
-    function res = isImageUint(self)
+    function res = isImageUint32(self)
       res = self.index == 5;
     end
 
-    function res = isImageInt(self)
+    function res = isImageInt32(self)
       res = self.index == 6;
     end
 
@@ -97,6 +113,22 @@ classdef StreamItem < yardl.Union
       res = self.index == 10;
     end
 
+    function res = isAcquisitionBucket(self)
+      res = self.index == 11;
+    end
+
+    function res = isReconData(self)
+      res = self.index == 12;
+    end
+
+    function res = isArrayComplexFloat(self)
+      res = self.index == 13;
+    end
+
+    function res = isImageArray(self)
+      res = self.index == 14;
+    end
+
     function eq = eq(self, other)
       eq = isa(other, "mrd.StreamItem") && isequal(self.index, other.index) && isequal(self.value, other.value);
     end
@@ -106,7 +138,7 @@ classdef StreamItem < yardl.Union
     end
 
     function t = tag(self)
-      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint", "ImageInt", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble"];
+      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ArrayComplexFloat", "ImageArray"];
       t = tags_(self.index_);
     end
   end

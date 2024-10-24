@@ -70,11 +70,11 @@ w.write_header(h);
 acq = mrd.Acquisition();
 acq.data = complex(zeros([nkx, kwargs.ncoils], 'single'));
 
-acq.channel_order = (1:kwargs.ncoils) - 1;
-acq.center_sample = idivide(nkx, 2, "round");
-acq.read_dir(1) = 1;
-acq.phase_dir(2) = 1;
-acq.slice_dir(3) = 1;
+acq.head.channel_order = (1:kwargs.ncoils) - 1;
+acq.head.center_sample = idivide(nkx, 2, "round");
+acq.head.read_dir(1) = 1;
+acq.head.phase_dir(2) = 1;
+acq.head.slice_dir(3) = 1;
 
 scan_counter = 0;
 
@@ -82,9 +82,9 @@ scan_counter = 0;
 for n = 1:32
     noise = generate_noise([nkx, kwargs.ncoils], kwargs.noise_level);
     % Here's where we would make the noise correlated
-    acq.scan_counter = scan_counter;
+    acq.head.scan_counter = scan_counter;
     scan_counter = scan_counter + 1;
-    acq.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT;
+    acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT;
     acq.data(:) = noise;
     w.write_data(mrd.StreamItem.Acquisition(acq));
 end
@@ -94,26 +94,26 @@ for r = 1:kwargs.repetitions
     kspace = phantom + noise;
 
     for line = 1:nky
-        acq.scan_counter = scan_counter;
+        acq.head.scan_counter = scan_counter;
         scan_counter = scan_counter + 1;
 
-        acq.flags = 0;
+        acq.head.flags = 0;
         if line == 1
-            acq.flags = mrd.AcquisitionFlags( ...
+            acq.head.flags = mrd.AcquisitionFlags( ...
                     mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1, ...
                     mrd.AcquisitionFlags.FIRST_IN_SLICE, ...
                     mrd.AcquisitionFlags.FIRST_IN_REPETITION);
         elseif line == nky
-            acq.flags = mrd.AcquisitionFlags(...
+            acq.head.flags = mrd.AcquisitionFlags(...
                     mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1, ...
                     mrd.AcquisitionFlags.LAST_IN_SLICE, ...
                     mrd.AcquisitionFlags.LAST_IN_REPETITION);
         end
 
-        acq.idx.kspace_encode_step_1 = line - 1;
-        acq.idx.kspace_encode_step_2 = 0;
-        acq.idx.slice = 0;
-        acq.idx.repetition = r - 1;
+        acq.head.idx.kspace_encode_step_1 = line - 1;
+        acq.head.idx.kspace_encode_step_2 = 0;
+        acq.head.idx.slice = 0;
+        acq.head.idx.repetition = r - 1;
         acq.data(:) = kspace(:, line, 1, :);
         w.write_data(mrd.StreamItem.Acquisition(acq));
     end

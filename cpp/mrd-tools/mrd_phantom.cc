@@ -44,16 +44,6 @@ mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t n
   return fftshift(coils);
 }
 
-void print_usage(std::string program_name) {
-  std::cerr << "Usage: " << program_name << std::endl;
-  std::cerr << "  -o|--output       <output MRD stream> (default: stdout)" << std::endl;
-  std::cerr << "  -c|--coils        <number of coils>" << std::endl;
-  std::cerr << "  -m|--matrix       <matrix size>" << std::endl;
-  std::cerr << "  -r|--repetitions  <number of repetitions>" << std::endl;
-  std::cerr << "  -s|--oversampling <oversampling>" << std::endl;
-  std::cerr << "  -h|--help" << std::endl;
-}
-
 int main(int argc, char** argv) {
   uint32_t matrix = 256;
   uint32_t ncoils = 8;
@@ -62,17 +52,28 @@ int main(int argc, char** argv) {
   float noise_sigma = 0.05;
   std::string filename;
 
+  auto print_usage = [&]() {
+    std::cerr << "Usage: " << argv[0] << std::endl;
+    std::cerr << "  -o|--output       <output stream>   (default: stdout)" << std::endl;
+    std::cerr << "  -c|--coils        <number of coils> (default: " << ncoils << ")" << std::endl;
+    std::cerr << "  -m|--matrix       <matrix size>     (default: " << matrix << ")" << std::endl;
+    std::cerr << "  -r|--repetitions  <repetitions>     (default: " << repetitions << ")" << std::endl;
+    std::cerr << "  -s|--oversampling <oversampling>    (default: " << oversampling << ")" << std::endl;
+    std::cerr << "  -n|--noise-sigma  <noise level>     (default: " << noise_sigma << ")" << std::endl;
+    std::cerr << "  -h|--help" << std::endl;
+  };
+
   std::vector<std::string> args(argv, argv + argc);
   auto current_arg = args.begin() + 1;
   while (current_arg != args.end()) {
     if (*current_arg == "--help" || *current_arg == "-h") {
-      print_usage(args[0]);
+      print_usage();
       return 0;
     } else if (*current_arg == "--output" || *current_arg == "-o") {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing output file" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       filename = *current_arg;
@@ -81,7 +82,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing number of coils" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       ncoils = std::stoi(*current_arg);
@@ -90,7 +91,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing matrix size" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       matrix = std::stoi(*current_arg);
@@ -99,7 +100,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing number of frames" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       repetitions = std::stoi(*current_arg);
@@ -108,7 +109,7 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing oversampling factor" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       oversampling = std::stoi(*current_arg);
@@ -117,14 +118,14 @@ int main(int argc, char** argv) {
       current_arg++;
       if (current_arg == args.end()) {
         std::cerr << "Missing noise sigma" << std::endl;
-        print_usage(args[0]);
+        print_usage();
         return 1;
       }
       noise_sigma = std::stof(*current_arg);
       current_arg++;
     } else {
       std::cerr << "Unknown argument: " << *current_arg << std::endl;
-      print_usage(args[0]);
+      print_usage();
       return 1;
     }
   }
@@ -196,12 +197,12 @@ int main(int argc, char** argv) {
   std::array<size_t, 2> acq_shape = {ncoils, nkx};
   acq.data.resize(acq_shape);
   for (unsigned int c = 0; c < ncoils; c++) {
-    acq.channel_order.push_back(c);
+    acq.head.channel_order.push_back(c);
   }
-  acq.center_sample = std::round(nkx / 2.0);
-  acq.read_dir[0] = 1.0;
-  acq.phase_dir[1] = 1.0;
-  acq.slice_dir[1] = 1.0;
+  acq.head.center_sample = std::round(nkx / 2.0);
+  acq.head.read_dir[0] = 1.0;
+  acq.head.phase_dir[1] = 1.0;
+  acq.head.slice_dir[1] = 1.0;
 
   uint32_t scan_counter = 0;
 
@@ -209,8 +210,8 @@ int main(int argc, char** argv) {
   for (unsigned int n = 0; n < 32; n++) {
     std::array<size_t, 2> noise_shape = {ncoils, nkx};
     auto noise = generate_noise(noise_shape, noise_sigma);
-    acq.scan_counter = scan_counter++;
-    acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsNoiseMeasurement);
+    acq.head.scan_counter = scan_counter++;
+    acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsNoiseMeasurement);
     xt::view(acq.data, xt::all(), xt::all()) = noise;
     w->WriteData(acq);
   }
@@ -223,23 +224,23 @@ int main(int argc, char** argv) {
     auto kspace = xt::xtensor<std::complex<float>, 4>(phan) + noise;
 
     for (size_t line = 0; line < nky; line++) {
-      acq.flags.Clear();
-      acq.scan_counter = scan_counter++;
+      acq.head.flags.Clear();
+      acq.head.scan_counter = scan_counter++;
 
       if (line == 0) {
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
       }
       if (line == matrix - 1) {
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
-        acq.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
       }
-      acq.idx.kspace_encode_step_1 = line;
-      acq.idx.kspace_encode_step_2 = 0;
-      acq.idx.slice = 0;
-      acq.idx.repetition = r;
+      acq.head.idx.kspace_encode_step_1 = line;
+      acq.head.idx.kspace_encode_step_2 = 0;
+      acq.head.idx.slice = 0;
+      acq.head.idx.repetition = r;
       acq.data = xt::view(kspace, xt::all(), 0, line, xt::all());
       w->WriteData(acq);
     }

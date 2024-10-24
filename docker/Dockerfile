@@ -39,6 +39,8 @@ RUN umask 0002 \
     && ${CONDA_DIR}/bin/mamba clean -fy \
     && chown -R :conda ${CONDA_DIR}/envs
 
+ARG MRD_VERSION_STRING
+
 # Build mrd C++ tools
 COPY ./cpp /opt/code/mrd
 RUN . ${CONDA_DIR}/etc/profile.d/conda.sh && umask 0002 && conda activate mrd && \
@@ -46,7 +48,8 @@ RUN . ${CONDA_DIR}/etc/profile.d/conda.sh && umask 0002 && conda activate mrd &&
     rm -rf ./build && \
     mkdir ./build && \
     cd ./build && \
-    cmake -G Ninja -D CMAKE_CXX_STANDARD=17 -D CMAKE_INSTALL_PREFIX=${CONDA_DIR}/envs/mrd .. && \
+    cmake -G Ninja -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_CXX_STANDARD=17 \
+            -D CMAKE_INSTALL_PREFIX=${CONDA_DIR}/envs/mrd .. -D MRD_VERSION_STRING=${MRD_VERSION_STRING} && \
     ninja install
 
 COPY docker/entrypoint.sh /opt/

@@ -40,11 +40,16 @@ push_targets=("mrd-tools")
 
 for target in "${targets[@]}"; do
     echo "Building ${target}..."
-    docker build -t "${image_base_name}/${target}:${tag}" -f "$dockerfile" "$context" --target "$target"
+
+    tag_name="${image_base_name}/${target}"
+    build_args="-f $dockerfile --target $target --build-arg MRD_VERSION_STRING=${MRD_VERSION_STRING} $context"
+
+    docker build -t "${tag_name}:${tag}" ${build_args}
     if [[ " ${push_targets[@]} " =~ " ${target} " ]] && [ "$push" = true ]; then
         echo "Pushing ${target}..."
-        docker push "${image_base_name}/${target}:${tag}"
-        docker build -t "${image_base_name}/${target}:latest" -f "$dockerfile" "$context" --target "$target"
-        docker push "${image_base_name}/${target}:latest"
+        docker push "${tag_name}:${tag}"
+
+        docker build -t "${tag_name}:latest" ${build_args}
+        docker push "${tag_name}:latest"
     fi
 done

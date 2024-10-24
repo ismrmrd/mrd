@@ -8,11 +8,11 @@
 #include <vector>
 
 #include "../protocols.h"
-#include "../types.h"
 #include "../yardl/detail/hdf5/io.h"
 
 namespace mrd::hdf5 {
 // HDF5 writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   public:
   MrdWriter(std::string path);
@@ -28,10 +28,11 @@ class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   void Flush() override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<10>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<14>> data_dataset_state_;
 };
 
 // HDF5 reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
   MrdReader(std::string path);
@@ -41,7 +42,30 @@ class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   bool ReadDataImpl(mrd::StreamItem& value) override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetReader<10>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetReader<14>> data_dataset_state_;
+};
+
+// HDF5 writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
+class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, public yardl::hdf5::Hdf5Writer {
+  public:
+  MrdNoiseCovarianceWriter(std::string path);
+
+  protected:
+  void WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) override;
+
+  private:
+};
+
+// HDF5 reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
+class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, public yardl::hdf5::Hdf5Reader {
+  public:
+  MrdNoiseCovarianceReader(std::string path);
+
+  void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
+
+  private:
 };
 
 } // namespace mrd

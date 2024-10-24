@@ -18,6 +18,7 @@ end
 % Copy the header
 w.write_header(header);
 
+image_index = 0;
 while r.has_data()
     item = r.read_data();
 
@@ -27,7 +28,7 @@ while r.has_data()
 
     acq = item.value;
 
-    if acq.flags.has_flags(mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT)
+    if acq.head.flags.has_flags(mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT)
         continue
     end
 
@@ -80,7 +81,7 @@ while r.has_data()
         acq = remove_oversampling(enc, acq);
     end
 
-    if acq.flags.has_flags(mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1) || acq.flags.has_flags(mrd.AcquisitionFlags.FIRST_IN_SLICE)
+    if acq.head.flags.has_flags(mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1) || acq.head.flags.has_flags(mrd.AcquisitionFlags.FIRST_IN_SLICE)
         acq_shape = size(acq.data);
         if acq_shape(1) == eNx
             readout_length = eNx;
@@ -95,22 +96,22 @@ while r.has_data()
     slice = 1;
     k1 = 1;
     k2 = 1;
-    if acq.idx.contrast ~= yardl.None
-        contrast = acq.idx.contrast + 1;
+    if acq.head.idx.contrast ~= yardl.None
+        contrast = acq.head.idx.contrast + 1;
     end
-    if acq.idx.slice ~= yardl.None
-        slice = acq.idx.slice + 1;
+    if acq.head.idx.slice ~= yardl.None
+        slice = acq.head.idx.slice + 1;
     end
-    if acq.idx.kspace_encode_step_1 ~= yardl.None
-        k1 = acq.idx.kspace_encode_step_1 + 1;
+    if acq.head.idx.kspace_encode_step_1 ~= yardl.None
+        k1 = acq.head.idx.kspace_encode_step_1 + 1;
     end
-    if acq.idx.kspace_encode_step_2 ~= yardl.None
-        k2 = acq.idx.kspace_encode_step_2 + 1;
+    if acq.head.idx.kspace_encode_step_2 ~= yardl.None
+        k2 = acq.head.idx.kspace_encode_step_2 + 1;
     end
 
     buffer(:, k1 + ky_offset, k2, :, slice, contrast) = acq.data;
 
-    if acq.flags.has_flags(mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1) || acq.flags.has_flags(mrd.AcquisitionFlags.LAST_IN_SLICE)
+    if acq.head.flags.has_flags(mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1) || acq.head.flags.has_flags(mrd.AcquisitionFlags.LAST_IN_SLICE)
         buf_shape = size(buffer);
         if buf_shape(3) > 1
             img = transform.kspace_to_image(buffer, [1, 2, 3]);
@@ -135,24 +136,27 @@ while r.has_data()
                     error("Image should have 2 or 3 dimensions");
                 end
 
-                mrd_image = mrd.ImageFloat(data=combined, image_type=mrd.ImageType.MAGNITUDE);
+                img_head = mrd.ImageHeader(image_type=mrd.ImageType.MAGNITUDE);
+                img_head.field_of_view(1) = rFOVx;
+                img_head.field_of_view(2) = rFOVy;
+                img_head.field_of_view(3) = single(rFOVz) ./ single(rNz);
+                img_head.position = ref_acq.head.position;
+                img_head.col_dir = ref_acq.head.read_dir;
+                img_head.line_dir = ref_acq.head.phase_dir;
+                img_head.slice_dir = ref_acq.head.slice_dir;
+                img_head.patient_table_position = ref_acq.head.patient_table_position;
+                img_head.acquisition_time_stamp = ref_acq.head.acquisition_time_stamp;
+                img_head.physiology_time_stamp = ref_acq.head.physiology_time_stamp;
+                img_head.slice = ref_acq.head.idx.slice;
+                img_head.contrast = contrast;
+                img_head.repetition = ref_acq.head.idx.repetition;
+                img_head.phase = ref_acq.head.idx.phase;
+                img_head.average = ref_acq.head.idx.average;
+                img_head.set = ref_acq.head.idx.set;
+                img_head.image_index = image_index;
+                image_index = image_index + 1;
 
-                mrd_image.field_of_view(1) = rFOVx;
-                mrd_image.field_of_view(2) = rFOVy;
-                mrd_image.field_of_view(3) = single(rFOVz) ./ single(rNz);
-                mrd_image.position = ref_acq.position;
-                mrd_image.col_dir = ref_acq.read_dir;
-                mrd_image.line_dir = ref_acq.phase_dir;
-                mrd_image.slice_dir = ref_acq.slice_dir;
-                mrd_image.patient_table_position = ref_acq.patient_table_position;
-                mrd_image.acquisition_time_stamp = ref_acq.acquisition_time_stamp;
-                mrd_image.physiology_time_stamp = ref_acq.physiology_time_stamp;
-                mrd_image.slice = ref_acq.idx.slice;
-                mrd_image.contrast = contrast;
-                mrd_image.repetition = ref_acq.idx.repetition;
-                mrd_image.phase = ref_acq.idx.phase;
-                mrd_image.average = ref_acq.idx.average;
-                mrd_image.set = ref_acq.idx.set;
+                mrd_image = mrd.ImageFloat(head=img_head, data=combined);
 
                 w.write_data(mrd.StreamItem.ImageFloat(mrd_image));
             end
@@ -176,6 +180,6 @@ function out = remove_oversampling(encoding, acq)
     x0 = idivide((eNx - rNx), 2) + 1;
     x1 = x0 + rNx - 1;
     xline = xline(x0:x1, :);
-    out.center_sample = idivide(rNx, 2);
+    out.head.center_sample = idivide(rNx, 2);
     out.data = transform.image_to_kspace(xline, [1]);
 end
