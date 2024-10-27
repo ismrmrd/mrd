@@ -1034,48 +1034,6 @@ struct NoiseCovariance {
   }
 };
 
-struct MinMaxStat {
-  uint32_t minimum{};
-  uint32_t maximum{};
-
-  bool operator==(const MinMaxStat& other) const {
-    return minimum == other.minimum &&
-      maximum == other.maximum;
-  }
-
-  bool operator!=(const MinMaxStat& other) const {
-    return !(*this == other);
-  }
-};
-
-struct AcquisitionBucketStats {
-  mrd::MinMaxStat kspace_encode_step_1{};
-  mrd::MinMaxStat kspace_encode_step_2{};
-  mrd::MinMaxStat average{};
-  mrd::MinMaxStat slice{};
-  mrd::MinMaxStat contrast{};
-  mrd::MinMaxStat phase{};
-  mrd::MinMaxStat repetition{};
-  mrd::MinMaxStat set{};
-  mrd::MinMaxStat segment{};
-
-  bool operator==(const AcquisitionBucketStats& other) const {
-    return kspace_encode_step_1 == other.kspace_encode_step_1 &&
-      kspace_encode_step_2 == other.kspace_encode_step_2 &&
-      average == other.average &&
-      slice == other.slice &&
-      contrast == other.contrast &&
-      phase == other.phase &&
-      repetition == other.repetition &&
-      set == other.set &&
-      segment == other.segment;
-  }
-
-  bool operator!=(const AcquisitionBucketStats& other) const {
-    return !(*this == other);
-  }
-};
-
 template <typename T>
 using WaveformSamples = yardl::NDArray<T, 2>;
 
@@ -1124,8 +1082,8 @@ using WaveformUint32 = mrd::Waveform<uint32_t>;
 struct AcquisitionBucket {
   std::vector<mrd::Acquisition> data{};
   std::vector<mrd::Acquisition> ref{};
-  std::vector<mrd::AcquisitionBucketStats> datastats{};
-  std::vector<mrd::AcquisitionBucketStats> refstats{};
+  std::vector<mrd::EncodingLimitsType> datastats{};
+  std::vector<mrd::EncodingLimitsType> refstats{};
   std::vector<mrd::WaveformUint32> waveforms{};
 
   bool operator==(const AcquisitionBucket& other) const {
@@ -1141,16 +1099,16 @@ struct AcquisitionBucket {
   }
 };
 
-// Sampled range along RO, E1, E2 (for asymmetric echo and partial fourier)
+// Sampled range along E0, E1, E2 (for asymmetric echo and partial fourier)
 struct SamplingLimits {
-  mrd::LimitType ro{};
-  mrd::LimitType e1{};
-  mrd::LimitType e2{};
+  mrd::LimitType kspace_encoding_step_0{};
+  mrd::LimitType kspace_encoding_step_1{};
+  mrd::LimitType kspace_encoding_step_2{};
 
   bool operator==(const SamplingLimits& other) const {
-    return ro == other.ro &&
-      e1 == other.e1 &&
-      e2 == other.e2;
+    return kspace_encoding_step_0 == other.kspace_encoding_step_0 &&
+      kspace_encoding_step_1 == other.kspace_encoding_step_1 &&
+      kspace_encoding_step_2 == other.kspace_encoding_step_2;
   }
 
   bool operator!=(const SamplingLimits& other) const {
@@ -1178,7 +1136,7 @@ struct SamplingDescription {
   }
 };
 
-struct BufferedData {
+struct ReconBuffer {
   // Buffered Acquisition data
   yardl::NDArray<std::complex<float>, 7> data{};
   // Buffered Trajectory data
@@ -1190,7 +1148,7 @@ struct BufferedData {
   // Sampling details for these Acquisitions
   mrd::SamplingDescription sampling{};
 
-  bool operator==(const BufferedData& other) const {
+  bool operator==(const ReconBuffer& other) const {
     return data == other.data &&
       trajectory == other.trajectory &&
       density == other.density &&
@@ -1198,30 +1156,30 @@ struct BufferedData {
       sampling == other.sampling;
   }
 
-  bool operator!=(const BufferedData& other) const {
+  bool operator!=(const ReconBuffer& other) const {
     return !(*this == other);
   }
 };
 
-struct ReconBit {
-  mrd::BufferedData data{};
-  std::optional<mrd::BufferedData> ref{};
+struct ReconAssembly {
+  mrd::ReconBuffer data{};
+  std::optional<mrd::ReconBuffer> ref{};
 
-  bool operator==(const ReconBit& other) const {
+  bool operator==(const ReconAssembly& other) const {
     return data == other.data &&
       ref == other.ref;
   }
 
-  bool operator!=(const ReconBit& other) const {
+  bool operator!=(const ReconAssembly& other) const {
     return !(*this == other);
   }
 };
 
 struct ReconData {
-  std::vector<mrd::ReconBit> rbits{};
+  std::vector<mrd::ReconAssembly> buffers{};
 
   bool operator==(const ReconData& other) const {
-    return rbits == other.rbits;
+    return buffers == other.buffers;
   }
 
   bool operator!=(const ReconData& other) const {

@@ -14,8 +14,8 @@ classdef AcquisitionBucket < handle
       arguments
         kwargs.data = mrd.Acquisition.empty();
         kwargs.ref = mrd.Acquisition.empty();
-        kwargs.datastats = mrd.AcquisitionBucketStats.empty();
-        kwargs.refstats = mrd.AcquisitionBucketStats.empty();
+        kwargs.datastats = mrd.EncodingLimitsType.empty();
+        kwargs.refstats = mrd.EncodingLimitsType.empty();
         kwargs.waveforms = mrd.WaveformUint32.empty();
       end
       self.data = kwargs.data;

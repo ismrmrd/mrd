@@ -1784,84 +1784,6 @@ class NoiseCovariance:
         return f"NoiseCovariance(coilLabels={repr(self.coil_labels)}, receiverNoiseBandwidth={repr(self.receiver_noise_bandwidth)}, noiseDwellTimeUs={repr(self.noise_dwell_time_us)}, sampleCount={repr(self.sample_count)}, matrix={repr(self.matrix)})"
 
 
-class MinMaxStat:
-    minimum: yardl.UInt32
-    maximum: yardl.UInt32
-
-    def __init__(self, *,
-        minimum: yardl.UInt32 = 0,
-        maximum: yardl.UInt32 = 0,
-    ):
-        self.minimum = minimum
-        self.maximum = maximum
-
-    def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, MinMaxStat)
-            and self.minimum == other.minimum
-            and self.maximum == other.maximum
-        )
-
-    def __str__(self) -> str:
-        return f"MinMaxStat(minimum={self.minimum}, maximum={self.maximum})"
-
-    def __repr__(self) -> str:
-        return f"MinMaxStat(minimum={repr(self.minimum)}, maximum={repr(self.maximum)})"
-
-
-class AcquisitionBucketStats:
-    kspace_encode_step_1: MinMaxStat
-    kspace_encode_step_2: MinMaxStat
-    average: MinMaxStat
-    slice: MinMaxStat
-    contrast: MinMaxStat
-    phase: MinMaxStat
-    repetition: MinMaxStat
-    set: MinMaxStat
-    segment: MinMaxStat
-
-    def __init__(self, *,
-        kspace_encode_step_1: typing.Optional[MinMaxStat] = None,
-        kspace_encode_step_2: typing.Optional[MinMaxStat] = None,
-        average: typing.Optional[MinMaxStat] = None,
-        slice: typing.Optional[MinMaxStat] = None,
-        contrast: typing.Optional[MinMaxStat] = None,
-        phase: typing.Optional[MinMaxStat] = None,
-        repetition: typing.Optional[MinMaxStat] = None,
-        set: typing.Optional[MinMaxStat] = None,
-        segment: typing.Optional[MinMaxStat] = None,
-    ):
-        self.kspace_encode_step_1 = kspace_encode_step_1 if kspace_encode_step_1 is not None else MinMaxStat()
-        self.kspace_encode_step_2 = kspace_encode_step_2 if kspace_encode_step_2 is not None else MinMaxStat()
-        self.average = average if average is not None else MinMaxStat()
-        self.slice = slice if slice is not None else MinMaxStat()
-        self.contrast = contrast if contrast is not None else MinMaxStat()
-        self.phase = phase if phase is not None else MinMaxStat()
-        self.repetition = repetition if repetition is not None else MinMaxStat()
-        self.set = set if set is not None else MinMaxStat()
-        self.segment = segment if segment is not None else MinMaxStat()
-
-    def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, AcquisitionBucketStats)
-            and self.kspace_encode_step_1 == other.kspace_encode_step_1
-            and self.kspace_encode_step_2 == other.kspace_encode_step_2
-            and self.average == other.average
-            and self.slice == other.slice
-            and self.contrast == other.contrast
-            and self.phase == other.phase
-            and self.repetition == other.repetition
-            and self.set == other.set
-            and self.segment == other.segment
-        )
-
-    def __str__(self) -> str:
-        return f"AcquisitionBucketStats(kspaceEncodeStep1={self.kspace_encode_step_1}, kspaceEncodeStep2={self.kspace_encode_step_2}, average={self.average}, slice={self.slice}, contrast={self.contrast}, phase={self.phase}, repetition={self.repetition}, set={self.set}, segment={self.segment})"
-
-    def __repr__(self) -> str:
-        return f"AcquisitionBucketStats(kspaceEncodeStep1={repr(self.kspace_encode_step_1)}, kspaceEncodeStep2={repr(self.kspace_encode_step_2)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, segment={repr(self.segment)})"
-
-
 WaveformSamples = npt.NDArray[T_NP]
 
 class Waveform(typing.Generic[T_NP]):
@@ -1934,15 +1856,15 @@ WaveformUint32 = Waveform[np.uint32]
 class AcquisitionBucket:
     data: list[Acquisition]
     ref: list[Acquisition]
-    datastats: list[AcquisitionBucketStats]
-    refstats: list[AcquisitionBucketStats]
+    datastats: list[EncodingLimitsType]
+    refstats: list[EncodingLimitsType]
     waveforms: list[WaveformUint32]
 
     def __init__(self, *,
         data: typing.Optional[list[Acquisition]] = None,
         ref: typing.Optional[list[Acquisition]] = None,
-        datastats: typing.Optional[list[AcquisitionBucketStats]] = None,
-        refstats: typing.Optional[list[AcquisitionBucketStats]] = None,
+        datastats: typing.Optional[list[EncodingLimitsType]] = None,
+        refstats: typing.Optional[list[EncodingLimitsType]] = None,
         waveforms: typing.Optional[list[WaveformUint32]] = None,
     ):
         self.data = data if data is not None else []
@@ -1969,34 +1891,34 @@ class AcquisitionBucket:
 
 
 class SamplingLimits:
-    """Sampled range along RO, E1, E2 (for asymmetric echo and partial fourier)"""
+    """Sampled range along E0, E1, E2 (for asymmetric echo and partial fourier)"""
 
-    ro: LimitType
-    e1: LimitType
-    e2: LimitType
+    kspace_encoding_step_0: LimitType
+    kspace_encoding_step_1: LimitType
+    kspace_encoding_step_2: LimitType
 
     def __init__(self, *,
-        ro: typing.Optional[LimitType] = None,
-        e1: typing.Optional[LimitType] = None,
-        e2: typing.Optional[LimitType] = None,
+        kspace_encoding_step_0: typing.Optional[LimitType] = None,
+        kspace_encoding_step_1: typing.Optional[LimitType] = None,
+        kspace_encoding_step_2: typing.Optional[LimitType] = None,
     ):
-        self.ro = ro if ro is not None else LimitType()
-        self.e1 = e1 if e1 is not None else LimitType()
-        self.e2 = e2 if e2 is not None else LimitType()
+        self.kspace_encoding_step_0 = kspace_encoding_step_0 if kspace_encoding_step_0 is not None else LimitType()
+        self.kspace_encoding_step_1 = kspace_encoding_step_1 if kspace_encoding_step_1 is not None else LimitType()
+        self.kspace_encoding_step_2 = kspace_encoding_step_2 if kspace_encoding_step_2 is not None else LimitType()
 
     def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, SamplingLimits)
-            and self.ro == other.ro
-            and self.e1 == other.e1
-            and self.e2 == other.e2
+            and self.kspace_encoding_step_0 == other.kspace_encoding_step_0
+            and self.kspace_encoding_step_1 == other.kspace_encoding_step_1
+            and self.kspace_encoding_step_2 == other.kspace_encoding_step_2
         )
 
     def __str__(self) -> str:
-        return f"SamplingLimits(ro={self.ro}, e1={self.e1}, e2={self.e2})"
+        return f"SamplingLimits(kspaceEncodingStep0={self.kspace_encoding_step_0}, kspaceEncodingStep1={self.kspace_encoding_step_1}, kspaceEncodingStep2={self.kspace_encoding_step_2})"
 
     def __repr__(self) -> str:
-        return f"SamplingLimits(ro={repr(self.ro)}, e1={repr(self.e1)}, e2={repr(self.e2)})"
+        return f"SamplingLimits(kspaceEncodingStep0={repr(self.kspace_encoding_step_0)}, kspaceEncodingStep1={repr(self.kspace_encoding_step_1)}, kspaceEncodingStep2={repr(self.kspace_encoding_step_2)})"
 
 
 class SamplingDescription:
@@ -2036,7 +1958,7 @@ class SamplingDescription:
         return f"SamplingDescription(encodedFOV={repr(self.encoded_fov)}, reconFOV={repr(self.recon_fov)}, encodedMatrix={repr(self.encoded_matrix)}, reconMatrix={repr(self.recon_matrix)}, samplingLimits={repr(self.sampling_limits)})"
 
 
-class BufferedData:
+class ReconBuffer:
     data: npt.NDArray[np.complex64]
     """Buffered Acquisition data"""
 
@@ -2068,7 +1990,7 @@ class BufferedData:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, BufferedData)
+            isinstance(other, ReconBuffer)
             and yardl.structural_equal(self.data, other.data)
             and yardl.structural_equal(self.trajectory, other.trajectory)
             and (other.density is None if self.density is None else (other.density is not None and yardl.structural_equal(self.density, other.density)))
@@ -2077,56 +1999,56 @@ class BufferedData:
         )
 
     def __str__(self) -> str:
-        return f"BufferedData(data={self.data}, trajectory={self.trajectory}, density={self.density}, headers={self.headers}, sampling={self.sampling})"
+        return f"ReconBuffer(data={self.data}, trajectory={self.trajectory}, density={self.density}, headers={self.headers}, sampling={self.sampling})"
 
     def __repr__(self) -> str:
-        return f"BufferedData(data={repr(self.data)}, trajectory={repr(self.trajectory)}, density={repr(self.density)}, headers={repr(self.headers)}, sampling={repr(self.sampling)})"
+        return f"ReconBuffer(data={repr(self.data)}, trajectory={repr(self.trajectory)}, density={repr(self.density)}, headers={repr(self.headers)}, sampling={repr(self.sampling)})"
 
 
-class ReconBit:
-    data: BufferedData
-    ref: typing.Optional[BufferedData]
+class ReconAssembly:
+    data: ReconBuffer
+    ref: typing.Optional[ReconBuffer]
 
     def __init__(self, *,
-        data: typing.Optional[BufferedData] = None,
-        ref: typing.Optional[BufferedData] = None,
+        data: typing.Optional[ReconBuffer] = None,
+        ref: typing.Optional[ReconBuffer] = None,
     ):
-        self.data = data if data is not None else BufferedData()
+        self.data = data if data is not None else ReconBuffer()
         self.ref = ref
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, ReconBit)
+            isinstance(other, ReconAssembly)
             and self.data == other.data
             and (other.ref is None if self.ref is None else (other.ref is not None and self.ref == other.ref))
         )
 
     def __str__(self) -> str:
-        return f"ReconBit(data={self.data}, ref={self.ref})"
+        return f"ReconAssembly(data={self.data}, ref={self.ref})"
 
     def __repr__(self) -> str:
-        return f"ReconBit(data={repr(self.data)}, ref={repr(self.ref)})"
+        return f"ReconAssembly(data={repr(self.data)}, ref={repr(self.ref)})"
 
 
 class ReconData:
-    rbits: list[ReconBit]
+    buffers: list[ReconAssembly]
 
     def __init__(self, *,
-        rbits: typing.Optional[list[ReconBit]] = None,
+        buffers: typing.Optional[list[ReconAssembly]] = None,
     ):
-        self.rbits = rbits if rbits is not None else []
+        self.buffers = buffers if buffers is not None else []
 
     def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, ReconData)
-            and len(self.rbits) == len(other.rbits) and all(a == b for a, b in zip(self.rbits, other.rbits))
+            and len(self.buffers) == len(other.buffers) and all(a == b for a, b in zip(self.buffers, other.buffers))
         )
 
     def __str__(self) -> str:
-        return f"ReconData(rbits={self.rbits})"
+        return f"ReconData(buffers={self.buffers})"
 
     def __repr__(self) -> str:
-        return f"ReconData(rbits={repr(self.rbits)})"
+        return f"ReconData(buffers={repr(self.buffers)})"
 
 
 class ImageArray:
@@ -2262,16 +2184,14 @@ def _mk_get_dtype():
     dtype_map.setdefault(ImageComplexDouble, get_dtype(types.GenericAlias(Image, (yardl.ComplexDouble,))))
     dtype_map.setdefault(AnyImage, np.dtype(np.object_))
     dtype_map.setdefault(NoiseCovariance, np.dtype([('coil_labels', np.dtype(np.object_)), ('receiver_noise_bandwidth', np.dtype(np.float32)), ('noise_dwell_time_us', np.dtype(np.float32)), ('sample_count', np.dtype(np.uint64)), ('matrix', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(MinMaxStat, np.dtype([('minimum', np.dtype(np.uint32)), ('maximum', np.dtype(np.uint32))], align=True))
-    dtype_map.setdefault(AcquisitionBucketStats, np.dtype([('kspace_encode_step_1', get_dtype(MinMaxStat)), ('kspace_encode_step_2', get_dtype(MinMaxStat)), ('average', get_dtype(MinMaxStat)), ('slice', get_dtype(MinMaxStat)), ('contrast', get_dtype(MinMaxStat)), ('phase', get_dtype(MinMaxStat)), ('repetition', get_dtype(MinMaxStat)), ('set', get_dtype(MinMaxStat)), ('segment', get_dtype(MinMaxStat))], align=True))
     dtype_map.setdefault(Waveform, lambda type_args: np.dtype([('flags', np.dtype(np.uint64)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype(np.uint32)), ('time_stamp', np.dtype(np.uint32)), ('sample_time_us', np.dtype(np.float32)), ('waveform_id', np.dtype(np.uint32)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(WaveformUint32, get_dtype(types.GenericAlias(Waveform, (yardl.UInt32,))))
     dtype_map.setdefault(AcquisitionBucket, np.dtype([('data', np.dtype(np.object_)), ('ref', np.dtype(np.object_)), ('datastats', np.dtype(np.object_)), ('refstats', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(SamplingLimits, np.dtype([('ro', get_dtype(LimitType)), ('e1', get_dtype(LimitType)), ('e2', get_dtype(LimitType))], align=True))
+    dtype_map.setdefault(SamplingLimits, np.dtype([('kspace_encoding_step_0', get_dtype(LimitType)), ('kspace_encoding_step_1', get_dtype(LimitType)), ('kspace_encoding_step_2', get_dtype(LimitType))], align=True))
     dtype_map.setdefault(SamplingDescription, np.dtype([('encoded_fov', get_dtype(FieldOfViewMm)), ('recon_fov', get_dtype(FieldOfViewMm)), ('encoded_matrix', get_dtype(MatrixSizeType)), ('recon_matrix', get_dtype(MatrixSizeType)), ('sampling_limits', get_dtype(SamplingLimits))], align=True))
-    dtype_map.setdefault(BufferedData, np.dtype([('data', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_)), ('density', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('headers', np.dtype(np.object_)), ('sampling', get_dtype(SamplingDescription))], align=True))
-    dtype_map.setdefault(ReconBit, np.dtype([('data', get_dtype(BufferedData)), ('ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(BufferedData))], align=True))], align=True))
-    dtype_map.setdefault(ReconData, np.dtype([('rbits', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(ReconBuffer, np.dtype([('data', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_)), ('density', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('headers', np.dtype(np.object_)), ('sampling', get_dtype(SamplingDescription))], align=True))
+    dtype_map.setdefault(ReconAssembly, np.dtype([('data', get_dtype(ReconBuffer)), ('ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ReconBuffer))], align=True))], align=True))
+    dtype_map.setdefault(ReconData, np.dtype([('buffers', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageArray, np.dtype([('data', np.dtype(np.object_)), ('headers', np.dtype(np.object_)), ('meta', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(StreamItem, np.dtype(np.object_))
 

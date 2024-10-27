@@ -1606,14 +1606,14 @@ struct _Inner_AcquisitionBucket {
 
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition> data;
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Acquisition, mrd::Acquisition> ref;
-  yardl::hdf5::InnerVlen<mrd::AcquisitionBucketStats, mrd::AcquisitionBucketStats> datastats;
-  yardl::hdf5::InnerVlen<mrd::AcquisitionBucketStats, mrd::AcquisitionBucketStats> refstats;
+  yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_EncodingLimitsType, mrd::EncodingLimitsType> datastats;
+  yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_EncodingLimitsType, mrd::EncodingLimitsType> refstats;
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32> waveforms;
 };
 
-struct _Inner_BufferedData {
-  _Inner_BufferedData() {} 
-  _Inner_BufferedData(mrd::BufferedData const& o) 
+struct _Inner_ReconBuffer {
+  _Inner_ReconBuffer() {} 
+  _Inner_ReconBuffer(mrd::ReconBuffer const& o) 
       : data(o.data),
       trajectory(o.trajectory),
       density(o.density),
@@ -1621,7 +1621,7 @@ struct _Inner_BufferedData {
       sampling(o.sampling) {
   }
 
-  void ToOuter (mrd::BufferedData& o) const {
+  void ToOuter (mrd::ReconBuffer& o) const {
     yardl::hdf5::ToOuter(data, o.data);
     yardl::hdf5::ToOuter(trajectory, o.trajectory);
     yardl::hdf5::ToOuter(density, o.density);
@@ -1636,33 +1636,33 @@ struct _Inner_BufferedData {
   mrd::SamplingDescription sampling;
 };
 
-struct _Inner_ReconBit {
-  _Inner_ReconBit() {} 
-  _Inner_ReconBit(mrd::ReconBit const& o) 
+struct _Inner_ReconAssembly {
+  _Inner_ReconAssembly() {} 
+  _Inner_ReconAssembly(mrd::ReconAssembly const& o) 
       : data(o.data),
       ref(o.ref) {
   }
 
-  void ToOuter (mrd::ReconBit& o) const {
+  void ToOuter (mrd::ReconAssembly& o) const {
     yardl::hdf5::ToOuter(data, o.data);
     yardl::hdf5::ToOuter(ref, o.ref);
   }
 
-  mrd::hdf5::_Inner_BufferedData data;
-  yardl::hdf5::InnerOptional<mrd::hdf5::_Inner_BufferedData, mrd::BufferedData> ref;
+  mrd::hdf5::_Inner_ReconBuffer data;
+  yardl::hdf5::InnerOptional<mrd::hdf5::_Inner_ReconBuffer, mrd::ReconBuffer> ref;
 };
 
 struct _Inner_ReconData {
   _Inner_ReconData() {} 
   _Inner_ReconData(mrd::ReconData const& o) 
-      : rbits(o.rbits) {
+      : buffers(o.buffers) {
   }
 
   void ToOuter (mrd::ReconData& o) const {
-    yardl::hdf5::ToOuter(rbits, o.rbits);
+    yardl::hdf5::ToOuter(buffers, o.buffers);
   }
 
-  yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_ReconBit, mrd::ReconBit> rbits;
+  yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_ReconAssembly, mrd::ReconAssembly> buffers;
 };
 
 struct _Inner_ImageArray {
@@ -2103,29 +2103,6 @@ template <typename _T_Inner, typename T>
   return t;
 }
 
-[[maybe_unused]] H5::CompType GetMinMaxStatHdf5Ddl() {
-  using RecordType = mrd::MinMaxStat;
-  H5::CompType t(sizeof(RecordType));
-  t.insertMember("minimum", HOFFSET(RecordType, minimum), H5::PredType::NATIVE_UINT32);
-  t.insertMember("maximum", HOFFSET(RecordType, maximum), H5::PredType::NATIVE_UINT32);
-  return t;
-}
-
-[[maybe_unused]] H5::CompType GetAcquisitionBucketStatsHdf5Ddl() {
-  using RecordType = mrd::AcquisitionBucketStats;
-  H5::CompType t(sizeof(RecordType));
-  t.insertMember("kspaceEncodeStep1", HOFFSET(RecordType, kspace_encode_step_1), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("kspaceEncodeStep2", HOFFSET(RecordType, kspace_encode_step_2), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("average", HOFFSET(RecordType, average), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("slice", HOFFSET(RecordType, slice), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("contrast", HOFFSET(RecordType, contrast), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("phase", HOFFSET(RecordType, phase), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("repetition", HOFFSET(RecordType, repetition), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("set", HOFFSET(RecordType, set), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  t.insertMember("segment", HOFFSET(RecordType, segment), mrd::hdf5::GetMinMaxStatHdf5Ddl());
-  return t;
-}
-
 template <typename _T_Inner, typename T>
 [[maybe_unused]] H5::CompType GetWaveformHdf5Ddl(H5::DataType const& T_type) {
   using RecordType = mrd::hdf5::_Inner_Waveform<_T_Inner, T>;
@@ -2145,8 +2122,8 @@ template <typename _T_Inner, typename T>
   H5::CompType t(sizeof(RecordType));
   t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetAcquisitionHdf5Ddl()));
   t.insertMember("ref", HOFFSET(RecordType, ref), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetAcquisitionHdf5Ddl()));
-  t.insertMember("datastats", HOFFSET(RecordType, datastats), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetAcquisitionBucketStatsHdf5Ddl()));
-  t.insertMember("refstats", HOFFSET(RecordType, refstats), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetAcquisitionBucketStatsHdf5Ddl()));
+  t.insertMember("datastats", HOFFSET(RecordType, datastats), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetEncodingLimitsTypeHdf5Ddl()));
+  t.insertMember("refstats", HOFFSET(RecordType, refstats), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetEncodingLimitsTypeHdf5Ddl()));
   t.insertMember("waveforms", HOFFSET(RecordType, waveforms), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetWaveformHdf5Ddl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32)));
   return t;
 }
@@ -2154,9 +2131,9 @@ template <typename _T_Inner, typename T>
 [[maybe_unused]] H5::CompType GetSamplingLimitsHdf5Ddl() {
   using RecordType = mrd::SamplingLimits;
   H5::CompType t(sizeof(RecordType));
-  t.insertMember("ro", HOFFSET(RecordType, ro), mrd::hdf5::GetLimitTypeHdf5Ddl());
-  t.insertMember("e1", HOFFSET(RecordType, e1), mrd::hdf5::GetLimitTypeHdf5Ddl());
-  t.insertMember("e2", HOFFSET(RecordType, e2), mrd::hdf5::GetLimitTypeHdf5Ddl());
+  t.insertMember("kspaceEncodingStep0", HOFFSET(RecordType, kspace_encoding_step_0), mrd::hdf5::GetLimitTypeHdf5Ddl());
+  t.insertMember("kspaceEncodingStep1", HOFFSET(RecordType, kspace_encoding_step_1), mrd::hdf5::GetLimitTypeHdf5Ddl());
+  t.insertMember("kspaceEncodingStep2", HOFFSET(RecordType, kspace_encoding_step_2), mrd::hdf5::GetLimitTypeHdf5Ddl());
   return t;
 }
 
@@ -2171,8 +2148,8 @@ template <typename _T_Inner, typename T>
   return t;
 }
 
-[[maybe_unused]] H5::CompType GetBufferedDataHdf5Ddl() {
-  using RecordType = mrd::hdf5::_Inner_BufferedData;
+[[maybe_unused]] H5::CompType GetReconBufferHdf5Ddl() {
+  using RecordType = mrd::hdf5::_Inner_ReconBuffer;
   H5::CompType t(sizeof(RecordType));
   t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<std::complex<float>, std::complex<float>, 7>(yardl::hdf5::ComplexTypeDdl<float>()));
   t.insertMember("trajectory", HOFFSET(RecordType, trajectory), yardl::hdf5::NDArrayDdl<float, float, 7>(H5::PredType::NATIVE_FLOAT));
@@ -2182,18 +2159,18 @@ template <typename _T_Inner, typename T>
   return t;
 }
 
-[[maybe_unused]] H5::CompType GetReconBitHdf5Ddl() {
-  using RecordType = mrd::hdf5::_Inner_ReconBit;
+[[maybe_unused]] H5::CompType GetReconAssemblyHdf5Ddl() {
+  using RecordType = mrd::hdf5::_Inner_ReconAssembly;
   H5::CompType t(sizeof(RecordType));
-  t.insertMember("data", HOFFSET(RecordType, data), mrd::hdf5::GetBufferedDataHdf5Ddl());
-  t.insertMember("ref", HOFFSET(RecordType, ref), yardl::hdf5::OptionalTypeDdl<mrd::hdf5::_Inner_BufferedData, mrd::BufferedData>(mrd::hdf5::GetBufferedDataHdf5Ddl()));
+  t.insertMember("data", HOFFSET(RecordType, data), mrd::hdf5::GetReconBufferHdf5Ddl());
+  t.insertMember("ref", HOFFSET(RecordType, ref), yardl::hdf5::OptionalTypeDdl<mrd::hdf5::_Inner_ReconBuffer, mrd::ReconBuffer>(mrd::hdf5::GetReconBufferHdf5Ddl()));
   return t;
 }
 
 [[maybe_unused]] H5::CompType GetReconDataHdf5Ddl() {
   using RecordType = mrd::hdf5::_Inner_ReconData;
   H5::CompType t(sizeof(RecordType));
-  t.insertMember("rbits", HOFFSET(RecordType, rbits), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetReconBitHdf5Ddl()));
+  t.insertMember("buffers", HOFFSET(RecordType, buffers), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetReconAssemblyHdf5Ddl()));
   return t;
 }
 

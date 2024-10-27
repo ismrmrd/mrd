@@ -11,37 +11,20 @@ NoiseCovariance: !record
     # Noise covariance matrix with dimensions [coil, coil]
     matrix: complexfloat[,]
 
-MinMaxStat: !record
-  fields:
-    minimum: uint
-    maximum: uint
-
-AcquisitionBucketStats: !record
-  fields:
-    kspaceEncodeStep1: MinMaxStat
-    kspaceEncodeStep2: MinMaxStat
-    average: MinMaxStat
-    slice: MinMaxStat
-    contrast: MinMaxStat
-    phase: MinMaxStat
-    repetition: MinMaxStat
-    set: MinMaxStat
-    segment: MinMaxStat
-
 AcquisitionBucket: !record
   fields:
     data: Acquisition*
     ref: Acquisition*
-    datastats: AcquisitionBucketStats*
-    refstats: AcquisitionBucketStats*
+    datastats: EncodingLimitsType*
+    refstats: EncodingLimitsType*
     waveforms: WaveformUint32*
 
-# Sampled range along RO, E1, E2 (for asymmetric echo and partial fourier)
+# Sampled range along E0, E1, E2 (for asymmetric echo and partial fourier)
 SamplingLimits: !record
   fields:
-    ro: LimitType
-    e1: LimitType
-    e2: LimitType
+    kspaceEncodingStep0: LimitType
+    kspaceEncodingStep1: LimitType
+    kspaceEncodingStep2: LimitType
 
 SamplingDescription: !record
   fields:
@@ -51,7 +34,7 @@ SamplingDescription: !record
     reconMatrix: MatrixSizeType
     samplingLimits: SamplingLimits
 
-BufferedData: !record
+ReconBuffer: !record
   fields:
     # Buffered Acquisition data
     data: complexfloat[loc, s, n, chan, e2, e1, e0]
@@ -64,14 +47,14 @@ BufferedData: !record
     # Sampling details for these Acquisitions
     sampling: SamplingDescription
 
-ReconBit: !record
+ReconAssembly: !record
   fields:
-    data: BufferedData
-    ref: BufferedData?
+    data: ReconBuffer
+    ref: ReconBuffer?
 
 ReconData: !record
   fields:
-    rbits: ReconBit*
+    buffers: ReconAssembly*
 
 
 ImageArray: !record

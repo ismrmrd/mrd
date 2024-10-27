@@ -5,8 +5,8 @@ classdef AcquisitionBucketSerializer < yardl.binary.RecordSerializer
     function self = AcquisitionBucketSerializer()
       field_serializers{1} = yardl.binary.VectorSerializer(mrd.binary.AcquisitionSerializer());
       field_serializers{2} = yardl.binary.VectorSerializer(mrd.binary.AcquisitionSerializer());
-      field_serializers{3} = yardl.binary.VectorSerializer(mrd.binary.AcquisitionBucketStatsSerializer());
-      field_serializers{4} = yardl.binary.VectorSerializer(mrd.binary.AcquisitionBucketStatsSerializer());
+      field_serializers{3} = yardl.binary.VectorSerializer(mrd.binary.EncodingLimitsTypeSerializer());
+      field_serializers{4} = yardl.binary.VectorSerializer(mrd.binary.EncodingLimitsTypeSerializer());
       field_serializers{5} = yardl.binary.VectorSerializer(mrd.binary.WaveformSerializer(yardl.binary.Uint32Serializer));
       self@yardl.binary.RecordSerializer('mrd.AcquisitionBucket', field_serializers);
     end

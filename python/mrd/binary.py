@@ -731,42 +731,6 @@ class NoiseCovarianceSerializer(_binary.RecordSerializer[NoiseCovariance]):
         return NoiseCovariance(coil_labels=field_values[0], receiver_noise_bandwidth=field_values[1], noise_dwell_time_us=field_values[2], sample_count=field_values[3], matrix=field_values[4])
 
 
-class MinMaxStatSerializer(_binary.RecordSerializer[MinMaxStat]):
-    def __init__(self) -> None:
-        super().__init__([("minimum", _binary.uint32_serializer), ("maximum", _binary.uint32_serializer)])
-
-    def write(self, stream: _binary.CodedOutputStream, value: MinMaxStat) -> None:
-        if isinstance(value, np.void):
-            self.write_numpy(stream, value)
-            return
-        self._write(stream, value.minimum, value.maximum)
-
-    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
-        self._write(stream, value['minimum'], value['maximum'])
-
-    def read(self, stream: _binary.CodedInputStream) -> MinMaxStat:
-        field_values = self._read(stream)
-        return MinMaxStat(minimum=field_values[0], maximum=field_values[1])
-
-
-class AcquisitionBucketStatsSerializer(_binary.RecordSerializer[AcquisitionBucketStats]):
-    def __init__(self) -> None:
-        super().__init__([("kspace_encode_step_1", MinMaxStatSerializer()), ("kspace_encode_step_2", MinMaxStatSerializer()), ("average", MinMaxStatSerializer()), ("slice", MinMaxStatSerializer()), ("contrast", MinMaxStatSerializer()), ("phase", MinMaxStatSerializer()), ("repetition", MinMaxStatSerializer()), ("set", MinMaxStatSerializer()), ("segment", MinMaxStatSerializer())])
-
-    def write(self, stream: _binary.CodedOutputStream, value: AcquisitionBucketStats) -> None:
-        if isinstance(value, np.void):
-            self.write_numpy(stream, value)
-            return
-        self._write(stream, value.kspace_encode_step_1, value.kspace_encode_step_2, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.segment)
-
-    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
-        self._write(stream, value['kspace_encode_step_1'], value['kspace_encode_step_2'], value['average'], value['slice'], value['contrast'], value['phase'], value['repetition'], value['set'], value['segment'])
-
-    def read(self, stream: _binary.CodedInputStream) -> AcquisitionBucketStats:
-        field_values = self._read(stream)
-        return AcquisitionBucketStats(kspace_encode_step_1=field_values[0], kspace_encode_step_2=field_values[1], average=field_values[2], slice=field_values[3], contrast=field_values[4], phase=field_values[5], repetition=field_values[6], set=field_values[7], segment=field_values[8])
-
-
 class WaveformSerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[Waveform[T_NP]]):
     def __init__(self, t_serializer: _binary.TypeSerializer[T, T_NP]) -> None:
         super().__init__([("flags", _binary.uint64_serializer), ("measurement_uid", _binary.uint32_serializer), ("scan_counter", _binary.uint32_serializer), ("time_stamp", _binary.uint32_serializer), ("sample_time_us", _binary.float32_serializer), ("waveform_id", _binary.uint32_serializer), ("data", _binary.NDArraySerializer(t_serializer, 2))])
@@ -787,7 +751,7 @@ class WaveformSerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[Wavef
 
 class AcquisitionBucketSerializer(_binary.RecordSerializer[AcquisitionBucket]):
     def __init__(self) -> None:
-        super().__init__([("data", _binary.VectorSerializer(AcquisitionSerializer())), ("ref", _binary.VectorSerializer(AcquisitionSerializer())), ("datastats", _binary.VectorSerializer(AcquisitionBucketStatsSerializer())), ("refstats", _binary.VectorSerializer(AcquisitionBucketStatsSerializer())), ("waveforms", _binary.VectorSerializer(WaveformSerializer(_binary.uint32_serializer)))])
+        super().__init__([("data", _binary.VectorSerializer(AcquisitionSerializer())), ("ref", _binary.VectorSerializer(AcquisitionSerializer())), ("datastats", _binary.VectorSerializer(EncodingLimitsTypeSerializer())), ("refstats", _binary.VectorSerializer(EncodingLimitsTypeSerializer())), ("waveforms", _binary.VectorSerializer(WaveformSerializer(_binary.uint32_serializer)))])
 
     def write(self, stream: _binary.CodedOutputStream, value: AcquisitionBucket) -> None:
         if isinstance(value, np.void):
@@ -805,20 +769,20 @@ class AcquisitionBucketSerializer(_binary.RecordSerializer[AcquisitionBucket]):
 
 class SamplingLimitsSerializer(_binary.RecordSerializer[SamplingLimits]):
     def __init__(self) -> None:
-        super().__init__([("ro", LimitTypeSerializer()), ("e1", LimitTypeSerializer()), ("e2", LimitTypeSerializer())])
+        super().__init__([("kspace_encoding_step_0", LimitTypeSerializer()), ("kspace_encoding_step_1", LimitTypeSerializer()), ("kspace_encoding_step_2", LimitTypeSerializer())])
 
     def write(self, stream: _binary.CodedOutputStream, value: SamplingLimits) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
-        self._write(stream, value.ro, value.e1, value.e2)
+        self._write(stream, value.kspace_encoding_step_0, value.kspace_encoding_step_1, value.kspace_encoding_step_2)
 
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
-        self._write(stream, value['ro'], value['e1'], value['e2'])
+        self._write(stream, value['kspace_encoding_step_0'], value['kspace_encoding_step_1'], value['kspace_encoding_step_2'])
 
     def read(self, stream: _binary.CodedInputStream) -> SamplingLimits:
         field_values = self._read(stream)
-        return SamplingLimits(ro=field_values[0], e1=field_values[1], e2=field_values[2])
+        return SamplingLimits(kspace_encoding_step_0=field_values[0], kspace_encoding_step_1=field_values[1], kspace_encoding_step_2=field_values[2])
 
 
 class SamplingDescriptionSerializer(_binary.RecordSerializer[SamplingDescription]):
@@ -839,11 +803,11 @@ class SamplingDescriptionSerializer(_binary.RecordSerializer[SamplingDescription
         return SamplingDescription(encoded_fov=field_values[0], recon_fov=field_values[1], encoded_matrix=field_values[2], recon_matrix=field_values[3], sampling_limits=field_values[4])
 
 
-class BufferedDataSerializer(_binary.RecordSerializer[BufferedData]):
+class ReconBufferSerializer(_binary.RecordSerializer[ReconBuffer]):
     def __init__(self) -> None:
         super().__init__([("data", _binary.NDArraySerializer(_binary.complexfloat32_serializer, 7)), ("trajectory", _binary.NDArraySerializer(_binary.float32_serializer, 7)), ("density", _binary.OptionalSerializer(_binary.NDArraySerializer(_binary.float32_serializer, 6))), ("headers", _binary.NDArraySerializer(AcquisitionHeaderSerializer(), 5)), ("sampling", SamplingDescriptionSerializer())])
 
-    def write(self, stream: _binary.CodedOutputStream, value: BufferedData) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: ReconBuffer) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -852,16 +816,16 @@ class BufferedDataSerializer(_binary.RecordSerializer[BufferedData]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['data'], value['trajectory'], value['density'], value['headers'], value['sampling'])
 
-    def read(self, stream: _binary.CodedInputStream) -> BufferedData:
+    def read(self, stream: _binary.CodedInputStream) -> ReconBuffer:
         field_values = self._read(stream)
-        return BufferedData(data=field_values[0], trajectory=field_values[1], density=field_values[2], headers=field_values[3], sampling=field_values[4])
+        return ReconBuffer(data=field_values[0], trajectory=field_values[1], density=field_values[2], headers=field_values[3], sampling=field_values[4])
 
 
-class ReconBitSerializer(_binary.RecordSerializer[ReconBit]):
+class ReconAssemblySerializer(_binary.RecordSerializer[ReconAssembly]):
     def __init__(self) -> None:
-        super().__init__([("data", BufferedDataSerializer()), ("ref", _binary.OptionalSerializer(BufferedDataSerializer()))])
+        super().__init__([("data", ReconBufferSerializer()), ("ref", _binary.OptionalSerializer(ReconBufferSerializer()))])
 
-    def write(self, stream: _binary.CodedOutputStream, value: ReconBit) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: ReconAssembly) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -870,27 +834,27 @@ class ReconBitSerializer(_binary.RecordSerializer[ReconBit]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['data'], value['ref'])
 
-    def read(self, stream: _binary.CodedInputStream) -> ReconBit:
+    def read(self, stream: _binary.CodedInputStream) -> ReconAssembly:
         field_values = self._read(stream)
-        return ReconBit(data=field_values[0], ref=field_values[1])
+        return ReconAssembly(data=field_values[0], ref=field_values[1])
 
 
 class ReconDataSerializer(_binary.RecordSerializer[ReconData]):
     def __init__(self) -> None:
-        super().__init__([("rbits", _binary.VectorSerializer(ReconBitSerializer()))])
+        super().__init__([("buffers", _binary.VectorSerializer(ReconAssemblySerializer()))])
 
     def write(self, stream: _binary.CodedOutputStream, value: ReconData) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
-        self._write(stream, value.rbits)
+        self._write(stream, value.buffers)
 
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
-        self._write(stream, value['rbits'])
+        self._write(stream, value['buffers'])
 
     def read(self, stream: _binary.CodedInputStream) -> ReconData:
         field_values = self._read(stream)
-        return ReconData(rbits=field_values[0])
+        return ReconData(buffers=field_values[0])
 
 
 class ImageArraySerializer(_binary.RecordSerializer[ImageArray]):

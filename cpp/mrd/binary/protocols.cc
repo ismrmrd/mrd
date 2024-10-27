@@ -534,35 +534,6 @@ struct IsTriviallySerializable<mrd::NoiseCovariance> {
     offsetof(__T__, coil_labels) < offsetof(__T__, receiver_noise_bandwidth) && offsetof(__T__, receiver_noise_bandwidth) < offsetof(__T__, noise_dwell_time_us) && offsetof(__T__, noise_dwell_time_us) < offsetof(__T__, sample_count) && offsetof(__T__, sample_count) < offsetof(__T__, matrix);
 };
 
-template <>
-struct IsTriviallySerializable<mrd::MinMaxStat> {
-  using __T__ = mrd::MinMaxStat;
-  static constexpr bool value = 
-    std::is_standard_layout_v<__T__> &&
-    IsTriviallySerializable<decltype(__T__::minimum)>::value &&
-    IsTriviallySerializable<decltype(__T__::maximum)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::minimum) + sizeof(__T__::maximum))) &&
-    offsetof(__T__, minimum) < offsetof(__T__, maximum);
-};
-
-template <>
-struct IsTriviallySerializable<mrd::AcquisitionBucketStats> {
-  using __T__ = mrd::AcquisitionBucketStats;
-  static constexpr bool value = 
-    std::is_standard_layout_v<__T__> &&
-    IsTriviallySerializable<decltype(__T__::kspace_encode_step_1)>::value &&
-    IsTriviallySerializable<decltype(__T__::kspace_encode_step_2)>::value &&
-    IsTriviallySerializable<decltype(__T__::average)>::value &&
-    IsTriviallySerializable<decltype(__T__::slice)>::value &&
-    IsTriviallySerializable<decltype(__T__::contrast)>::value &&
-    IsTriviallySerializable<decltype(__T__::phase)>::value &&
-    IsTriviallySerializable<decltype(__T__::repetition)>::value &&
-    IsTriviallySerializable<decltype(__T__::set)>::value &&
-    IsTriviallySerializable<decltype(__T__::segment)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::kspace_encode_step_1) + sizeof(__T__::kspace_encode_step_2) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::segment))) &&
-    offsetof(__T__, kspace_encode_step_1) < offsetof(__T__, kspace_encode_step_2) && offsetof(__T__, kspace_encode_step_2) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, segment);
-};
-
 template <typename T>
 struct IsTriviallySerializable<mrd::Waveform<T>> {
   using __T__ = mrd::Waveform<T>;
@@ -598,11 +569,11 @@ struct IsTriviallySerializable<mrd::SamplingLimits> {
   using __T__ = mrd::SamplingLimits;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
-    IsTriviallySerializable<decltype(__T__::ro)>::value &&
-    IsTriviallySerializable<decltype(__T__::e1)>::value &&
-    IsTriviallySerializable<decltype(__T__::e2)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::ro) + sizeof(__T__::e1) + sizeof(__T__::e2))) &&
-    offsetof(__T__, ro) < offsetof(__T__, e1) && offsetof(__T__, e1) < offsetof(__T__, e2);
+    IsTriviallySerializable<decltype(__T__::kspace_encoding_step_0)>::value &&
+    IsTriviallySerializable<decltype(__T__::kspace_encoding_step_1)>::value &&
+    IsTriviallySerializable<decltype(__T__::kspace_encoding_step_2)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::kspace_encoding_step_0) + sizeof(__T__::kspace_encoding_step_1) + sizeof(__T__::kspace_encoding_step_2))) &&
+    offsetof(__T__, kspace_encoding_step_0) < offsetof(__T__, kspace_encoding_step_1) && offsetof(__T__, kspace_encoding_step_1) < offsetof(__T__, kspace_encoding_step_2);
 };
 
 template <>
@@ -620,8 +591,8 @@ struct IsTriviallySerializable<mrd::SamplingDescription> {
 };
 
 template <>
-struct IsTriviallySerializable<mrd::BufferedData> {
-  using __T__ = mrd::BufferedData;
+struct IsTriviallySerializable<mrd::ReconBuffer> {
+  using __T__ = mrd::ReconBuffer;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
     IsTriviallySerializable<decltype(__T__::data)>::value &&
@@ -634,8 +605,8 @@ struct IsTriviallySerializable<mrd::BufferedData> {
 };
 
 template <>
-struct IsTriviallySerializable<mrd::ReconBit> {
-  using __T__ = mrd::ReconBit;
+struct IsTriviallySerializable<mrd::ReconAssembly> {
+  using __T__ = mrd::ReconAssembly;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
     IsTriviallySerializable<decltype(__T__::data)>::value &&
@@ -649,8 +620,8 @@ struct IsTriviallySerializable<mrd::ReconData> {
   using __T__ = mrd::ReconData;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
-    IsTriviallySerializable<decltype(__T__::rbits)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::rbits)));
+    IsTriviallySerializable<decltype(__T__::buffers)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::buffers)));
 };
 
 template <>
@@ -2231,60 +2202,6 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   yardl::binary::ReadNDArray<std::complex<float>, yardl::binary::ReadFloatingPoint, 2>(stream, value.matrix);
 }
 
-[[maybe_unused]] void WriteMinMaxStat(yardl::binary::CodedOutputStream& stream, mrd::MinMaxStat const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::MinMaxStat>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::WriteInteger(stream, value.minimum);
-  yardl::binary::WriteInteger(stream, value.maximum);
-}
-
-[[maybe_unused]] void ReadMinMaxStat(yardl::binary::CodedInputStream& stream, mrd::MinMaxStat& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::MinMaxStat>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::ReadInteger(stream, value.minimum);
-  yardl::binary::ReadInteger(stream, value.maximum);
-}
-
-[[maybe_unused]] void WriteAcquisitionBucketStats(yardl::binary::CodedOutputStream& stream, mrd::AcquisitionBucketStats const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AcquisitionBucketStats>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteMinMaxStat(stream, value.kspace_encode_step_1);
-  mrd::binary::WriteMinMaxStat(stream, value.kspace_encode_step_2);
-  mrd::binary::WriteMinMaxStat(stream, value.average);
-  mrd::binary::WriteMinMaxStat(stream, value.slice);
-  mrd::binary::WriteMinMaxStat(stream, value.contrast);
-  mrd::binary::WriteMinMaxStat(stream, value.phase);
-  mrd::binary::WriteMinMaxStat(stream, value.repetition);
-  mrd::binary::WriteMinMaxStat(stream, value.set);
-  mrd::binary::WriteMinMaxStat(stream, value.segment);
-}
-
-[[maybe_unused]] void ReadAcquisitionBucketStats(yardl::binary::CodedInputStream& stream, mrd::AcquisitionBucketStats& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AcquisitionBucketStats>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadMinMaxStat(stream, value.kspace_encode_step_1);
-  mrd::binary::ReadMinMaxStat(stream, value.kspace_encode_step_2);
-  mrd::binary::ReadMinMaxStat(stream, value.average);
-  mrd::binary::ReadMinMaxStat(stream, value.slice);
-  mrd::binary::ReadMinMaxStat(stream, value.contrast);
-  mrd::binary::ReadMinMaxStat(stream, value.phase);
-  mrd::binary::ReadMinMaxStat(stream, value.repetition);
-  mrd::binary::ReadMinMaxStat(stream, value.set);
-  mrd::binary::ReadMinMaxStat(stream, value.segment);
-}
-
 template<typename T, yardl::binary::Writer<T> WriteT>
 [[maybe_unused]] void WriteWaveformSamples(yardl::binary::CodedOutputStream& stream, mrd::WaveformSamples<T> const& value) {
   if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformSamples<T>>::value) {
@@ -2363,8 +2280,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
 
   yardl::binary::WriteVector<mrd::Acquisition, mrd::binary::WriteAcquisition>(stream, value.data);
   yardl::binary::WriteVector<mrd::Acquisition, mrd::binary::WriteAcquisition>(stream, value.ref);
-  yardl::binary::WriteVector<mrd::AcquisitionBucketStats, mrd::binary::WriteAcquisitionBucketStats>(stream, value.datastats);
-  yardl::binary::WriteVector<mrd::AcquisitionBucketStats, mrd::binary::WriteAcquisitionBucketStats>(stream, value.refstats);
+  yardl::binary::WriteVector<mrd::EncodingLimitsType, mrd::binary::WriteEncodingLimitsType>(stream, value.datastats);
+  yardl::binary::WriteVector<mrd::EncodingLimitsType, mrd::binary::WriteEncodingLimitsType>(stream, value.refstats);
   yardl::binary::WriteVector<mrd::WaveformUint32, mrd::binary::WriteWaveformUint32>(stream, value.waveforms);
 }
 
@@ -2376,8 +2293,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
 
   yardl::binary::ReadVector<mrd::Acquisition, mrd::binary::ReadAcquisition>(stream, value.data);
   yardl::binary::ReadVector<mrd::Acquisition, mrd::binary::ReadAcquisition>(stream, value.ref);
-  yardl::binary::ReadVector<mrd::AcquisitionBucketStats, mrd::binary::ReadAcquisitionBucketStats>(stream, value.datastats);
-  yardl::binary::ReadVector<mrd::AcquisitionBucketStats, mrd::binary::ReadAcquisitionBucketStats>(stream, value.refstats);
+  yardl::binary::ReadVector<mrd::EncodingLimitsType, mrd::binary::ReadEncodingLimitsType>(stream, value.datastats);
+  yardl::binary::ReadVector<mrd::EncodingLimitsType, mrd::binary::ReadEncodingLimitsType>(stream, value.refstats);
   yardl::binary::ReadVector<mrd::WaveformUint32, mrd::binary::ReadWaveformUint32>(stream, value.waveforms);
 }
 
@@ -2387,9 +2304,9 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  mrd::binary::WriteLimitType(stream, value.ro);
-  mrd::binary::WriteLimitType(stream, value.e1);
-  mrd::binary::WriteLimitType(stream, value.e2);
+  mrd::binary::WriteLimitType(stream, value.kspace_encoding_step_0);
+  mrd::binary::WriteLimitType(stream, value.kspace_encoding_step_1);
+  mrd::binary::WriteLimitType(stream, value.kspace_encoding_step_2);
 }
 
 [[maybe_unused]] void ReadSamplingLimits(yardl::binary::CodedInputStream& stream, mrd::SamplingLimits& value) {
@@ -2398,9 +2315,9 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  mrd::binary::ReadLimitType(stream, value.ro);
-  mrd::binary::ReadLimitType(stream, value.e1);
-  mrd::binary::ReadLimitType(stream, value.e2);
+  mrd::binary::ReadLimitType(stream, value.kspace_encoding_step_0);
+  mrd::binary::ReadLimitType(stream, value.kspace_encoding_step_1);
+  mrd::binary::ReadLimitType(stream, value.kspace_encoding_step_2);
 }
 
 [[maybe_unused]] void WriteSamplingDescription(yardl::binary::CodedOutputStream& stream, mrd::SamplingDescription const& value) {
@@ -2429,8 +2346,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadSamplingLimits(stream, value.sampling_limits);
 }
 
-[[maybe_unused]] void WriteBufferedData(yardl::binary::CodedOutputStream& stream, mrd::BufferedData const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::BufferedData>::value) {
+[[maybe_unused]] void WriteReconBuffer(yardl::binary::CodedOutputStream& stream, mrd::ReconBuffer const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconBuffer>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
@@ -2442,8 +2359,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::WriteSamplingDescription(stream, value.sampling);
 }
 
-[[maybe_unused]] void ReadBufferedData(yardl::binary::CodedInputStream& stream, mrd::BufferedData& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::BufferedData>::value) {
+[[maybe_unused]] void ReadReconBuffer(yardl::binary::CodedInputStream& stream, mrd::ReconBuffer& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconBuffer>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
@@ -2455,24 +2372,24 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadSamplingDescription(stream, value.sampling);
 }
 
-[[maybe_unused]] void WriteReconBit(yardl::binary::CodedOutputStream& stream, mrd::ReconBit const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconBit>::value) {
+[[maybe_unused]] void WriteReconAssembly(yardl::binary::CodedOutputStream& stream, mrd::ReconAssembly const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconAssembly>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
 
-  mrd::binary::WriteBufferedData(stream, value.data);
-  yardl::binary::WriteOptional<mrd::BufferedData, mrd::binary::WriteBufferedData>(stream, value.ref);
+  mrd::binary::WriteReconBuffer(stream, value.data);
+  yardl::binary::WriteOptional<mrd::ReconBuffer, mrd::binary::WriteReconBuffer>(stream, value.ref);
 }
 
-[[maybe_unused]] void ReadReconBit(yardl::binary::CodedInputStream& stream, mrd::ReconBit& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconBit>::value) {
+[[maybe_unused]] void ReadReconAssembly(yardl::binary::CodedInputStream& stream, mrd::ReconAssembly& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconAssembly>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
 
-  mrd::binary::ReadBufferedData(stream, value.data);
-  yardl::binary::ReadOptional<mrd::BufferedData, mrd::binary::ReadBufferedData>(stream, value.ref);
+  mrd::binary::ReadReconBuffer(stream, value.data);
+  yardl::binary::ReadOptional<mrd::ReconBuffer, mrd::binary::ReadReconBuffer>(stream, value.ref);
 }
 
 [[maybe_unused]] void WriteReconData(yardl::binary::CodedOutputStream& stream, mrd::ReconData const& value) {
@@ -2481,7 +2398,7 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  yardl::binary::WriteVector<mrd::ReconBit, mrd::binary::WriteReconBit>(stream, value.rbits);
+  yardl::binary::WriteVector<mrd::ReconAssembly, mrd::binary::WriteReconAssembly>(stream, value.buffers);
 }
 
 [[maybe_unused]] void ReadReconData(yardl::binary::CodedInputStream& stream, mrd::ReconData& value) {
@@ -2490,7 +2407,7 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  yardl::binary::ReadVector<mrd::ReconBit, mrd::binary::ReadReconBit>(stream, value.rbits);
+  yardl::binary::ReadVector<mrd::ReconAssembly, mrd::binary::ReadReconAssembly>(stream, value.buffers);
 }
 
 [[maybe_unused]] void WriteImageArray(yardl::binary::CodedOutputStream& stream, mrd::ImageArray const& value) {

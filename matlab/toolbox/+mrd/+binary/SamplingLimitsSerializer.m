@@ -15,12 +15,12 @@ classdef SamplingLimitsSerializer < yardl.binary.RecordSerializer
         outstream (1,1) yardl.binary.CodedOutputStream
         value (1,1) mrd.SamplingLimits
       end
-      self.write_(outstream, value.ro, value.e1, value.e2);
+      self.write_(outstream, value.kspace_encoding_step_0, value.kspace_encoding_step_1, value.kspace_encoding_step_2);
     end
 
     function value = read(self, instream)
       fields = self.read_(instream);
-      value = mrd.SamplingLimits(ro=fields{1}, e1=fields{2}, e2=fields{3});
+      value = mrd.SamplingLimits(kspace_encoding_step_0=fields{1}, kspace_encoding_step_1=fields{2}, kspace_encoding_step_2=fields{3});
     end
   end
 end

@@ -2,21 +2,21 @@
 
 classdef ReconData < handle
   properties
-    rbits
+    buffers
   end
 
   methods
     function self = ReconData(kwargs)
       arguments
-        kwargs.rbits = mrd.ReconBit.empty();
+        kwargs.buffers = mrd.ReconAssembly.empty();
       end
-      self.rbits = kwargs.rbits;
+      self.buffers = kwargs.buffers;
     end
 
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.ReconData") && ...
-        isequal(self.rbits, other.rbits);
+        isequal(self.buffers, other.buffers);
     end
 
     function res = ne(self, other)
