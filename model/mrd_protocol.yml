@@ -1,17 +1,30 @@
-WaveformUint32: Waveform<uint32>
-ImageUint16: Image<uint16>
-ImageInt16: Image<int16>
-ImageUint: Image<uint>
-ImageInt: Image<int>
-ImageFloat: Image<float>
-ImageDouble: Image<double>
-ImageComplexFloat: Image<complexfloat>
-ImageComplexDouble: Image<complexdouble>
+# Union of all primary types that can be streamed in the MRD Protocol
+StreamItem:
+  - Acquisition
+  - WaveformUint32
+  - ImageUint16
+  - ImageInt16
+  - ImageUint32
+  - ImageInt32
+  - ImageFloat
+  - ImageDouble
+  - ImageComplexFloat
+  - ImageComplexDouble
+  - AcquisitionBucket
+  - ReconData
+  - ArrayComplexFloat
+  - ImageArray
 
-StreamItem: [Acquisition, WaveformUint32, ImageUint16, ImageInt16, ImageUint, ImageInt, ImageFloat, ImageDouble, ImageComplexFloat, ImageComplexDouble]
 
+# The MRD Protocol
 Mrd: !protocol
   sequence:
     header: Header?
     data: !stream
       items: StreamItem
+
+
+# Protocol for serializing a noise covariance matrix
+MrdNoiseCovariance: !protocol
+  sequence:
+    noiseCovariance: NoiseCovariance

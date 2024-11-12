@@ -142,6 +142,7 @@ int main(int argc, char** argv) {
   mrd::StreamItem v;
   xt::xtensor<std::complex<float>, 6> buffer;
   mrd::Acquisition ref_acq;
+  uint32_t image_index = 0;
   while (r.ReadData(v)) {
     if (!std::holds_alternative<mrd::Acquisition>(v)) {
       continue;
@@ -149,7 +150,7 @@ int main(int argc, char** argv) {
     auto acq = std::get<mrd::Acquisition>(v);
 
     // Currently ignoring noise scans
-    if (acq.flags.HasFlags(mrd::AcquisitionFlags::kIsNoiseMeasurement)) {
+    if (acq.head.flags.HasFlags(mrd::AcquisitionFlags::kIsNoiseMeasurement)) {
       continue;
     }
 
@@ -159,7 +160,7 @@ int main(int argc, char** argv) {
     }
 
     // If this is the first line, we need to allocate the buffer
-    if (acq.flags.HasFlags(mrd::AcquisitionFlags::kFirstInEncodeStep1) || acq.flags.HasFlags(mrd::AcquisitionFlags::kFirstInSlice)) {
+    if (acq.head.flags.HasFlags(mrd::AcquisitionFlags::kFirstInEncodeStep1) || acq.head.flags.HasFlags(mrd::AcquisitionFlags::kFirstInSlice)) {
       uint32_t readout_length = acq.Samples();
       std::array<size_t, 6> shape = {ncontrasts, nslices, ncoils, eNz, eNy, readout_length};
       buffer = xt::zeros<std::complex<float>>(shape);
@@ -167,14 +168,14 @@ int main(int argc, char** argv) {
     }
 
     // Copy the data into the buffer
-    auto contrast = acq.idx.contrast ? acq.idx.contrast.value() : 0;
-    auto slice = acq.idx.slice ? acq.idx.slice.value() : 0;
-    auto k1 = acq.idx.kspace_encode_step_1 ? acq.idx.kspace_encode_step_1.value() : 0;
-    auto k2 = acq.idx.kspace_encode_step_2 ? acq.idx.kspace_encode_step_2.value() : 0;
+    auto contrast = acq.head.idx.contrast.value_or(0);
+    auto slice = acq.head.idx.slice.value_or(0);
+    auto k1 = acq.head.idx.kspace_encode_step_1.value_or(0);
+    auto k2 = acq.head.idx.kspace_encode_step_2.value_or(0);
     xt::view(buffer, contrast, slice, xt::all(), k2, k1 + ky_offset, xt::all()) = xt::xarray<std::complex<float>>(acq.data);
 
     // If this is the last line, we need to write the buffer
-    if (acq.flags.HasFlags(mrd::AcquisitionFlags::kLastInEncodeStep1) || acq.flags.HasFlags(mrd::AcquisitionFlags::kLastInSlice)) {
+    if (acq.head.flags.HasFlags(mrd::AcquisitionFlags::kLastInEncodeStep1) || acq.head.flags.HasFlags(mrd::AcquisitionFlags::kLastInSlice)) {
       for (unsigned int c = 0; c < buffer.shape(0); c++) {
         for (unsigned int s = 0; s < buffer.shape(1); s++) {
           auto slice = xt::view(buffer, c, s, xt::all(), xt::all(), xt::all(), xt::all());
@@ -199,24 +200,30 @@ int main(int argc, char** argv) {
 
           mrd::Image<float> im;
           im.data = xt::zeros<float>(image_shape);
-          im.image_type = mrd::ImageType::kMagnitude;
           xt::view(im.data, 0, xt::all(), xt::all(), xt::all()) = combined;
 
-          im.field_of_view[0] = rFOVx;
-          im.field_of_view[1] = rFOVy;
-          im.field_of_view[2] = rFOVz;
-          im.position = ref_acq.position;
-          im.col_dir = ref_acq.read_dir;
-          im.line_dir = ref_acq.phase_dir;
-          im.slice_dir = ref_acq.slice_dir;
-          im.patient_table_position = ref_acq.patient_table_position;
-          im.acquisition_time_stamp = ref_acq.acquisition_time_stamp;
-          im.physiology_time_stamp = ref_acq.physiology_time_stamp;
-          im.slice = ref_acq.idx.slice;
-          im.repetition = ref_acq.idx.repetition;
-          im.phase = ref_acq.idx.phase;
-          im.average = ref_acq.idx.average;
-          im.set = ref_acq.idx.set;
+          im.head.measurement_uid = acq.head.measurement_uid;
+          im.head.field_of_view[0] = rFOVx;
+          im.head.field_of_view[1] = rFOVy;
+          im.head.field_of_view[2] = rFOVz;
+          im.head.position = ref_acq.head.position;
+          im.head.col_dir = ref_acq.head.read_dir;
+          im.head.line_dir = ref_acq.head.phase_dir;
+          im.head.slice_dir = ref_acq.head.slice_dir;
+          im.head.patient_table_position = ref_acq.head.patient_table_position;
+          im.head.average = ref_acq.head.idx.average;
+          im.head.slice = ref_acq.head.idx.slice;
+          im.head.contrast = ref_acq.head.idx.contrast;
+          im.head.phase = ref_acq.head.idx.phase;
+          im.head.repetition = ref_acq.head.idx.repetition;
+          im.head.set = ref_acq.head.idx.set;
+          im.head.acquisition_time_stamp = ref_acq.head.acquisition_time_stamp;
+          im.head.physiology_time_stamp = ref_acq.head.physiology_time_stamp;
+          im.head.image_type = mrd::ImageType::kMagnitude;
+          im.head.image_index = image_index++;
+          im.head.image_series_index = 0;
+          im.head.user_int = ref_acq.head.user_int;
+          im.head.user_float = ref_acq.head.user_float;
           w.WriteData(im);
         }
       }

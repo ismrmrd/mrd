@@ -68,7 +68,7 @@ TrajectoryData: !array
     basis:
     samples:
 
-Acquisition: !record
+AcquisitionHeader: !record
   fields:
     # A bit mask of common attributes applicable to individual acquisition
     flags: AcquisitionFlags
@@ -110,6 +110,11 @@ Acquisition: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
+
+Acquisition: !record
+  fields:
+    # Acquisition header
+    head: AcquisitionHeader
     # Raw k-space samples array
     data: AcquisitionData
     # Trajectory array
@@ -117,6 +122,6 @@ Acquisition: !record
   computedFields:
     coils: size(data, "coils")
     samples: size(data, "samples")
-    activeChannels: size(channelOrder)
+    activeChannels: size(head.channelOrder)
     trajectoryDimensions: size(trajectory, "basis")
     trajectorySamples: size(trajectory, "samples")

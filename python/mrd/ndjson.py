@@ -164,7 +164,7 @@ class EncodingCountersConverter(_ndjson.JsonConverter[EncodingCounters, np.void]
         ) # type:ignore 
 
 
-class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
+class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.void]):
     def __init__(self) -> None:
         self._flags_converter = _ndjson.FlagsConverter(AcquisitionFlags, np.uint64, acquisition_flags_name_to_value_map, acquisition_flags_value_to_name_map)
         self._idx_converter = EncodingCountersConverter()
@@ -185,8 +185,6 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         self._patient_table_position_converter = _ndjson.FixedNDArrayConverter(_ndjson.float32_converter, (3,))
         self._user_int_converter = _ndjson.VectorConverter(_ndjson.int32_converter)
         self._user_float_converter = _ndjson.VectorConverter(_ndjson.float32_converter)
-        self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 2)
-        self._trajectory_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 2)
         super().__init__(np.dtype([
             ("flags", self._flags_converter.overall_dtype()),
             ("idx", self._idx_converter.overall_dtype()),
@@ -207,13 +205,11 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
             ("patient_table_position", self._patient_table_position_converter.overall_dtype()),
             ("user_int", self._user_int_converter.overall_dtype()),
             ("user_float", self._user_float_converter.overall_dtype()),
-            ("data", self._data_converter.overall_dtype()),
-            ("trajectory", self._trajectory_converter.overall_dtype()),
         ]))
 
-    def to_json(self, value: Acquisition) -> object:
-        if not isinstance(value, Acquisition): # pyright: ignore [reportUnnecessaryIsInstance]
-            raise TypeError("Expected 'Acquisition' instance")
+    def to_json(self, value: AcquisitionHeader) -> object:
+        if not isinstance(value, AcquisitionHeader): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'AcquisitionHeader' instance")
         json_object = {}
 
         json_object["flags"] = self._flags_converter.to_json(value.flags)
@@ -242,8 +238,6 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         json_object["patientTablePosition"] = self._patient_table_position_converter.to_json(value.patient_table_position)
         json_object["userInt"] = self._user_int_converter.to_json(value.user_int)
         json_object["userFloat"] = self._user_float_converter.to_json(value.user_float)
-        json_object["data"] = self._data_converter.to_json(value.data)
-        json_object["trajectory"] = self._trajectory_converter.to_json(value.trajectory)
         return json_object
 
     def numpy_to_json(self, value: np.void) -> object:
@@ -277,14 +271,12 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         json_object["patientTablePosition"] = self._patient_table_position_converter.numpy_to_json(value["patient_table_position"])
         json_object["userInt"] = self._user_int_converter.numpy_to_json(value["user_int"])
         json_object["userFloat"] = self._user_float_converter.numpy_to_json(value["user_float"])
-        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
-        json_object["trajectory"] = self._trajectory_converter.numpy_to_json(value["trajectory"])
         return json_object
 
-    def from_json(self, json_object: object) -> Acquisition:
+    def from_json(self, json_object: object) -> AcquisitionHeader:
         if not isinstance(json_object, dict):
             raise TypeError("Expected 'dict' instance")
-        return Acquisition(
+        return AcquisitionHeader(
             flags=self._flags_converter.from_json(json_object["flags"],),
             idx=self._idx_converter.from_json(json_object["idx"],),
             measurement_uid=self._measurement_uid_converter.from_json(json_object["measurementUid"],),
@@ -304,8 +296,6 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
             patient_table_position=self._patient_table_position_converter.from_json(json_object["patientTablePosition"],),
             user_int=self._user_int_converter.from_json(json_object["userInt"],),
             user_float=self._user_float_converter.from_json(json_object["userFloat"],),
-            data=self._data_converter.from_json(json_object["data"],),
-            trajectory=self._trajectory_converter.from_json(json_object["trajectory"],),
         )
 
     def from_json_to_numpy(self, json_object: object) -> np.void:
@@ -331,6 +321,54 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
             self._patient_table_position_converter.from_json_to_numpy(json_object["patientTablePosition"]),
             self._user_int_converter.from_json_to_numpy(json_object["userInt"]),
             self._user_float_converter.from_json_to_numpy(json_object["userFloat"]),
+        ) # type:ignore 
+
+
+class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
+    def __init__(self) -> None:
+        self._head_converter = AcquisitionHeaderConverter()
+        self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 2)
+        self._trajectory_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 2)
+        super().__init__(np.dtype([
+            ("head", self._head_converter.overall_dtype()),
+            ("data", self._data_converter.overall_dtype()),
+            ("trajectory", self._trajectory_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: Acquisition) -> object:
+        if not isinstance(value, Acquisition): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'Acquisition' instance")
+        json_object = {}
+
+        json_object["head"] = self._head_converter.to_json(value.head)
+        json_object["data"] = self._data_converter.to_json(value.data)
+        json_object["trajectory"] = self._trajectory_converter.to_json(value.trajectory)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["head"] = self._head_converter.numpy_to_json(value["head"])
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        json_object["trajectory"] = self._trajectory_converter.numpy_to_json(value["trajectory"])
+        return json_object
+
+    def from_json(self, json_object: object) -> Acquisition:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return Acquisition(
+            head=self._head_converter.from_json(json_object["head"],),
+            data=self._data_converter.from_json(json_object["data"],),
+            trajectory=self._trajectory_converter.from_json(json_object["trajectory"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._head_converter.from_json_to_numpy(json_object["head"]),
             self._data_converter.from_json_to_numpy(json_object["data"]),
             self._trajectory_converter.from_json_to_numpy(json_object["trajectory"]),
         ) # type:ignore 
@@ -1608,6 +1646,7 @@ class AccelerationFactorTypeConverter(_ndjson.JsonConverter[AccelerationFactorTy
 
 
 calibration_mode_name_to_value_map = {
+    "noacceleration": CalibrationMode.NOACCELERATION,
     "embedded": CalibrationMode.EMBEDDED,
     "interleaved": CalibrationMode.INTERLEAVED,
     "separate": CalibrationMode.SEPARATE,
@@ -2370,52 +2409,8 @@ image_type_name_to_value_map = {
 }
 image_type_value_to_name_map = {v: n for n, v in image_type_name_to_value_map.items()}
 
-class ImageMetaDataConverter(_ndjson.JsonConverter[ImageMetaData, np.void]):
+class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
     def __init__(self) -> None:
-        self._name_converter = _ndjson.string_converter
-        self._value_converter = _ndjson.string_converter
-        super().__init__(np.dtype([
-            ("name", self._name_converter.overall_dtype()),
-            ("value", self._value_converter.overall_dtype()),
-        ]))
-
-    def to_json(self, value: ImageMetaData) -> object:
-        if not isinstance(value, ImageMetaData): # pyright: ignore [reportUnnecessaryIsInstance]
-            raise TypeError("Expected 'ImageMetaData' instance")
-        json_object = {}
-
-        json_object["name"] = self._name_converter.to_json(value.name)
-        json_object["value"] = self._value_converter.to_json(value.value)
-        return json_object
-
-    def numpy_to_json(self, value: np.void) -> object:
-        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
-            raise TypeError("Expected 'np.void' instance")
-        json_object = {}
-
-        json_object["name"] = self._name_converter.numpy_to_json(value["name"])
-        json_object["value"] = self._value_converter.numpy_to_json(value["value"])
-        return json_object
-
-    def from_json(self, json_object: object) -> ImageMetaData:
-        if not isinstance(json_object, dict):
-            raise TypeError("Expected 'dict' instance")
-        return ImageMetaData(
-            name=self._name_converter.from_json(json_object["name"],),
-            value=self._value_converter.from_json(json_object["value"],),
-        )
-
-    def from_json_to_numpy(self, json_object: object) -> np.void:
-        if not isinstance(json_object, dict):
-            raise TypeError("Expected 'dict' instance")
-        return (
-            self._name_converter.from_json_to_numpy(json_object["name"]),
-            self._value_converter.from_json_to_numpy(json_object["value"]),
-        ) # type:ignore 
-
-
-class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP], np.void]):
-    def __init__(self, t_converter: _ndjson.JsonConverter[T, T_NP]) -> None:
         self._flags_converter = _ndjson.FlagsConverter(ImageFlags, np.uint64, image_flags_name_to_value_map, image_flags_value_to_name_map)
         self._measurement_uid_converter = _ndjson.uint32_converter
         self._field_of_view_converter = _ndjson.FixedNDArrayConverter(_ndjson.float32_converter, (3,))
@@ -2437,8 +2432,6 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
         self._image_series_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._user_int_converter = _ndjson.VectorConverter(_ndjson.int32_converter)
         self._user_float_converter = _ndjson.VectorConverter(_ndjson.float32_converter)
-        self._data_converter = _ndjson.NDArrayConverter(t_converter, 4)
-        self._meta_converter = _ndjson.MapConverter(_ndjson.string_converter, _ndjson.VectorConverter(_ndjson.string_converter))
         super().__init__(np.dtype([
             ("flags", self._flags_converter.overall_dtype()),
             ("measurement_uid", self._measurement_uid_converter.overall_dtype()),
@@ -2461,13 +2454,11 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
             ("image_series_index", self._image_series_index_converter.overall_dtype()),
             ("user_int", self._user_int_converter.overall_dtype()),
             ("user_float", self._user_float_converter.overall_dtype()),
-            ("data", self._data_converter.overall_dtype()),
-            ("meta", self._meta_converter.overall_dtype()),
         ]))
 
-    def to_json(self, value: Image[T_NP]) -> object:
-        if not isinstance(value, Image): # pyright: ignore [reportUnnecessaryIsInstance]
-            raise TypeError("Expected 'Image[T_NP]' instance")
+    def to_json(self, value: ImageHeader) -> object:
+        if not isinstance(value, ImageHeader): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'ImageHeader' instance")
         json_object = {}
 
         json_object["flags"] = self._flags_converter.to_json(value.flags)
@@ -2500,8 +2491,6 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
             json_object["imageSeriesIndex"] = self._image_series_index_converter.to_json(value.image_series_index)
         json_object["userInt"] = self._user_int_converter.to_json(value.user_int)
         json_object["userFloat"] = self._user_float_converter.to_json(value.user_float)
-        json_object["data"] = self._data_converter.to_json(value.data)
-        json_object["meta"] = self._meta_converter.to_json(value.meta)
         return json_object
 
     def numpy_to_json(self, value: np.void) -> object:
@@ -2539,14 +2528,12 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
             json_object["imageSeriesIndex"] = self._image_series_index_converter.numpy_to_json(field_val)
         json_object["userInt"] = self._user_int_converter.numpy_to_json(value["user_int"])
         json_object["userFloat"] = self._user_float_converter.numpy_to_json(value["user_float"])
-        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
-        json_object["meta"] = self._meta_converter.numpy_to_json(value["meta"])
         return json_object
 
-    def from_json(self, json_object: object) -> Image[T_NP]:
+    def from_json(self, json_object: object) -> ImageHeader:
         if not isinstance(json_object, dict):
             raise TypeError("Expected 'dict' instance")
-        return Image[T_NP](
+        return ImageHeader(
             flags=self._flags_converter.from_json(json_object["flags"],),
             measurement_uid=self._measurement_uid_converter.from_json(json_object["measurementUid"],),
             field_of_view=self._field_of_view_converter.from_json(json_object["fieldOfView"],),
@@ -2568,8 +2555,6 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
             image_series_index=self._image_series_index_converter.from_json(json_object.get("imageSeriesIndex")),
             user_int=self._user_int_converter.from_json(json_object["userInt"],),
             user_float=self._user_float_converter.from_json(json_object["userFloat"],),
-            data=self._data_converter.from_json(json_object["data"],),
-            meta=self._meta_converter.from_json(json_object["meta"],),
         )
 
     def from_json_to_numpy(self, json_object: object) -> np.void:
@@ -2597,8 +2582,118 @@ class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP],
             self._image_series_index_converter.from_json_to_numpy(json_object.get("imageSeriesIndex")),
             self._user_int_converter.from_json_to_numpy(json_object["userInt"]),
             self._user_float_converter.from_json_to_numpy(json_object["userFloat"]),
+        ) # type:ignore 
+
+
+class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP], np.void]):
+    def __init__(self, t_converter: _ndjson.JsonConverter[T, T_NP]) -> None:
+        self._head_converter = ImageHeaderConverter()
+        self._data_converter = _ndjson.NDArrayConverter(t_converter, 4)
+        self._meta_converter = _ndjson.MapConverter(_ndjson.string_converter, _ndjson.VectorConverter(_ndjson.UnionConverter(ImageMetaValue, [(ImageMetaValue.String, _ndjson.string_converter, [str]), (ImageMetaValue.Int64, _ndjson.int64_converter, [int, float]), (ImageMetaValue.Float64, _ndjson.float64_converter, [int, float])], False)))
+        super().__init__(np.dtype([
+            ("head", self._head_converter.overall_dtype()),
+            ("data", self._data_converter.overall_dtype()),
+            ("meta", self._meta_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: Image[T_NP]) -> object:
+        if not isinstance(value, Image): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'Image[T_NP]' instance")
+        json_object = {}
+
+        json_object["head"] = self._head_converter.to_json(value.head)
+        json_object["data"] = self._data_converter.to_json(value.data)
+        json_object["meta"] = self._meta_converter.to_json(value.meta)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["head"] = self._head_converter.numpy_to_json(value["head"])
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        json_object["meta"] = self._meta_converter.numpy_to_json(value["meta"])
+        return json_object
+
+    def from_json(self, json_object: object) -> Image[T_NP]:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return Image[T_NP](
+            head=self._head_converter.from_json(json_object["head"],),
+            data=self._data_converter.from_json(json_object["data"],),
+            meta=self._meta_converter.from_json(json_object["meta"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._head_converter.from_json_to_numpy(json_object["head"]),
             self._data_converter.from_json_to_numpy(json_object["data"]),
             self._meta_converter.from_json_to_numpy(json_object["meta"]),
+        ) # type:ignore 
+
+
+class NoiseCovarianceConverter(_ndjson.JsonConverter[NoiseCovariance, np.void]):
+    def __init__(self) -> None:
+        self._coil_labels_converter = _ndjson.VectorConverter(CoilLabelTypeConverter())
+        self._receiver_noise_bandwidth_converter = _ndjson.float32_converter
+        self._noise_dwell_time_us_converter = _ndjson.float32_converter
+        self._sample_count_converter = _ndjson.size_converter
+        self._matrix_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 2)
+        super().__init__(np.dtype([
+            ("coil_labels", self._coil_labels_converter.overall_dtype()),
+            ("receiver_noise_bandwidth", self._receiver_noise_bandwidth_converter.overall_dtype()),
+            ("noise_dwell_time_us", self._noise_dwell_time_us_converter.overall_dtype()),
+            ("sample_count", self._sample_count_converter.overall_dtype()),
+            ("matrix", self._matrix_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: NoiseCovariance) -> object:
+        if not isinstance(value, NoiseCovariance): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'NoiseCovariance' instance")
+        json_object = {}
+
+        json_object["coilLabels"] = self._coil_labels_converter.to_json(value.coil_labels)
+        json_object["receiverNoiseBandwidth"] = self._receiver_noise_bandwidth_converter.to_json(value.receiver_noise_bandwidth)
+        json_object["noiseDwellTimeUs"] = self._noise_dwell_time_us_converter.to_json(value.noise_dwell_time_us)
+        json_object["sampleCount"] = self._sample_count_converter.to_json(value.sample_count)
+        json_object["matrix"] = self._matrix_converter.to_json(value.matrix)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["coilLabels"] = self._coil_labels_converter.numpy_to_json(value["coil_labels"])
+        json_object["receiverNoiseBandwidth"] = self._receiver_noise_bandwidth_converter.numpy_to_json(value["receiver_noise_bandwidth"])
+        json_object["noiseDwellTimeUs"] = self._noise_dwell_time_us_converter.numpy_to_json(value["noise_dwell_time_us"])
+        json_object["sampleCount"] = self._sample_count_converter.numpy_to_json(value["sample_count"])
+        json_object["matrix"] = self._matrix_converter.numpy_to_json(value["matrix"])
+        return json_object
+
+    def from_json(self, json_object: object) -> NoiseCovariance:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return NoiseCovariance(
+            coil_labels=self._coil_labels_converter.from_json(json_object["coilLabels"],),
+            receiver_noise_bandwidth=self._receiver_noise_bandwidth_converter.from_json(json_object["receiverNoiseBandwidth"],),
+            noise_dwell_time_us=self._noise_dwell_time_us_converter.from_json(json_object["noiseDwellTimeUs"],),
+            sample_count=self._sample_count_converter.from_json(json_object["sampleCount"],),
+            matrix=self._matrix_converter.from_json(json_object["matrix"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._coil_labels_converter.from_json_to_numpy(json_object["coilLabels"]),
+            self._receiver_noise_bandwidth_converter.from_json_to_numpy(json_object["receiverNoiseBandwidth"]),
+            self._noise_dwell_time_us_converter.from_json_to_numpy(json_object["noiseDwellTimeUs"]),
+            self._sample_count_converter.from_json_to_numpy(json_object["sampleCount"]),
+            self._matrix_converter.from_json_to_numpy(json_object["matrix"]),
         ) # type:ignore 
 
 
@@ -2676,8 +2771,389 @@ class WaveformConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Waveform[
         ) # type:ignore 
 
 
+class AcquisitionBucketConverter(_ndjson.JsonConverter[AcquisitionBucket, np.void]):
+    def __init__(self) -> None:
+        self._data_converter = _ndjson.VectorConverter(AcquisitionConverter())
+        self._ref_converter = _ndjson.VectorConverter(AcquisitionConverter())
+        self._datastats_converter = _ndjson.VectorConverter(EncodingLimitsTypeConverter())
+        self._refstats_converter = _ndjson.VectorConverter(EncodingLimitsTypeConverter())
+        self._waveforms_converter = _ndjson.VectorConverter(WaveformConverter(_ndjson.uint32_converter))
+        super().__init__(np.dtype([
+            ("data", self._data_converter.overall_dtype()),
+            ("ref", self._ref_converter.overall_dtype()),
+            ("datastats", self._datastats_converter.overall_dtype()),
+            ("refstats", self._refstats_converter.overall_dtype()),
+            ("waveforms", self._waveforms_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: AcquisitionBucket) -> object:
+        if not isinstance(value, AcquisitionBucket): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'AcquisitionBucket' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.to_json(value.data)
+        json_object["ref"] = self._ref_converter.to_json(value.ref)
+        json_object["datastats"] = self._datastats_converter.to_json(value.datastats)
+        json_object["refstats"] = self._refstats_converter.to_json(value.refstats)
+        json_object["waveforms"] = self._waveforms_converter.to_json(value.waveforms)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        json_object["ref"] = self._ref_converter.numpy_to_json(value["ref"])
+        json_object["datastats"] = self._datastats_converter.numpy_to_json(value["datastats"])
+        json_object["refstats"] = self._refstats_converter.numpy_to_json(value["refstats"])
+        json_object["waveforms"] = self._waveforms_converter.numpy_to_json(value["waveforms"])
+        return json_object
+
+    def from_json(self, json_object: object) -> AcquisitionBucket:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return AcquisitionBucket(
+            data=self._data_converter.from_json(json_object["data"],),
+            ref=self._ref_converter.from_json(json_object["ref"],),
+            datastats=self._datastats_converter.from_json(json_object["datastats"],),
+            refstats=self._refstats_converter.from_json(json_object["refstats"],),
+            waveforms=self._waveforms_converter.from_json(json_object["waveforms"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._data_converter.from_json_to_numpy(json_object["data"]),
+            self._ref_converter.from_json_to_numpy(json_object["ref"]),
+            self._datastats_converter.from_json_to_numpy(json_object["datastats"]),
+            self._refstats_converter.from_json_to_numpy(json_object["refstats"]),
+            self._waveforms_converter.from_json_to_numpy(json_object["waveforms"]),
+        ) # type:ignore 
+
+
+class SamplingLimitsConverter(_ndjson.JsonConverter[SamplingLimits, np.void]):
+    def __init__(self) -> None:
+        self._kspace_encoding_step_0_converter = LimitTypeConverter()
+        self._kspace_encoding_step_1_converter = LimitTypeConverter()
+        self._kspace_encoding_step_2_converter = LimitTypeConverter()
+        super().__init__(np.dtype([
+            ("kspace_encoding_step_0", self._kspace_encoding_step_0_converter.overall_dtype()),
+            ("kspace_encoding_step_1", self._kspace_encoding_step_1_converter.overall_dtype()),
+            ("kspace_encoding_step_2", self._kspace_encoding_step_2_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: SamplingLimits) -> object:
+        if not isinstance(value, SamplingLimits): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'SamplingLimits' instance")
+        json_object = {}
+
+        json_object["kspaceEncodingStep0"] = self._kspace_encoding_step_0_converter.to_json(value.kspace_encoding_step_0)
+        json_object["kspaceEncodingStep1"] = self._kspace_encoding_step_1_converter.to_json(value.kspace_encoding_step_1)
+        json_object["kspaceEncodingStep2"] = self._kspace_encoding_step_2_converter.to_json(value.kspace_encoding_step_2)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["kspaceEncodingStep0"] = self._kspace_encoding_step_0_converter.numpy_to_json(value["kspace_encoding_step_0"])
+        json_object["kspaceEncodingStep1"] = self._kspace_encoding_step_1_converter.numpy_to_json(value["kspace_encoding_step_1"])
+        json_object["kspaceEncodingStep2"] = self._kspace_encoding_step_2_converter.numpy_to_json(value["kspace_encoding_step_2"])
+        return json_object
+
+    def from_json(self, json_object: object) -> SamplingLimits:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return SamplingLimits(
+            kspace_encoding_step_0=self._kspace_encoding_step_0_converter.from_json(json_object["kspaceEncodingStep0"],),
+            kspace_encoding_step_1=self._kspace_encoding_step_1_converter.from_json(json_object["kspaceEncodingStep1"],),
+            kspace_encoding_step_2=self._kspace_encoding_step_2_converter.from_json(json_object["kspaceEncodingStep2"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._kspace_encoding_step_0_converter.from_json_to_numpy(json_object["kspaceEncodingStep0"]),
+            self._kspace_encoding_step_1_converter.from_json_to_numpy(json_object["kspaceEncodingStep1"]),
+            self._kspace_encoding_step_2_converter.from_json_to_numpy(json_object["kspaceEncodingStep2"]),
+        ) # type:ignore 
+
+
+class SamplingDescriptionConverter(_ndjson.JsonConverter[SamplingDescription, np.void]):
+    def __init__(self) -> None:
+        self._encoded_fov_converter = FieldOfViewMmConverter()
+        self._recon_fov_converter = FieldOfViewMmConverter()
+        self._encoded_matrix_converter = MatrixSizeTypeConverter()
+        self._recon_matrix_converter = MatrixSizeTypeConverter()
+        self._sampling_limits_converter = SamplingLimitsConverter()
+        super().__init__(np.dtype([
+            ("encoded_fov", self._encoded_fov_converter.overall_dtype()),
+            ("recon_fov", self._recon_fov_converter.overall_dtype()),
+            ("encoded_matrix", self._encoded_matrix_converter.overall_dtype()),
+            ("recon_matrix", self._recon_matrix_converter.overall_dtype()),
+            ("sampling_limits", self._sampling_limits_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: SamplingDescription) -> object:
+        if not isinstance(value, SamplingDescription): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'SamplingDescription' instance")
+        json_object = {}
+
+        json_object["encodedFOV"] = self._encoded_fov_converter.to_json(value.encoded_fov)
+        json_object["reconFOV"] = self._recon_fov_converter.to_json(value.recon_fov)
+        json_object["encodedMatrix"] = self._encoded_matrix_converter.to_json(value.encoded_matrix)
+        json_object["reconMatrix"] = self._recon_matrix_converter.to_json(value.recon_matrix)
+        json_object["samplingLimits"] = self._sampling_limits_converter.to_json(value.sampling_limits)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["encodedFOV"] = self._encoded_fov_converter.numpy_to_json(value["encoded_fov"])
+        json_object["reconFOV"] = self._recon_fov_converter.numpy_to_json(value["recon_fov"])
+        json_object["encodedMatrix"] = self._encoded_matrix_converter.numpy_to_json(value["encoded_matrix"])
+        json_object["reconMatrix"] = self._recon_matrix_converter.numpy_to_json(value["recon_matrix"])
+        json_object["samplingLimits"] = self._sampling_limits_converter.numpy_to_json(value["sampling_limits"])
+        return json_object
+
+    def from_json(self, json_object: object) -> SamplingDescription:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return SamplingDescription(
+            encoded_fov=self._encoded_fov_converter.from_json(json_object["encodedFOV"],),
+            recon_fov=self._recon_fov_converter.from_json(json_object["reconFOV"],),
+            encoded_matrix=self._encoded_matrix_converter.from_json(json_object["encodedMatrix"],),
+            recon_matrix=self._recon_matrix_converter.from_json(json_object["reconMatrix"],),
+            sampling_limits=self._sampling_limits_converter.from_json(json_object["samplingLimits"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._encoded_fov_converter.from_json_to_numpy(json_object["encodedFOV"]),
+            self._recon_fov_converter.from_json_to_numpy(json_object["reconFOV"]),
+            self._encoded_matrix_converter.from_json_to_numpy(json_object["encodedMatrix"]),
+            self._recon_matrix_converter.from_json_to_numpy(json_object["reconMatrix"]),
+            self._sampling_limits_converter.from_json_to_numpy(json_object["samplingLimits"]),
+        ) # type:ignore 
+
+
+class ReconBufferConverter(_ndjson.JsonConverter[ReconBuffer, np.void]):
+    def __init__(self) -> None:
+        self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 7)
+        self._trajectory_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 7)
+        self._density_converter = _ndjson.OptionalConverter(_ndjson.NDArrayConverter(_ndjson.float32_converter, 6))
+        self._headers_converter = _ndjson.NDArrayConverter(AcquisitionHeaderConverter(), 5)
+        self._sampling_converter = SamplingDescriptionConverter()
+        super().__init__(np.dtype([
+            ("data", self._data_converter.overall_dtype()),
+            ("trajectory", self._trajectory_converter.overall_dtype()),
+            ("density", self._density_converter.overall_dtype()),
+            ("headers", self._headers_converter.overall_dtype()),
+            ("sampling", self._sampling_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: ReconBuffer) -> object:
+        if not isinstance(value, ReconBuffer): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'ReconBuffer' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.to_json(value.data)
+        json_object["trajectory"] = self._trajectory_converter.to_json(value.trajectory)
+        if value.density is not None:
+            json_object["density"] = self._density_converter.to_json(value.density)
+        json_object["headers"] = self._headers_converter.to_json(value.headers)
+        json_object["sampling"] = self._sampling_converter.to_json(value.sampling)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        json_object["trajectory"] = self._trajectory_converter.numpy_to_json(value["trajectory"])
+        if (field_val := value["density"]) is not None:
+            json_object["density"] = self._density_converter.numpy_to_json(field_val)
+        json_object["headers"] = self._headers_converter.numpy_to_json(value["headers"])
+        json_object["sampling"] = self._sampling_converter.numpy_to_json(value["sampling"])
+        return json_object
+
+    def from_json(self, json_object: object) -> ReconBuffer:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return ReconBuffer(
+            data=self._data_converter.from_json(json_object["data"],),
+            trajectory=self._trajectory_converter.from_json(json_object["trajectory"],),
+            density=self._density_converter.from_json(json_object.get("density")),
+            headers=self._headers_converter.from_json(json_object["headers"],),
+            sampling=self._sampling_converter.from_json(json_object["sampling"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._data_converter.from_json_to_numpy(json_object["data"]),
+            self._trajectory_converter.from_json_to_numpy(json_object["trajectory"]),
+            self._density_converter.from_json_to_numpy(json_object.get("density")),
+            self._headers_converter.from_json_to_numpy(json_object["headers"]),
+            self._sampling_converter.from_json_to_numpy(json_object["sampling"]),
+        ) # type:ignore 
+
+
+class ReconAssemblyConverter(_ndjson.JsonConverter[ReconAssembly, np.void]):
+    def __init__(self) -> None:
+        self._data_converter = ReconBufferConverter()
+        self._ref_converter = _ndjson.OptionalConverter(ReconBufferConverter())
+        super().__init__(np.dtype([
+            ("data", self._data_converter.overall_dtype()),
+            ("ref", self._ref_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: ReconAssembly) -> object:
+        if not isinstance(value, ReconAssembly): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'ReconAssembly' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.to_json(value.data)
+        if value.ref is not None:
+            json_object["ref"] = self._ref_converter.to_json(value.ref)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        if (field_val := value["ref"]) is not None:
+            json_object["ref"] = self._ref_converter.numpy_to_json(field_val)
+        return json_object
+
+    def from_json(self, json_object: object) -> ReconAssembly:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return ReconAssembly(
+            data=self._data_converter.from_json(json_object["data"],),
+            ref=self._ref_converter.from_json(json_object.get("ref")),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._data_converter.from_json_to_numpy(json_object["data"]),
+            self._ref_converter.from_json_to_numpy(json_object.get("ref")),
+        ) # type:ignore 
+
+
+class ReconDataConverter(_ndjson.JsonConverter[ReconData, np.void]):
+    def __init__(self) -> None:
+        self._buffers_converter = _ndjson.VectorConverter(ReconAssemblyConverter())
+        super().__init__(np.dtype([
+            ("buffers", self._buffers_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: ReconData) -> object:
+        if not isinstance(value, ReconData): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'ReconData' instance")
+        json_object = {}
+
+        json_object["buffers"] = self._buffers_converter.to_json(value.buffers)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["buffers"] = self._buffers_converter.numpy_to_json(value["buffers"])
+        return json_object
+
+    def from_json(self, json_object: object) -> ReconData:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return ReconData(
+            buffers=self._buffers_converter.from_json(json_object["buffers"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._buffers_converter.from_json_to_numpy(json_object["buffers"]),
+        ) # type:ignore 
+
+
+class ImageArrayConverter(_ndjson.JsonConverter[ImageArray, np.void]):
+    def __init__(self) -> None:
+        self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 7)
+        self._headers_converter = _ndjson.NDArrayConverter(ImageHeaderConverter(), 3)
+        self._meta_converter = _ndjson.NDArrayConverter(_ndjson.MapConverter(_ndjson.string_converter, _ndjson.VectorConverter(_ndjson.UnionConverter(ImageMetaValue, [(ImageMetaValue.String, _ndjson.string_converter, [str]), (ImageMetaValue.Int64, _ndjson.int64_converter, [int, float]), (ImageMetaValue.Float64, _ndjson.float64_converter, [int, float])], False))), 3)
+        self._waveforms_converter = _ndjson.VectorConverter(WaveformConverter(_ndjson.uint32_converter))
+        super().__init__(np.dtype([
+            ("data", self._data_converter.overall_dtype()),
+            ("headers", self._headers_converter.overall_dtype()),
+            ("meta", self._meta_converter.overall_dtype()),
+            ("waveforms", self._waveforms_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: ImageArray) -> object:
+        if not isinstance(value, ImageArray): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'ImageArray' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.to_json(value.data)
+        json_object["headers"] = self._headers_converter.to_json(value.headers)
+        json_object["meta"] = self._meta_converter.to_json(value.meta)
+        json_object["waveforms"] = self._waveforms_converter.to_json(value.waveforms)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        json_object["headers"] = self._headers_converter.numpy_to_json(value["headers"])
+        json_object["meta"] = self._meta_converter.numpy_to_json(value["meta"])
+        json_object["waveforms"] = self._waveforms_converter.numpy_to_json(value["waveforms"])
+        return json_object
+
+    def from_json(self, json_object: object) -> ImageArray:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return ImageArray(
+            data=self._data_converter.from_json(json_object["data"],),
+            headers=self._headers_converter.from_json(json_object["headers"],),
+            meta=self._meta_converter.from_json(json_object["meta"],),
+            waveforms=self._waveforms_converter.from_json(json_object["waveforms"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._data_converter.from_json_to_numpy(json_object["data"]),
+            self._headers_converter.from_json_to_numpy(json_object["headers"]),
+            self._meta_converter.from_json_to_numpy(json_object["meta"]),
+            self._waveforms_converter.from_json_to_numpy(json_object["waveforms"]),
+        ) # type:ignore 
+
+
 class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
-    """NDJson writer for the Mrd protocol."""
+    """NDJson writer for the Mrd protocol.
+
+    The MRD Protocol
+    """
 
 
     def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
@@ -2690,14 +3166,17 @@ class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
         self._write_json_line({"header": json_value})
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict])], False)
         for item in value:
             json_item = converter.to_json(item)
             self._write_json_line({"data": json_item})
 
 
 class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
-    """NDJson writer for the Mrd protocol."""
+    """NDJson writer for the Mrd protocol.
+
+    The MRD Protocol
+    """
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
@@ -2710,7 +3189,40 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
         return converter.from_json(json_object)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict])], False)
         while (json_object := self._read_json_line("data", False)) is not _ndjson.MISSING_SENTINEL:
             yield converter.from_json(json_object)
+
+class NDJsonMrdNoiseCovarianceWriter(_ndjson.NDJsonProtocolWriter, MrdNoiseCovarianceWriterBase):
+    """NDJson writer for the MrdNoiseCovariance protocol.
+
+    Protocol for serializing a noise covariance matrix
+    """
+
+
+    def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
+        MrdNoiseCovarianceWriterBase.__init__(self)
+        _ndjson.NDJsonProtocolWriter.__init__(self, stream, MrdNoiseCovarianceWriterBase.schema)
+
+    def _write_noise_covariance(self, value: NoiseCovariance) -> None:
+        converter = NoiseCovarianceConverter()
+        json_value = converter.to_json(value)
+        self._write_json_line({"noiseCovariance": json_value})
+
+
+class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovarianceReaderBase):
+    """NDJson writer for the MrdNoiseCovariance protocol.
+
+    Protocol for serializing a noise covariance matrix
+    """
+
+
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self)
+        _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
+
+    def _read_noise_covariance(self) -> NoiseCovariance:
+        json_object = self._read_json_line("noiseCovariance", True)
+        converter = NoiseCovarianceConverter()
+        return converter.from_json(json_object)
 

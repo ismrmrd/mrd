@@ -62,25 +62,38 @@ int main(int argc, char** argv) {
   mrd::StreamItem v;
   int image_count = 0;
   while (r.ReadData(v)) {
-    if (!std::holds_alternative<mrd::Image<float>>(v)) {
-      std::cerr << "Stream must contain only floating point images" << std::endl;
+
+    Magick::Image image;
+
+    if (std::holds_alternative<mrd::ImageFloat>(v)) {
+      auto& img = std::get<mrd::ImageFloat>(v);
+
+      // Scale image
+      auto max_value = xt::amax(img.data)();
+      img.data *= 1.0 / max_value;
+
+      image = Magick::Image(img.Cols(), img.Rows(), "I", Magick::ShortPixel, img.data.data());
+    } else if (std::holds_alternative<mrd::ImageUint16>(v)) {
+      auto& img = std::get<mrd::ImageUint16>(v);
+
+      // Scale image
+      auto max_value = xt::amax(img.data)();
+      img.data *= 1.0 / max_value;
+
+      image = Magick::Image(img.Cols(), img.Rows(), "I", Magick::FloatPixel, img.data.data());
+
+    } else {
+      std::cerr << "Stream must contain floating point or unsigned short images" << std::endl;
       return 1;
     }
 
-    auto& img = std::get<mrd::Image<float>>(v);
-
-    // Scale image
-    // TODO: This segfaults when compiled with C++20
-    auto max_value = xt::amax(img.data)();
-    img.data *= 1.0 / max_value;
-
-    Magick::Image image(img.Cols(), img.Rows(), "I", Magick::FloatPixel, img.data.data());
     image.depth(8);
     image.type(Magick::GrayscaleType);
 
     // Use fmt to generate filename from prefix and increment with 6 digits (e.g. prefix_000001.png)
     std::string filename = fmt::format("{}{:06d}.png", prefix, image_count++);
     image.write(filename);
+    std::cerr << "Generated image " << filename << std::endl;
   }
 
   return 0;

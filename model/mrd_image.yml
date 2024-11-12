@@ -31,12 +31,7 @@ ImageData<Y>: !array
     y:
     x:
 
-ImageMetaData: !record
-  fields:
-    name: string
-    value: string
-
-Image<T>: !record
+ImageHeader: !record
   fields:
     # A bit mask of common attributes applicable to individual images
     flags: ImageFlags
@@ -80,12 +75,42 @@ Image<T>: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
+
+
+ImageMetaValue: [string, long, double]
+
+ImageMeta: string->ImageMetaValue*
+
+Image<T>: !record
+  fields:
+    # Image header
+    head: ImageHeader
     # Image data array
     data: ImageData<T>
     # Meta attributes
-    meta: string->string*
+    meta: ImageMeta
   computedFields:
     channels: size(data, "channel")
     slices: size(data, "z")
     rows: size(data, "y")
     cols: size(data, "x")
+
+ImageUint16: Image<uint16>
+ImageInt16: Image<int16>
+ImageUint32: Image<uint>
+ImageInt32: Image<int>
+ImageFloat: Image<float>
+ImageDouble: Image<double>
+ImageComplexFloat: Image<complexfloat>
+ImageComplexDouble: Image<complexdouble>
+
+# Union of all MRD Image types
+AnyImage:
+  - ImageUint16
+  - ImageInt16
+  - ImageUint32
+  - ImageInt32
+  - ImageFloat
+  - ImageDouble
+  - ImageComplexFloat
+  - ImageComplexDouble

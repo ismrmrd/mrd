@@ -11,7 +11,7 @@ on:
 env:
   # Increase this to manually reset the conda environment cache
   CONDA_CACHE_NUMBER: 0
-  YARDL_VERSION: 0.6.1
+  YARDL_VERSION: 0.6.2
 
 defaults:
   run:
@@ -22,9 +22,6 @@ jobs:
   build:
     name: Build and Test C++, Python, MATLAB SDKs
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        cppVersion: [17, 20]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -32,8 +29,11 @@ jobs:
     - name: Configure Build Environment
       uses: ./.github/actions/configure-mrd-build-environment
 
-    - name: Build and Test
-      run: just cpp_version=${{ matrix.cppVersion }} matlab=enabled validate-with-no-changes
+    - name: Build and Test with C++17
+      run: just cpp_version=17 matlab=enabled validate-with-no-changes
+
+    - name: Build and Test with C++20
+      run: just cpp_version=20 matlab=enabled validate-with-no-changes
 
     - name: Package MATLAB toolbox
       run: just build-matlab-toolbox
@@ -61,10 +61,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Set up just command runner
+      uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
     - name: Build and test Docker images
-      run: |
-        ./docker/build-images.sh
-        ./docker/test-docker-images.sh
+      run: just build-docker-images && just test-docker-images
 
   publishDocs:
     name: Publish Documentation
@@ -162,5 +162,7 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Set up just command runner
+      uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
     - name: Push Docker images
-      run: ./docker/build-images.sh --tag "${GITHUB_REF_NAME}" --push
+      run: just build-docker-images --tag "${GITHUB_REF_NAME}" --push

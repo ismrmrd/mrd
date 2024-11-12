@@ -1,0 +1,71 @@
+NoiseCovariance: !record
+  fields:
+    # Comes from Header.acquisitionSystemInformation.coilLabel
+    coilLabels: CoilLabelType*
+    # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
+    receiverNoiseBandwidth: float
+    # Comes from Acquisition.sampleTimeUs
+    noiseDwellTimeUs: float
+    # Number of samples used to compute matrix
+    sampleCount: size
+    # Noise covariance matrix with dimensions [coil, coil]
+    matrix: complexfloat[,]
+
+AcquisitionBucket: !record
+  fields:
+    data: Acquisition*
+    ref: Acquisition*
+    datastats: EncodingLimitsType*
+    refstats: EncodingLimitsType*
+    waveforms: WaveformUint32*
+
+# Sampled range along E0, E1, E2 (for asymmetric echo and partial fourier)
+SamplingLimits: !record
+  fields:
+    kspaceEncodingStep0: LimitType
+    kspaceEncodingStep1: LimitType
+    kspaceEncodingStep2: LimitType
+
+SamplingDescription: !record
+  fields:
+    encodedFOV: FieldOfViewMm
+    reconFOV: FieldOfViewMm
+    encodedMatrix: MatrixSizeType
+    reconMatrix: MatrixSizeType
+    samplingLimits: SamplingLimits
+
+ReconBuffer: !record
+  fields:
+    # Buffered Acquisition data
+    data: complexfloat[loc, s, n, chan, e2, e1, e0]
+    # Buffered Trajectory data
+    trajectory: float[loc, s, n, e2, e1, basis, samples]
+    # Buffered Density weights
+    density: float[loc, s, n, e2, e1, e0]?
+    # Buffered AcquisitionHeaders
+    headers: AcquisitionHeader[loc, s, n, e2, e1]
+    # Sampling details for these Acquisitions
+    sampling: SamplingDescription
+
+ReconAssembly: !record
+  fields:
+    data: ReconBuffer
+    ref: ReconBuffer?
+
+ReconData: !record
+  fields:
+    buffers: ReconAssembly*
+
+
+ImageArray: !record
+  fields:
+    data: complexfloat[loc, s, n, channel, z, y, x]
+    headers: ImageHeader[loc, s, n]
+    meta: ImageMeta[loc, s, n]
+    waveforms: WaveformUint32*
+
+
+Array<T>: !array
+  items: T
+
+ArrayComplexFloat: Array<complexfloat>

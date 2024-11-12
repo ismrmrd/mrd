@@ -23,3 +23,6 @@ Waveform<T>: !record
   computedFields:
     channels: size(data, "channels")
     numberOfSamples: size(data, "samples")
+
+
+WaveformUint32: Waveform<uint32>

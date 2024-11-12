@@ -34,8 +34,8 @@ struct IsTriviallySerializable<mrd::EncodingCounters> {
 };
 
 template <>
-struct IsTriviallySerializable<mrd::Acquisition> {
-  using __T__ = mrd::Acquisition;
+struct IsTriviallySerializable<mrd::AcquisitionHeader> {
+  using __T__ = mrd::AcquisitionHeader;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
     IsTriviallySerializable<decltype(__T__::flags)>::value &&
@@ -57,10 +57,20 @@ struct IsTriviallySerializable<mrd::Acquisition> {
     IsTriviallySerializable<decltype(__T__::patient_table_position)>::value &&
     IsTriviallySerializable<decltype(__T__::user_int)>::value &&
     IsTriviallySerializable<decltype(__T__::user_float)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::flags) + sizeof(__T__::idx) + sizeof(__T__::measurement_uid) + sizeof(__T__::scan_counter) + sizeof(__T__::acquisition_time_stamp) + sizeof(__T__::physiology_time_stamp) + sizeof(__T__::channel_order) + sizeof(__T__::discard_pre) + sizeof(__T__::discard_post) + sizeof(__T__::center_sample) + sizeof(__T__::encoding_space_ref) + sizeof(__T__::sample_time_us) + sizeof(__T__::position) + sizeof(__T__::read_dir) + sizeof(__T__::phase_dir) + sizeof(__T__::slice_dir) + sizeof(__T__::patient_table_position) + sizeof(__T__::user_int) + sizeof(__T__::user_float))) &&
+    offsetof(__T__, flags) < offsetof(__T__, idx) && offsetof(__T__, idx) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, scan_counter) && offsetof(__T__, scan_counter) < offsetof(__T__, acquisition_time_stamp) && offsetof(__T__, acquisition_time_stamp) < offsetof(__T__, physiology_time_stamp) && offsetof(__T__, physiology_time_stamp) < offsetof(__T__, channel_order) && offsetof(__T__, channel_order) < offsetof(__T__, discard_pre) && offsetof(__T__, discard_pre) < offsetof(__T__, discard_post) && offsetof(__T__, discard_post) < offsetof(__T__, center_sample) && offsetof(__T__, center_sample) < offsetof(__T__, encoding_space_ref) && offsetof(__T__, encoding_space_ref) < offsetof(__T__, sample_time_us) && offsetof(__T__, sample_time_us) < offsetof(__T__, position) && offsetof(__T__, position) < offsetof(__T__, read_dir) && offsetof(__T__, read_dir) < offsetof(__T__, phase_dir) && offsetof(__T__, phase_dir) < offsetof(__T__, slice_dir) && offsetof(__T__, slice_dir) < offsetof(__T__, patient_table_position) && offsetof(__T__, patient_table_position) < offsetof(__T__, user_int) && offsetof(__T__, user_int) < offsetof(__T__, user_float);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::Acquisition> {
+  using __T__ = mrd::Acquisition;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::head)>::value &&
     IsTriviallySerializable<decltype(__T__::data)>::value &&
     IsTriviallySerializable<decltype(__T__::trajectory)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::flags) + sizeof(__T__::idx) + sizeof(__T__::measurement_uid) + sizeof(__T__::scan_counter) + sizeof(__T__::acquisition_time_stamp) + sizeof(__T__::physiology_time_stamp) + sizeof(__T__::channel_order) + sizeof(__T__::discard_pre) + sizeof(__T__::discard_post) + sizeof(__T__::center_sample) + sizeof(__T__::encoding_space_ref) + sizeof(__T__::sample_time_us) + sizeof(__T__::position) + sizeof(__T__::read_dir) + sizeof(__T__::phase_dir) + sizeof(__T__::slice_dir) + sizeof(__T__::patient_table_position) + sizeof(__T__::user_int) + sizeof(__T__::user_float) + sizeof(__T__::data) + sizeof(__T__::trajectory))) &&
-    offsetof(__T__, flags) < offsetof(__T__, idx) && offsetof(__T__, idx) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, scan_counter) && offsetof(__T__, scan_counter) < offsetof(__T__, acquisition_time_stamp) && offsetof(__T__, acquisition_time_stamp) < offsetof(__T__, physiology_time_stamp) && offsetof(__T__, physiology_time_stamp) < offsetof(__T__, channel_order) && offsetof(__T__, channel_order) < offsetof(__T__, discard_pre) && offsetof(__T__, discard_pre) < offsetof(__T__, discard_post) && offsetof(__T__, discard_post) < offsetof(__T__, center_sample) && offsetof(__T__, center_sample) < offsetof(__T__, encoding_space_ref) && offsetof(__T__, encoding_space_ref) < offsetof(__T__, sample_time_us) && offsetof(__T__, sample_time_us) < offsetof(__T__, position) && offsetof(__T__, position) < offsetof(__T__, read_dir) && offsetof(__T__, read_dir) < offsetof(__T__, phase_dir) && offsetof(__T__, phase_dir) < offsetof(__T__, slice_dir) && offsetof(__T__, slice_dir) < offsetof(__T__, patient_table_position) && offsetof(__T__, patient_table_position) < offsetof(__T__, user_int) && offsetof(__T__, user_int) < offsetof(__T__, user_float) && offsetof(__T__, user_float) < offsetof(__T__, data) && offsetof(__T__, data) < offsetof(__T__, trajectory);
+    (sizeof(__T__) == (sizeof(__T__::head) + sizeof(__T__::data) + sizeof(__T__::trajectory))) &&
+    offsetof(__T__, head) < offsetof(__T__, data) && offsetof(__T__, data) < offsetof(__T__, trajectory);
 };
 
 template <>
@@ -469,19 +479,8 @@ struct IsTriviallySerializable<mrd::Header> {
 };
 
 template <>
-struct IsTriviallySerializable<mrd::ImageMetaData> {
-  using __T__ = mrd::ImageMetaData;
-  static constexpr bool value = 
-    std::is_standard_layout_v<__T__> &&
-    IsTriviallySerializable<decltype(__T__::name)>::value &&
-    IsTriviallySerializable<decltype(__T__::value)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::name) + sizeof(__T__::value))) &&
-    offsetof(__T__, name) < offsetof(__T__, value);
-};
-
-template <typename T>
-struct IsTriviallySerializable<mrd::Image<T>> {
-  using __T__ = mrd::Image<T>;
+struct IsTriviallySerializable<mrd::ImageHeader> {
+  using __T__ = mrd::ImageHeader;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
     IsTriviallySerializable<decltype(__T__::flags)>::value &&
@@ -505,10 +504,34 @@ struct IsTriviallySerializable<mrd::Image<T>> {
     IsTriviallySerializable<decltype(__T__::image_series_index)>::value &&
     IsTriviallySerializable<decltype(__T__::user_int)>::value &&
     IsTriviallySerializable<decltype(__T__::user_float)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::flags) + sizeof(__T__::measurement_uid) + sizeof(__T__::field_of_view) + sizeof(__T__::position) + sizeof(__T__::col_dir) + sizeof(__T__::line_dir) + sizeof(__T__::slice_dir) + sizeof(__T__::patient_table_position) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::acquisition_time_stamp) + sizeof(__T__::physiology_time_stamp) + sizeof(__T__::image_type) + sizeof(__T__::image_index) + sizeof(__T__::image_series_index) + sizeof(__T__::user_int) + sizeof(__T__::user_float))) &&
+    offsetof(__T__, flags) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, field_of_view) && offsetof(__T__, field_of_view) < offsetof(__T__, position) && offsetof(__T__, position) < offsetof(__T__, col_dir) && offsetof(__T__, col_dir) < offsetof(__T__, line_dir) && offsetof(__T__, line_dir) < offsetof(__T__, slice_dir) && offsetof(__T__, slice_dir) < offsetof(__T__, patient_table_position) && offsetof(__T__, patient_table_position) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, acquisition_time_stamp) && offsetof(__T__, acquisition_time_stamp) < offsetof(__T__, physiology_time_stamp) && offsetof(__T__, physiology_time_stamp) < offsetof(__T__, image_type) && offsetof(__T__, image_type) < offsetof(__T__, image_index) && offsetof(__T__, image_index) < offsetof(__T__, image_series_index) && offsetof(__T__, image_series_index) < offsetof(__T__, user_int) && offsetof(__T__, user_int) < offsetof(__T__, user_float);
+};
+
+template <typename T>
+struct IsTriviallySerializable<mrd::Image<T>> {
+  using __T__ = mrd::Image<T>;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::head)>::value &&
     IsTriviallySerializable<decltype(__T__::data)>::value &&
     IsTriviallySerializable<decltype(__T__::meta)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::flags) + sizeof(__T__::measurement_uid) + sizeof(__T__::field_of_view) + sizeof(__T__::position) + sizeof(__T__::col_dir) + sizeof(__T__::line_dir) + sizeof(__T__::slice_dir) + sizeof(__T__::patient_table_position) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::acquisition_time_stamp) + sizeof(__T__::physiology_time_stamp) + sizeof(__T__::image_type) + sizeof(__T__::image_index) + sizeof(__T__::image_series_index) + sizeof(__T__::user_int) + sizeof(__T__::user_float) + sizeof(__T__::data) + sizeof(__T__::meta))) &&
-    offsetof(__T__, flags) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, field_of_view) && offsetof(__T__, field_of_view) < offsetof(__T__, position) && offsetof(__T__, position) < offsetof(__T__, col_dir) && offsetof(__T__, col_dir) < offsetof(__T__, line_dir) && offsetof(__T__, line_dir) < offsetof(__T__, slice_dir) && offsetof(__T__, slice_dir) < offsetof(__T__, patient_table_position) && offsetof(__T__, patient_table_position) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, acquisition_time_stamp) && offsetof(__T__, acquisition_time_stamp) < offsetof(__T__, physiology_time_stamp) && offsetof(__T__, physiology_time_stamp) < offsetof(__T__, image_type) && offsetof(__T__, image_type) < offsetof(__T__, image_index) && offsetof(__T__, image_index) < offsetof(__T__, image_series_index) && offsetof(__T__, image_series_index) < offsetof(__T__, user_int) && offsetof(__T__, user_int) < offsetof(__T__, user_float) && offsetof(__T__, user_float) < offsetof(__T__, data) && offsetof(__T__, data) < offsetof(__T__, meta);
+    (sizeof(__T__) == (sizeof(__T__::head) + sizeof(__T__::data) + sizeof(__T__::meta))) &&
+    offsetof(__T__, head) < offsetof(__T__, data) && offsetof(__T__, data) < offsetof(__T__, meta);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::NoiseCovariance> {
+  using __T__ = mrd::NoiseCovariance;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::coil_labels)>::value &&
+    IsTriviallySerializable<decltype(__T__::receiver_noise_bandwidth)>::value &&
+    IsTriviallySerializable<decltype(__T__::noise_dwell_time_us)>::value &&
+    IsTriviallySerializable<decltype(__T__::sample_count)>::value &&
+    IsTriviallySerializable<decltype(__T__::matrix)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::coil_labels) + sizeof(__T__::receiver_noise_bandwidth) + sizeof(__T__::noise_dwell_time_us) + sizeof(__T__::sample_count) + sizeof(__T__::matrix))) &&
+    offsetof(__T__, coil_labels) < offsetof(__T__, receiver_noise_bandwidth) && offsetof(__T__, receiver_noise_bandwidth) < offsetof(__T__, noise_dwell_time_us) && offsetof(__T__, noise_dwell_time_us) < offsetof(__T__, sample_count) && offsetof(__T__, sample_count) < offsetof(__T__, matrix);
 };
 
 template <typename T>
@@ -527,14 +550,256 @@ struct IsTriviallySerializable<mrd::Waveform<T>> {
     offsetof(__T__, flags) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, scan_counter) && offsetof(__T__, scan_counter) < offsetof(__T__, time_stamp) && offsetof(__T__, time_stamp) < offsetof(__T__, sample_time_us) && offsetof(__T__, sample_time_us) < offsetof(__T__, waveform_id) && offsetof(__T__, waveform_id) < offsetof(__T__, data);
 };
 
+template <>
+struct IsTriviallySerializable<mrd::AcquisitionBucket> {
+  using __T__ = mrd::AcquisitionBucket;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::data)>::value &&
+    IsTriviallySerializable<decltype(__T__::ref)>::value &&
+    IsTriviallySerializable<decltype(__T__::datastats)>::value &&
+    IsTriviallySerializable<decltype(__T__::refstats)>::value &&
+    IsTriviallySerializable<decltype(__T__::waveforms)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::data) + sizeof(__T__::ref) + sizeof(__T__::datastats) + sizeof(__T__::refstats) + sizeof(__T__::waveforms))) &&
+    offsetof(__T__, data) < offsetof(__T__, ref) && offsetof(__T__, ref) < offsetof(__T__, datastats) && offsetof(__T__, datastats) < offsetof(__T__, refstats) && offsetof(__T__, refstats) < offsetof(__T__, waveforms);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::SamplingLimits> {
+  using __T__ = mrd::SamplingLimits;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::kspace_encoding_step_0)>::value &&
+    IsTriviallySerializable<decltype(__T__::kspace_encoding_step_1)>::value &&
+    IsTriviallySerializable<decltype(__T__::kspace_encoding_step_2)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::kspace_encoding_step_0) + sizeof(__T__::kspace_encoding_step_1) + sizeof(__T__::kspace_encoding_step_2))) &&
+    offsetof(__T__, kspace_encoding_step_0) < offsetof(__T__, kspace_encoding_step_1) && offsetof(__T__, kspace_encoding_step_1) < offsetof(__T__, kspace_encoding_step_2);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::SamplingDescription> {
+  using __T__ = mrd::SamplingDescription;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::encoded_fov)>::value &&
+    IsTriviallySerializable<decltype(__T__::recon_fov)>::value &&
+    IsTriviallySerializable<decltype(__T__::encoded_matrix)>::value &&
+    IsTriviallySerializable<decltype(__T__::recon_matrix)>::value &&
+    IsTriviallySerializable<decltype(__T__::sampling_limits)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::encoded_fov) + sizeof(__T__::recon_fov) + sizeof(__T__::encoded_matrix) + sizeof(__T__::recon_matrix) + sizeof(__T__::sampling_limits))) &&
+    offsetof(__T__, encoded_fov) < offsetof(__T__, recon_fov) && offsetof(__T__, recon_fov) < offsetof(__T__, encoded_matrix) && offsetof(__T__, encoded_matrix) < offsetof(__T__, recon_matrix) && offsetof(__T__, recon_matrix) < offsetof(__T__, sampling_limits);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::ReconBuffer> {
+  using __T__ = mrd::ReconBuffer;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::data)>::value &&
+    IsTriviallySerializable<decltype(__T__::trajectory)>::value &&
+    IsTriviallySerializable<decltype(__T__::density)>::value &&
+    IsTriviallySerializable<decltype(__T__::headers)>::value &&
+    IsTriviallySerializable<decltype(__T__::sampling)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::data) + sizeof(__T__::trajectory) + sizeof(__T__::density) + sizeof(__T__::headers) + sizeof(__T__::sampling))) &&
+    offsetof(__T__, data) < offsetof(__T__, trajectory) && offsetof(__T__, trajectory) < offsetof(__T__, density) && offsetof(__T__, density) < offsetof(__T__, headers) && offsetof(__T__, headers) < offsetof(__T__, sampling);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::ReconAssembly> {
+  using __T__ = mrd::ReconAssembly;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::data)>::value &&
+    IsTriviallySerializable<decltype(__T__::ref)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::data) + sizeof(__T__::ref))) &&
+    offsetof(__T__, data) < offsetof(__T__, ref);
+};
+
+template <>
+struct IsTriviallySerializable<mrd::ReconData> {
+  using __T__ = mrd::ReconData;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::buffers)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::buffers)));
+};
+
+template <>
+struct IsTriviallySerializable<mrd::ImageArray> {
+  using __T__ = mrd::ImageArray;
+  static constexpr bool value = 
+    std::is_standard_layout_v<__T__> &&
+    IsTriviallySerializable<decltype(__T__::data)>::value &&
+    IsTriviallySerializable<decltype(__T__::headers)>::value &&
+    IsTriviallySerializable<decltype(__T__::meta)>::value &&
+    IsTriviallySerializable<decltype(__T__::waveforms)>::value &&
+    (sizeof(__T__) == (sizeof(__T__::data) + sizeof(__T__::headers) + sizeof(__T__::meta) + sizeof(__T__::waveforms))) &&
+    offsetof(__T__, data) < offsetof(__T__, headers) && offsetof(__T__, headers) < offsetof(__T__, meta) && offsetof(__T__, meta) < offsetof(__T__, waveforms);
+};
+
 #ifndef _MSC_VER
 #pragma GCC diagnostic pop // #pragma GCC diagnostic ignored "-Winvalid-offsetof" 
 #endif
 } //namespace yardl::binary 
 
 namespace {
-template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2, typename T3, yardl::binary::Writer<T3> WriteT3, typename T4, yardl::binary::Writer<T4> WriteT4, typename T5, yardl::binary::Writer<T5> WriteT5, typename T6, yardl::binary::Writer<T6> WriteT6, typename T7, yardl::binary::Writer<T7> WriteT7, typename T8, yardl::binary::Writer<T8> WriteT8, typename T9, yardl::binary::Writer<T9> WriteT9>
-void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> const& value) {
+template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2>
+void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2> const& value) {
+  yardl::binary::WriteInteger(stream, value.index());
+  switch (value.index()) {
+  case 0: {
+    T0 const& v = std::get<0>(value);
+    WriteT0(stream, v);
+    break;
+  }
+  case 1: {
+    T1 const& v = std::get<1>(value);
+    WriteT1(stream, v);
+    break;
+  }
+  case 2: {
+    T2 const& v = std::get<2>(value);
+    WriteT2(stream, v);
+    break;
+  }
+  default: throw std::runtime_error("Invalid union index.");
+  }
+}
+
+template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2>
+void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2>& value) {
+  size_t index;
+  yardl::binary::ReadInteger(stream, index);
+  switch (index) {
+    case 0: {
+      T0 v;
+      ReadT0(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 1: {
+      T1 v;
+      ReadT1(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 2: {
+      T2 v;
+      ReadT2(stream, v);
+      value = std::move(v);
+      break;
+    }
+    default: throw std::runtime_error("Invalid union index.");
+  }
+}
+
+template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2, typename T3, yardl::binary::Writer<T3> WriteT3, typename T4, yardl::binary::Writer<T4> WriteT4, typename T5, yardl::binary::Writer<T5> WriteT5, typename T6, yardl::binary::Writer<T6> WriteT6, typename T7, yardl::binary::Writer<T7> WriteT7>
+void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7> const& value) {
+  yardl::binary::WriteInteger(stream, value.index());
+  switch (value.index()) {
+  case 0: {
+    T0 const& v = std::get<0>(value);
+    WriteT0(stream, v);
+    break;
+  }
+  case 1: {
+    T1 const& v = std::get<1>(value);
+    WriteT1(stream, v);
+    break;
+  }
+  case 2: {
+    T2 const& v = std::get<2>(value);
+    WriteT2(stream, v);
+    break;
+  }
+  case 3: {
+    T3 const& v = std::get<3>(value);
+    WriteT3(stream, v);
+    break;
+  }
+  case 4: {
+    T4 const& v = std::get<4>(value);
+    WriteT4(stream, v);
+    break;
+  }
+  case 5: {
+    T5 const& v = std::get<5>(value);
+    WriteT5(stream, v);
+    break;
+  }
+  case 6: {
+    T6 const& v = std::get<6>(value);
+    WriteT6(stream, v);
+    break;
+  }
+  case 7: {
+    T7 const& v = std::get<7>(value);
+    WriteT7(stream, v);
+    break;
+  }
+  default: throw std::runtime_error("Invalid union index.");
+  }
+}
+
+template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2, typename T3, yardl::binary::Reader<T3> ReadT3, typename T4, yardl::binary::Reader<T4> ReadT4, typename T5, yardl::binary::Reader<T5> ReadT5, typename T6, yardl::binary::Reader<T6> ReadT6, typename T7, yardl::binary::Reader<T7> ReadT7>
+void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7>& value) {
+  size_t index;
+  yardl::binary::ReadInteger(stream, index);
+  switch (index) {
+    case 0: {
+      T0 v;
+      ReadT0(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 1: {
+      T1 v;
+      ReadT1(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 2: {
+      T2 v;
+      ReadT2(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 3: {
+      T3 v;
+      ReadT3(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 4: {
+      T4 v;
+      ReadT4(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 5: {
+      T5 v;
+      ReadT5(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 6: {
+      T6 v;
+      ReadT6(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 7: {
+      T7 v;
+      ReadT7(stream, v);
+      value = std::move(v);
+      break;
+    }
+    default: throw std::runtime_error("Invalid union index.");
+  }
+}
+
+template<typename T0, yardl::binary::Writer<T0> WriteT0, typename T1, yardl::binary::Writer<T1> WriteT1, typename T2, yardl::binary::Writer<T2> WriteT2, typename T3, yardl::binary::Writer<T3> WriteT3, typename T4, yardl::binary::Writer<T4> WriteT4, typename T5, yardl::binary::Writer<T5> WriteT5, typename T6, yardl::binary::Writer<T6> WriteT6, typename T7, yardl::binary::Writer<T7> WriteT7, typename T8, yardl::binary::Writer<T8> WriteT8, typename T9, yardl::binary::Writer<T9> WriteT9, typename T10, yardl::binary::Writer<T10> WriteT10, typename T11, yardl::binary::Writer<T11> WriteT11, typename T12, yardl::binary::Writer<T12> WriteT12, typename T13, yardl::binary::Writer<T13> WriteT13>
+void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> const& value) {
   yardl::binary::WriteInteger(stream, value.index());
   switch (value.index()) {
   case 0: {
@@ -587,12 +852,32 @@ void WriteUnion(yardl::binary::CodedOutputStream& stream, std::variant<T0, T1, T
     WriteT9(stream, v);
     break;
   }
+  case 10: {
+    T10 const& v = std::get<10>(value);
+    WriteT10(stream, v);
+    break;
+  }
+  case 11: {
+    T11 const& v = std::get<11>(value);
+    WriteT11(stream, v);
+    break;
+  }
+  case 12: {
+    T12 const& v = std::get<12>(value);
+    WriteT12(stream, v);
+    break;
+  }
+  case 13: {
+    T13 const& v = std::get<13>(value);
+    WriteT13(stream, v);
+    break;
+  }
   default: throw std::runtime_error("Invalid union index.");
   }
 }
 
-template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2, typename T3, yardl::binary::Reader<T3> ReadT3, typename T4, yardl::binary::Reader<T4> ReadT4, typename T5, yardl::binary::Reader<T5> ReadT5, typename T6, yardl::binary::Reader<T6> ReadT6, typename T7, yardl::binary::Reader<T7> ReadT7, typename T8, yardl::binary::Reader<T8> ReadT8, typename T9, yardl::binary::Reader<T9> ReadT9>
-void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>& value) {
+template<typename T0, yardl::binary::Reader<T0> ReadT0, typename T1, yardl::binary::Reader<T1> ReadT1, typename T2, yardl::binary::Reader<T2> ReadT2, typename T3, yardl::binary::Reader<T3> ReadT3, typename T4, yardl::binary::Reader<T4> ReadT4, typename T5, yardl::binary::Reader<T5> ReadT5, typename T6, yardl::binary::Reader<T6> ReadT6, typename T7, yardl::binary::Reader<T7> ReadT7, typename T8, yardl::binary::Reader<T8> ReadT8, typename T9, yardl::binary::Reader<T9> ReadT9, typename T10, yardl::binary::Reader<T10> ReadT10, typename T11, yardl::binary::Reader<T11> ReadT11, typename T12, yardl::binary::Reader<T12> ReadT12, typename T13, yardl::binary::Reader<T13> ReadT13>
+void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>& value) {
   size_t index;
   yardl::binary::ReadInteger(stream, index);
   switch (index) {
@@ -653,6 +938,30 @@ void ReadUnion(yardl::binary::CodedInputStream& stream, std::variant<T0, T1, T2,
     case 9: {
       T9 v;
       ReadT9(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 10: {
+      T10 v;
+      ReadT10(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 11: {
+      T11 v;
+      ReadT11(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 12: {
+      T12 v;
+      ReadT12(stream, v);
+      value = std::move(v);
+      break;
+    }
+    case 13: {
+      T13 v;
+      ReadT13(stream, v);
       value = std::move(v);
       break;
     }
@@ -735,8 +1044,8 @@ namespace {
   yardl::binary::ReadNDArray<float, yardl::binary::ReadFloatingPoint, 2>(stream, value);
 }
 
-[[maybe_unused]] void WriteAcquisition(yardl::binary::CodedOutputStream& stream, mrd::Acquisition const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Acquisition>::value) {
+[[maybe_unused]] void WriteAcquisitionHeader(yardl::binary::CodedOutputStream& stream, mrd::AcquisitionHeader const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AcquisitionHeader>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
@@ -760,12 +1069,10 @@ namespace {
   yardl::binary::WriteFixedNDArray<float, yardl::binary::WriteFloatingPoint, 3>(stream, value.patient_table_position);
   yardl::binary::WriteVector<int32_t, yardl::binary::WriteInteger>(stream, value.user_int);
   yardl::binary::WriteVector<float, yardl::binary::WriteFloatingPoint>(stream, value.user_float);
-  mrd::binary::WriteAcquisitionData(stream, value.data);
-  mrd::binary::WriteTrajectoryData(stream, value.trajectory);
 }
 
-[[maybe_unused]] void ReadAcquisition(yardl::binary::CodedInputStream& stream, mrd::Acquisition& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Acquisition>::value) {
+[[maybe_unused]] void ReadAcquisitionHeader(yardl::binary::CodedInputStream& stream, mrd::AcquisitionHeader& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AcquisitionHeader>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
@@ -789,6 +1096,26 @@ namespace {
   yardl::binary::ReadFixedNDArray<float, yardl::binary::ReadFloatingPoint, 3>(stream, value.patient_table_position);
   yardl::binary::ReadVector<int32_t, yardl::binary::ReadInteger>(stream, value.user_int);
   yardl::binary::ReadVector<float, yardl::binary::ReadFloatingPoint>(stream, value.user_float);
+}
+
+[[maybe_unused]] void WriteAcquisition(yardl::binary::CodedOutputStream& stream, mrd::Acquisition const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Acquisition>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteAcquisitionHeader(stream, value.head);
+  mrd::binary::WriteAcquisitionData(stream, value.data);
+  mrd::binary::WriteTrajectoryData(stream, value.trajectory);
+}
+
+[[maybe_unused]] void ReadAcquisition(yardl::binary::CodedInputStream& stream, mrd::Acquisition& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Acquisition>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadAcquisitionHeader(stream, value.head);
   mrd::binary::ReadAcquisitionData(stream, value.data);
   mrd::binary::ReadTrajectoryData(stream, value.trajectory);
 }
@@ -1569,29 +1896,8 @@ template<typename Y, yardl::binary::Reader<Y> ReadY>
   yardl::binary::ReadNDArray<Y, ReadY, 4>(stream, value);
 }
 
-[[maybe_unused]] void WriteImageMetaData(yardl::binary::CodedOutputStream& stream, mrd::ImageMetaData const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageMetaData>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::WriteString(stream, value.name);
-  yardl::binary::WriteString(stream, value.value);
-}
-
-[[maybe_unused]] void ReadImageMetaData(yardl::binary::CodedInputStream& stream, mrd::ImageMetaData& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageMetaData>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::ReadString(stream, value.name);
-  yardl::binary::ReadString(stream, value.value);
-}
-
-template<typename T, yardl::binary::Writer<T> WriteT>
-[[maybe_unused]] void WriteImage(yardl::binary::CodedOutputStream& stream, mrd::Image<T> const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Image<T>>::value) {
+[[maybe_unused]] void WriteImageHeader(yardl::binary::CodedOutputStream& stream, mrd::ImageHeader const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageHeader>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
@@ -1617,13 +1923,10 @@ template<typename T, yardl::binary::Writer<T> WriteT>
   yardl::binary::WriteOptional<uint32_t, yardl::binary::WriteInteger>(stream, value.image_series_index);
   yardl::binary::WriteVector<int32_t, yardl::binary::WriteInteger>(stream, value.user_int);
   yardl::binary::WriteVector<float, yardl::binary::WriteFloatingPoint>(stream, value.user_float);
-  mrd::binary::WriteImageData<T, WriteT>(stream, value.data);
-  yardl::binary::WriteMap<std::string, std::vector<std::string>, yardl::binary::WriteString, yardl::binary::WriteVector<std::string, yardl::binary::WriteString>>(stream, value.meta);
 }
 
-template<typename T, yardl::binary::Reader<T> ReadT>
-[[maybe_unused]] void ReadImage(yardl::binary::CodedInputStream& stream, mrd::Image<T>& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Image<T>>::value) {
+[[maybe_unused]] void ReadImageHeader(yardl::binary::CodedInputStream& stream, mrd::ImageHeader& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageHeader>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
@@ -1649,78 +1952,66 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   yardl::binary::ReadOptional<uint32_t, yardl::binary::ReadInteger>(stream, value.image_series_index);
   yardl::binary::ReadVector<int32_t, yardl::binary::ReadInteger>(stream, value.user_int);
   yardl::binary::ReadVector<float, yardl::binary::ReadFloatingPoint>(stream, value.user_float);
+}
+
+[[maybe_unused]] void WriteImageMetaValue(yardl::binary::CodedOutputStream& stream, mrd::ImageMetaValue const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageMetaValue>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  WriteUnion<std::string, yardl::binary::WriteString, int64_t, yardl::binary::WriteInteger, double, yardl::binary::WriteFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageMetaValue(yardl::binary::CodedInputStream& stream, mrd::ImageMetaValue& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageMetaValue>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  ReadUnion<std::string, yardl::binary::ReadString, int64_t, yardl::binary::ReadInteger, double, yardl::binary::ReadFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void WriteImageMeta(yardl::binary::CodedOutputStream& stream, mrd::ImageMeta const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageMeta>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteMap<std::string, std::vector<mrd::ImageMetaValue>, yardl::binary::WriteString, yardl::binary::WriteVector<mrd::ImageMetaValue, mrd::binary::WriteImageMetaValue>>(stream, value);
+}
+
+[[maybe_unused]] void ReadImageMeta(yardl::binary::CodedInputStream& stream, mrd::ImageMeta& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageMeta>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadMap<std::string, std::vector<mrd::ImageMetaValue>, yardl::binary::ReadString, yardl::binary::ReadVector<mrd::ImageMetaValue, mrd::binary::ReadImageMetaValue>>(stream, value);
+}
+
+template<typename T, yardl::binary::Writer<T> WriteT>
+[[maybe_unused]] void WriteImage(yardl::binary::CodedOutputStream& stream, mrd::Image<T> const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Image<T>>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteImageHeader(stream, value.head);
+  mrd::binary::WriteImageData<T, WriteT>(stream, value.data);
+  mrd::binary::WriteImageMeta(stream, value.meta);
+}
+
+template<typename T, yardl::binary::Reader<T> ReadT>
+[[maybe_unused]] void ReadImage(yardl::binary::CodedInputStream& stream, mrd::Image<T>& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Image<T>>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadImageHeader(stream, value.head);
   mrd::binary::ReadImageData<T, ReadT>(stream, value.data);
-  yardl::binary::ReadMap<std::string, std::vector<std::string>, yardl::binary::ReadString, yardl::binary::ReadVector<std::string, yardl::binary::ReadString>>(stream, value.meta);
-}
-
-template<typename T, yardl::binary::Writer<T> WriteT>
-[[maybe_unused]] void WriteWaveformSamples(yardl::binary::CodedOutputStream& stream, mrd::WaveformSamples<T> const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformSamples<T>>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::WriteNDArray<T, WriteT, 2>(stream, value);
-}
-
-template<typename T, yardl::binary::Reader<T> ReadT>
-[[maybe_unused]] void ReadWaveformSamples(yardl::binary::CodedInputStream& stream, mrd::WaveformSamples<T>& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformSamples<T>>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::ReadNDArray<T, ReadT, 2>(stream, value);
-}
-
-template<typename T, yardl::binary::Writer<T> WriteT>
-[[maybe_unused]] void WriteWaveform(yardl::binary::CodedOutputStream& stream, mrd::Waveform<T> const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Waveform<T>>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::WriteInteger(stream, value.flags);
-  yardl::binary::WriteInteger(stream, value.measurement_uid);
-  yardl::binary::WriteInteger(stream, value.scan_counter);
-  yardl::binary::WriteInteger(stream, value.time_stamp);
-  yardl::binary::WriteFloatingPoint(stream, value.sample_time_us);
-  yardl::binary::WriteInteger(stream, value.waveform_id);
-  mrd::binary::WriteWaveformSamples<T, WriteT>(stream, value.data);
-}
-
-template<typename T, yardl::binary::Reader<T> ReadT>
-[[maybe_unused]] void ReadWaveform(yardl::binary::CodedInputStream& stream, mrd::Waveform<T>& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Waveform<T>>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  yardl::binary::ReadInteger(stream, value.flags);
-  yardl::binary::ReadInteger(stream, value.measurement_uid);
-  yardl::binary::ReadInteger(stream, value.scan_counter);
-  yardl::binary::ReadInteger(stream, value.time_stamp);
-  yardl::binary::ReadFloatingPoint(stream, value.sample_time_us);
-  yardl::binary::ReadInteger(stream, value.waveform_id);
-  mrd::binary::ReadWaveformSamples<T, ReadT>(stream, value.data);
-}
-
-[[maybe_unused]] void WriteWaveformUint32(yardl::binary::CodedOutputStream& stream, mrd::WaveformUint32 const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformUint32>::value) {
-    yardl::binary::WriteTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::WriteWaveform<uint32_t, yardl::binary::WriteInteger>(stream, value);
-}
-
-[[maybe_unused]] void ReadWaveformUint32(yardl::binary::CodedInputStream& stream, mrd::WaveformUint32& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformUint32>::value) {
-    yardl::binary::ReadTriviallySerializable(stream, value);
-    return;
-  }
-
-  mrd::binary::ReadWaveform<uint32_t, yardl::binary::ReadInteger>(stream, value);
+  mrd::binary::ReadImageMeta(stream, value.meta);
 }
 
 [[maybe_unused]] void WriteImageUint16(yardl::binary::CodedOutputStream& stream, mrd::ImageUint16 const& value) {
@@ -1759,8 +2050,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadImage<int16_t, yardl::binary::ReadInteger>(stream, value);
 }
 
-[[maybe_unused]] void WriteImageUint(yardl::binary::CodedOutputStream& stream, mrd::ImageUint const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint>::value) {
+[[maybe_unused]] void WriteImageUint32(yardl::binary::CodedOutputStream& stream, mrd::ImageUint32 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint32>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
@@ -1768,8 +2059,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::WriteImage<uint32_t, yardl::binary::WriteInteger>(stream, value);
 }
 
-[[maybe_unused]] void ReadImageUint(yardl::binary::CodedInputStream& stream, mrd::ImageUint& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint>::value) {
+[[maybe_unused]] void ReadImageUint32(yardl::binary::CodedInputStream& stream, mrd::ImageUint32& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageUint32>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
@@ -1777,8 +2068,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadImage<uint32_t, yardl::binary::ReadInteger>(stream, value);
 }
 
-[[maybe_unused]] void WriteImageInt(yardl::binary::CodedOutputStream& stream, mrd::ImageInt const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt>::value) {
+[[maybe_unused]] void WriteImageInt32(yardl::binary::CodedOutputStream& stream, mrd::ImageInt32 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt32>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
@@ -1786,8 +2077,8 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::WriteImage<int32_t, yardl::binary::WriteInteger>(stream, value);
 }
 
-[[maybe_unused]] void ReadImageInt(yardl::binary::CodedInputStream& stream, mrd::ImageInt& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt>::value) {
+[[maybe_unused]] void ReadImageInt32(yardl::binary::CodedInputStream& stream, mrd::ImageInt32& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageInt32>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
@@ -1867,13 +2158,327 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   mrd::binary::ReadImage<std::complex<double>, yardl::binary::ReadFloatingPoint>(stream, value);
 }
 
+[[maybe_unused]] void WriteAnyImage(yardl::binary::CodedOutputStream& stream, mrd::AnyImage const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AnyImage>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  WriteUnion<mrd::ImageUint16, mrd::binary::WriteImageUint16, mrd::ImageInt16, mrd::binary::WriteImageInt16, mrd::ImageUint32, mrd::binary::WriteImageUint32, mrd::ImageInt32, mrd::binary::WriteImageInt32, mrd::ImageFloat, mrd::binary::WriteImageFloat, mrd::ImageDouble, mrd::binary::WriteImageDouble, mrd::ImageComplexFloat, mrd::binary::WriteImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::WriteImageComplexDouble>(stream, value);
+}
+
+[[maybe_unused]] void ReadAnyImage(yardl::binary::CodedInputStream& stream, mrd::AnyImage& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AnyImage>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  ReadUnion<mrd::ImageUint16, mrd::binary::ReadImageUint16, mrd::ImageInt16, mrd::binary::ReadImageInt16, mrd::ImageUint32, mrd::binary::ReadImageUint32, mrd::ImageInt32, mrd::binary::ReadImageInt32, mrd::ImageFloat, mrd::binary::ReadImageFloat, mrd::ImageDouble, mrd::binary::ReadImageDouble, mrd::ImageComplexFloat, mrd::binary::ReadImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::ReadImageComplexDouble>(stream, value);
+}
+
+[[maybe_unused]] void WriteNoiseCovariance(yardl::binary::CodedOutputStream& stream, mrd::NoiseCovariance const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::NoiseCovariance>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteVector<mrd::CoilLabelType, mrd::binary::WriteCoilLabelType>(stream, value.coil_labels);
+  yardl::binary::WriteFloatingPoint(stream, value.receiver_noise_bandwidth);
+  yardl::binary::WriteFloatingPoint(stream, value.noise_dwell_time_us);
+  yardl::binary::WriteInteger(stream, value.sample_count);
+  yardl::binary::WriteNDArray<std::complex<float>, yardl::binary::WriteFloatingPoint, 2>(stream, value.matrix);
+}
+
+[[maybe_unused]] void ReadNoiseCovariance(yardl::binary::CodedInputStream& stream, mrd::NoiseCovariance& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::NoiseCovariance>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadVector<mrd::CoilLabelType, mrd::binary::ReadCoilLabelType>(stream, value.coil_labels);
+  yardl::binary::ReadFloatingPoint(stream, value.receiver_noise_bandwidth);
+  yardl::binary::ReadFloatingPoint(stream, value.noise_dwell_time_us);
+  yardl::binary::ReadInteger(stream, value.sample_count);
+  yardl::binary::ReadNDArray<std::complex<float>, yardl::binary::ReadFloatingPoint, 2>(stream, value.matrix);
+}
+
+template<typename T, yardl::binary::Writer<T> WriteT>
+[[maybe_unused]] void WriteWaveformSamples(yardl::binary::CodedOutputStream& stream, mrd::WaveformSamples<T> const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformSamples<T>>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteNDArray<T, WriteT, 2>(stream, value);
+}
+
+template<typename T, yardl::binary::Reader<T> ReadT>
+[[maybe_unused]] void ReadWaveformSamples(yardl::binary::CodedInputStream& stream, mrd::WaveformSamples<T>& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformSamples<T>>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadNDArray<T, ReadT, 2>(stream, value);
+}
+
+template<typename T, yardl::binary::Writer<T> WriteT>
+[[maybe_unused]] void WriteWaveform(yardl::binary::CodedOutputStream& stream, mrd::Waveform<T> const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Waveform<T>>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteInteger(stream, value.flags);
+  yardl::binary::WriteInteger(stream, value.measurement_uid);
+  yardl::binary::WriteInteger(stream, value.scan_counter);
+  yardl::binary::WriteInteger(stream, value.time_stamp);
+  yardl::binary::WriteFloatingPoint(stream, value.sample_time_us);
+  yardl::binary::WriteInteger(stream, value.waveform_id);
+  mrd::binary::WriteWaveformSamples<T, WriteT>(stream, value.data);
+}
+
+template<typename T, yardl::binary::Reader<T> ReadT>
+[[maybe_unused]] void ReadWaveform(yardl::binary::CodedInputStream& stream, mrd::Waveform<T>& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Waveform<T>>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadInteger(stream, value.flags);
+  yardl::binary::ReadInteger(stream, value.measurement_uid);
+  yardl::binary::ReadInteger(stream, value.scan_counter);
+  yardl::binary::ReadInteger(stream, value.time_stamp);
+  yardl::binary::ReadFloatingPoint(stream, value.sample_time_us);
+  yardl::binary::ReadInteger(stream, value.waveform_id);
+  mrd::binary::ReadWaveformSamples<T, ReadT>(stream, value.data);
+}
+
+[[maybe_unused]] void WriteWaveformUint32(yardl::binary::CodedOutputStream& stream, mrd::WaveformUint32 const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformUint32>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteWaveform<uint32_t, yardl::binary::WriteInteger>(stream, value);
+}
+
+[[maybe_unused]] void ReadWaveformUint32(yardl::binary::CodedInputStream& stream, mrd::WaveformUint32& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::WaveformUint32>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadWaveform<uint32_t, yardl::binary::ReadInteger>(stream, value);
+}
+
+[[maybe_unused]] void WriteAcquisitionBucket(yardl::binary::CodedOutputStream& stream, mrd::AcquisitionBucket const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AcquisitionBucket>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteVector<mrd::Acquisition, mrd::binary::WriteAcquisition>(stream, value.data);
+  yardl::binary::WriteVector<mrd::Acquisition, mrd::binary::WriteAcquisition>(stream, value.ref);
+  yardl::binary::WriteVector<mrd::EncodingLimitsType, mrd::binary::WriteEncodingLimitsType>(stream, value.datastats);
+  yardl::binary::WriteVector<mrd::EncodingLimitsType, mrd::binary::WriteEncodingLimitsType>(stream, value.refstats);
+  yardl::binary::WriteVector<mrd::WaveformUint32, mrd::binary::WriteWaveformUint32>(stream, value.waveforms);
+}
+
+[[maybe_unused]] void ReadAcquisitionBucket(yardl::binary::CodedInputStream& stream, mrd::AcquisitionBucket& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::AcquisitionBucket>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadVector<mrd::Acquisition, mrd::binary::ReadAcquisition>(stream, value.data);
+  yardl::binary::ReadVector<mrd::Acquisition, mrd::binary::ReadAcquisition>(stream, value.ref);
+  yardl::binary::ReadVector<mrd::EncodingLimitsType, mrd::binary::ReadEncodingLimitsType>(stream, value.datastats);
+  yardl::binary::ReadVector<mrd::EncodingLimitsType, mrd::binary::ReadEncodingLimitsType>(stream, value.refstats);
+  yardl::binary::ReadVector<mrd::WaveformUint32, mrd::binary::ReadWaveformUint32>(stream, value.waveforms);
+}
+
+[[maybe_unused]] void WriteSamplingLimits(yardl::binary::CodedOutputStream& stream, mrd::SamplingLimits const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::SamplingLimits>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteLimitType(stream, value.kspace_encoding_step_0);
+  mrd::binary::WriteLimitType(stream, value.kspace_encoding_step_1);
+  mrd::binary::WriteLimitType(stream, value.kspace_encoding_step_2);
+}
+
+[[maybe_unused]] void ReadSamplingLimits(yardl::binary::CodedInputStream& stream, mrd::SamplingLimits& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::SamplingLimits>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadLimitType(stream, value.kspace_encoding_step_0);
+  mrd::binary::ReadLimitType(stream, value.kspace_encoding_step_1);
+  mrd::binary::ReadLimitType(stream, value.kspace_encoding_step_2);
+}
+
+[[maybe_unused]] void WriteSamplingDescription(yardl::binary::CodedOutputStream& stream, mrd::SamplingDescription const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::SamplingDescription>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteFieldOfViewMm(stream, value.encoded_fov);
+  mrd::binary::WriteFieldOfViewMm(stream, value.recon_fov);
+  mrd::binary::WriteMatrixSizeType(stream, value.encoded_matrix);
+  mrd::binary::WriteMatrixSizeType(stream, value.recon_matrix);
+  mrd::binary::WriteSamplingLimits(stream, value.sampling_limits);
+}
+
+[[maybe_unused]] void ReadSamplingDescription(yardl::binary::CodedInputStream& stream, mrd::SamplingDescription& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::SamplingDescription>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadFieldOfViewMm(stream, value.encoded_fov);
+  mrd::binary::ReadFieldOfViewMm(stream, value.recon_fov);
+  mrd::binary::ReadMatrixSizeType(stream, value.encoded_matrix);
+  mrd::binary::ReadMatrixSizeType(stream, value.recon_matrix);
+  mrd::binary::ReadSamplingLimits(stream, value.sampling_limits);
+}
+
+[[maybe_unused]] void WriteReconBuffer(yardl::binary::CodedOutputStream& stream, mrd::ReconBuffer const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconBuffer>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteNDArray<std::complex<float>, yardl::binary::WriteFloatingPoint, 7>(stream, value.data);
+  yardl::binary::WriteNDArray<float, yardl::binary::WriteFloatingPoint, 7>(stream, value.trajectory);
+  yardl::binary::WriteOptional<yardl::NDArray<float, 6>, yardl::binary::WriteNDArray<float, yardl::binary::WriteFloatingPoint, 6>>(stream, value.density);
+  yardl::binary::WriteNDArray<mrd::AcquisitionHeader, mrd::binary::WriteAcquisitionHeader, 5>(stream, value.headers);
+  mrd::binary::WriteSamplingDescription(stream, value.sampling);
+}
+
+[[maybe_unused]] void ReadReconBuffer(yardl::binary::CodedInputStream& stream, mrd::ReconBuffer& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconBuffer>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadNDArray<std::complex<float>, yardl::binary::ReadFloatingPoint, 7>(stream, value.data);
+  yardl::binary::ReadNDArray<float, yardl::binary::ReadFloatingPoint, 7>(stream, value.trajectory);
+  yardl::binary::ReadOptional<yardl::NDArray<float, 6>, yardl::binary::ReadNDArray<float, yardl::binary::ReadFloatingPoint, 6>>(stream, value.density);
+  yardl::binary::ReadNDArray<mrd::AcquisitionHeader, mrd::binary::ReadAcquisitionHeader, 5>(stream, value.headers);
+  mrd::binary::ReadSamplingDescription(stream, value.sampling);
+}
+
+[[maybe_unused]] void WriteReconAssembly(yardl::binary::CodedOutputStream& stream, mrd::ReconAssembly const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconAssembly>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteReconBuffer(stream, value.data);
+  yardl::binary::WriteOptional<mrd::ReconBuffer, mrd::binary::WriteReconBuffer>(stream, value.ref);
+}
+
+[[maybe_unused]] void ReadReconAssembly(yardl::binary::CodedInputStream& stream, mrd::ReconAssembly& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconAssembly>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadReconBuffer(stream, value.data);
+  yardl::binary::ReadOptional<mrd::ReconBuffer, mrd::binary::ReadReconBuffer>(stream, value.ref);
+}
+
+[[maybe_unused]] void WriteReconData(yardl::binary::CodedOutputStream& stream, mrd::ReconData const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconData>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteVector<mrd::ReconAssembly, mrd::binary::WriteReconAssembly>(stream, value.buffers);
+}
+
+[[maybe_unused]] void ReadReconData(yardl::binary::CodedInputStream& stream, mrd::ReconData& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ReconData>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadVector<mrd::ReconAssembly, mrd::binary::ReadReconAssembly>(stream, value.buffers);
+}
+
+[[maybe_unused]] void WriteImageArray(yardl::binary::CodedOutputStream& stream, mrd::ImageArray const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageArray>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteNDArray<std::complex<float>, yardl::binary::WriteFloatingPoint, 7>(stream, value.data);
+  yardl::binary::WriteNDArray<mrd::ImageHeader, mrd::binary::WriteImageHeader, 3>(stream, value.headers);
+  yardl::binary::WriteNDArray<mrd::ImageMeta, mrd::binary::WriteImageMeta, 3>(stream, value.meta);
+  yardl::binary::WriteVector<mrd::WaveformUint32, mrd::binary::WriteWaveformUint32>(stream, value.waveforms);
+}
+
+[[maybe_unused]] void ReadImageArray(yardl::binary::CodedInputStream& stream, mrd::ImageArray& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ImageArray>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadNDArray<std::complex<float>, yardl::binary::ReadFloatingPoint, 7>(stream, value.data);
+  yardl::binary::ReadNDArray<mrd::ImageHeader, mrd::binary::ReadImageHeader, 3>(stream, value.headers);
+  yardl::binary::ReadNDArray<mrd::ImageMeta, mrd::binary::ReadImageMeta, 3>(stream, value.meta);
+  yardl::binary::ReadVector<mrd::WaveformUint32, mrd::binary::ReadWaveformUint32>(stream, value.waveforms);
+}
+
+template<typename T, yardl::binary::Writer<T> WriteT>
+[[maybe_unused]] void WriteArray(yardl::binary::CodedOutputStream& stream, mrd::Array<T> const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Array<T>>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::WriteDynamicNDArray<T, WriteT>(stream, value);
+}
+
+template<typename T, yardl::binary::Reader<T> ReadT>
+[[maybe_unused]] void ReadArray(yardl::binary::CodedInputStream& stream, mrd::Array<T>& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::Array<T>>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  yardl::binary::ReadDynamicNDArray<T, ReadT>(stream, value);
+}
+
+[[maybe_unused]] void WriteArrayComplexFloat(yardl::binary::CodedOutputStream& stream, mrd::ArrayComplexFloat const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ArrayComplexFloat>::value) {
+    yardl::binary::WriteTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::WriteArray<std::complex<float>, yardl::binary::WriteFloatingPoint>(stream, value);
+}
+
+[[maybe_unused]] void ReadArrayComplexFloat(yardl::binary::CodedInputStream& stream, mrd::ArrayComplexFloat& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ArrayComplexFloat>::value) {
+    yardl::binary::ReadTriviallySerializable(stream, value);
+    return;
+  }
+
+  mrd::binary::ReadArray<std::complex<float>, yardl::binary::ReadFloatingPoint>(stream, value);
+}
+
 [[maybe_unused]] void WriteStreamItem(yardl::binary::CodedOutputStream& stream, mrd::StreamItem const& value) {
   if constexpr (yardl::binary::IsTriviallySerializable<mrd::StreamItem>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
 
-  WriteUnion<mrd::Acquisition, mrd::binary::WriteAcquisition, mrd::WaveformUint32, mrd::binary::WriteWaveformUint32, mrd::ImageUint16, mrd::binary::WriteImageUint16, mrd::ImageInt16, mrd::binary::WriteImageInt16, mrd::ImageUint, mrd::binary::WriteImageUint, mrd::ImageInt, mrd::binary::WriteImageInt, mrd::ImageFloat, mrd::binary::WriteImageFloat, mrd::ImageDouble, mrd::binary::WriteImageDouble, mrd::ImageComplexFloat, mrd::binary::WriteImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::WriteImageComplexDouble>(stream, value);
+  WriteUnion<mrd::Acquisition, mrd::binary::WriteAcquisition, mrd::WaveformUint32, mrd::binary::WriteWaveformUint32, mrd::ImageUint16, mrd::binary::WriteImageUint16, mrd::ImageInt16, mrd::binary::WriteImageInt16, mrd::ImageUint32, mrd::binary::WriteImageUint32, mrd::ImageInt32, mrd::binary::WriteImageInt32, mrd::ImageFloat, mrd::binary::WriteImageFloat, mrd::ImageDouble, mrd::binary::WriteImageDouble, mrd::ImageComplexFloat, mrd::binary::WriteImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::WriteImageComplexDouble, mrd::AcquisitionBucket, mrd::binary::WriteAcquisitionBucket, mrd::ReconData, mrd::binary::WriteReconData, mrd::ArrayComplexFloat, mrd::binary::WriteArrayComplexFloat, mrd::ImageArray, mrd::binary::WriteImageArray>(stream, value);
 }
 
 [[maybe_unused]] void ReadStreamItem(yardl::binary::CodedInputStream& stream, mrd::StreamItem& value) {
@@ -1882,7 +2487,7 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  ReadUnion<mrd::Acquisition, mrd::binary::ReadAcquisition, mrd::WaveformUint32, mrd::binary::ReadWaveformUint32, mrd::ImageUint16, mrd::binary::ReadImageUint16, mrd::ImageInt16, mrd::binary::ReadImageInt16, mrd::ImageUint, mrd::binary::ReadImageUint, mrd::ImageInt, mrd::binary::ReadImageInt, mrd::ImageFloat, mrd::binary::ReadImageFloat, mrd::ImageDouble, mrd::binary::ReadImageDouble, mrd::ImageComplexFloat, mrd::binary::ReadImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::ReadImageComplexDouble>(stream, value);
+  ReadUnion<mrd::Acquisition, mrd::binary::ReadAcquisition, mrd::WaveformUint32, mrd::binary::ReadWaveformUint32, mrd::ImageUint16, mrd::binary::ReadImageUint16, mrd::ImageInt16, mrd::binary::ReadImageInt16, mrd::ImageUint32, mrd::binary::ReadImageUint32, mrd::ImageInt32, mrd::binary::ReadImageInt32, mrd::ImageFloat, mrd::binary::ReadImageFloat, mrd::ImageDouble, mrd::binary::ReadImageDouble, mrd::ImageComplexFloat, mrd::binary::ReadImageComplexFloat, mrd::ImageComplexDouble, mrd::binary::ReadImageComplexDouble, mrd::AcquisitionBucket, mrd::binary::ReadAcquisitionBucket, mrd::ReconData, mrd::binary::ReadReconData, mrd::ArrayComplexFloat, mrd::binary::ReadArrayComplexFloat, mrd::ImageArray, mrd::binary::ReadImageArray>(stream, value);
 }
 
 } // namespace
@@ -1929,6 +2534,26 @@ bool MrdReader::ReadDataImpl(std::vector<mrd::StreamItem>& values) {
 }
 
 void MrdReader::CloseImpl() {
+  stream_.VerifyFinished();
+}
+
+void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) {
+  mrd::binary::WriteNoiseCovariance(stream_, value);
+}
+
+void MrdNoiseCovarianceWriter::Flush() {
+  stream_.Flush();
+}
+
+void MrdNoiseCovarianceWriter::CloseImpl() {
+  stream_.Flush();
+}
+
+void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) {
+  mrd::binary::ReadNoiseCovariance(stream_, value);
+}
+
+void MrdNoiseCovarianceReader::CloseImpl() {
   stream_.VerifyFinished();
 }
 
