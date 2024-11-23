@@ -15,7 +15,7 @@ dependencies:
   - hdf5=1.10.6
   - imagemagick=7.0.11_13
   - ipykernel=6.23.1
-  - ismrmrd=1.13.7
+  - ismrmrd>=1.14.2
   - howardhinnant_date=3.0.1
   - just=1.5.0
   - matplotlib=3.6.2
