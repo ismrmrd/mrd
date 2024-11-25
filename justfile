@@ -20,7 +20,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     cmake -GNinja \
         -D CMAKE_BUILD_TYPE={{ build_type }} \
         -D CMAKE_CXX_STANDARD={{ cpp_version }} \
-        -D CMAKE_INSTALL_PREFIX=$(mamba info --json | jq -r .default_prefix) \
+        -D CMAKE_INSTALL_PREFIX=$(conda info --json | jq -r .default_prefix) \
         ..
 
 @build: configure generate

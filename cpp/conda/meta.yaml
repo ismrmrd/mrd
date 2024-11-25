@@ -22,7 +22,7 @@ requirements:
     - howardhinnant_date=3.0.1
     - hdf5=1.10.6
     - imagemagick=7.0.11_13
-    - ismrmrd=1.13.7
+    - ismrmrd>=1.14.2
     - nlohmann_json=3.11.2
     - xtensor=0.24.7
     - xtensor-fftw=0.2.5
@@ -30,7 +30,7 @@ requirements:
     - fmt=8.1.1
     - hdf5=1.10.6
     - imagemagick=7.0.11_13
-    - ismrmrd=1.13.7
+    - ismrmrd>=1.14.2
     - fftw=3.3.9
 
 about:
