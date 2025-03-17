@@ -62,7 +62,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Set up just command runner
-      uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+      uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
     - name: Build and test Docker images
       run: just build-docker-images && just test-docker-images
 
@@ -92,7 +92,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up just command runner
-        uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
 
       - name: Build static page
         run: just build-docs
@@ -163,6 +163,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: Set up just command runner
-      uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+      uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
     - name: Push Docker images
       run: just build-docker-images --tag "${GITHUB_REF_NAME}" --push
