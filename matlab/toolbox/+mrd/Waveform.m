@@ -2,19 +2,12 @@
 
 classdef Waveform < handle
   properties
-    % Bit field of flags. Currently unused
     flags
-    % Unique ID for this measurement
     measurement_uid
-    % Number of the acquisition after this waveform
     scan_counter
-    % Starting timestamp of this waveform
     time_stamp
-    % Time between samples in microseconds
     sample_time_us
-    % ID matching the waveform in the MRD header
     waveform_id
-    % Waveform sample array
     data
   end
 
@@ -55,18 +48,36 @@ classdef Waveform < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.Waveform") && ...
-        isequal(self.flags, other.flags) && ...
-        isequal(self.measurement_uid, other.measurement_uid) && ...
-        isequal(self.scan_counter, other.scan_counter) && ...
-        isequal(self.time_stamp, other.time_stamp) && ...
-        isequal(self.sample_time_us, other.sample_time_us) && ...
-        isequal(self.waveform_id, other.waveform_id) && ...
-        isequal(self.data, other.data);
+        isequal({self.flags}, {other.flags}) && ...
+        isequal({self.measurement_uid}, {other.measurement_uid}) && ...
+        isequal({self.scan_counter}, {other.scan_counter}) && ...
+        isequal({self.time_stamp}, {other.time_stamp}) && ...
+        isequal({self.sample_time_us}, {other.sample_time_us}) && ...
+        isequal({self.waveform_id}, {other.waveform_id}) && ...
+        isequal({self.data}, {other.data});
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
     end
+
+    function res = isequal(self, other)
+      res = all(eq(self, other));
+    end
   end
 
+  methods (Static)
+    function z = zeros(varargin)
+      elem = mrd.Waveform(data=yardl.None);
+      if nargin == 0
+        z = elem;
+        return;
+      end
+      sz = [varargin{:}];
+      if isscalar(sz)
+        sz = [sz, sz];
+      end
+      z = reshape(repelem(elem, prod(sz)), sz);
+    end
+  end
 end

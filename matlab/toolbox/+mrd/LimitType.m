@@ -22,13 +22,17 @@ classdef LimitType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.LimitType") && ...
-        isequal(self.minimum, other.minimum) && ...
-        isequal(self.maximum, other.maximum) && ...
-        isequal(self.center, other.center);
+        isequal({self.minimum}, {other.minimum}) && ...
+        isequal({self.maximum}, {other.maximum}) && ...
+        isequal({self.center}, {other.center});
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
+    end
+
+    function res = isequal(self, other)
+      res = all(eq(self, other));
     end
   end
 

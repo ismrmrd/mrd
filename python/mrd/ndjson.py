@@ -3150,10 +3150,7 @@ class ImageArrayConverter(_ndjson.JsonConverter[ImageArray, np.void]):
 
 
 class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
-    """NDJson writer for the Mrd protocol.
-
-    The MRD Protocol
-    """
+    """NDJson writer for the Mrd protocol."""
 
 
     def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
@@ -3173,10 +3170,7 @@ class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
 
 
 class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
-    """NDJson writer for the Mrd protocol.
-
-    The MRD Protocol
-    """
+    """NDJson writer for the Mrd protocol."""
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
@@ -3194,10 +3188,7 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
             yield converter.from_json(json_object)
 
 class NDJsonMrdNoiseCovarianceWriter(_ndjson.NDJsonProtocolWriter, MrdNoiseCovarianceWriterBase):
-    """NDJson writer for the MrdNoiseCovariance protocol.
-
-    Protocol for serializing a noise covariance matrix
-    """
+    """NDJson writer for the MrdNoiseCovariance protocol."""
 
 
     def __init__(self, stream: typing.Union[typing.TextIO, str]) -> None:
@@ -3211,10 +3202,7 @@ class NDJsonMrdNoiseCovarianceWriter(_ndjson.NDJsonProtocolWriter, MrdNoiseCovar
 
 
 class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovarianceReaderBase):
-    """NDJson writer for the MrdNoiseCovariance protocol.
-
-    Protocol for serializing a noise covariance matrix
-    """
+    """NDJson writer for the MrdNoiseCovariance protocol."""
 
 
     def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
