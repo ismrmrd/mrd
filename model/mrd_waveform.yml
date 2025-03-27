@@ -12,10 +12,10 @@ Waveform<T>: !record
     measurementUid: uint
     # Number of the acquisition after this waveform
     scanCounter: uint
-    # Starting timestamp of this waveform
-    timeStamp: uint
-    # Time between samples in microseconds
-    sampleTimeUs: float
+    # EDIT: Starting timestamp of this waveform, nanoseconds since midnight
+    timeStampNs: uint64
+    # Time between samples in nanoseconds
+    sampleTimeNs: uint64
     # ID matching the waveform in the MRD header
     waveformId: uint
     # Waveform sample array
@@ -23,6 +23,9 @@ Waveform<T>: !record
   computedFields:
     channels: size(data, "channels")
     numberOfSamples: size(data, "samples")
+    # ADD: timestamp in milliseconds
+    timeStamp: (timeStampNs/1e6) as uint
+    sampleTimeUs: (sampleTimeNs/1e3) as float    
 
 
 WaveformUint32: Waveform<uint32>

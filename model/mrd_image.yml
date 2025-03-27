@@ -23,6 +23,16 @@ ImageType: !enum
     imag: 4
     complex: 5
 
+# EDIT: Added new type
+ImageQuantitativeType: !enum
+  values:
+    quantT1: 1               # in s
+    quantT2star: 2           # in s
+    quantADC: 3              # in s/m^2
+    quantSpinDensity: 4      # in mol/m^3
+    quantB1Map: 5            # in rad/s/V
+    quantSensitivityMap: 6   # in Vm^3/mol
+
 ImageData<Y>: !array
   items: Y
   dimensions:
@@ -33,10 +43,16 @@ ImageData<Y>: !array
 
 ImageHeader: !record
   fields:
+<<<<<<< HEAD
     # A bit mask of common attributes applicable to individual images
+=======
+    # A bit mask 9of common attributes applicable to individual images
+>>>>>>> dev
     flags: ImageFlags
     # Unique ID corresponding to the image
     measurementUid: uint
+    # NMR frequency of this measurement (Hz) SKADD 2/7/25
+    measurementFreq: uint
     # Physical size (in mm) in each of the 3 dimensions in the image
     fieldOfView: float[3]
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -61,12 +77,14 @@ ImageHeader: !record
     repetition: uint?
     # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
-    # Clock time stamp (e.g. milliseconds since midnight)
-    acquisitionTimeStamp: uint?
-    # Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
-    physiologyTimeStamp: uint*
+    # EDIT: Clock time stamp, ns since midnight
+    acquisitionTimeStampNs: uint64
+    # Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+    physiologyTimeStampNs: uint64
     # Interpretation type of the image
     imageType: ImageType
+    # Quantitative interpretation type of the image
+    imageQuantitativeType: ImageQuantitativeType?
     # Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
     imageIndex: uint?
     # Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
@@ -75,7 +93,15 @@ ImageHeader: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
+<<<<<<< HEAD
 
+=======
+  computedFields:
+    # ADD: original acquisitionTimeStamp in ms
+    acquisitionTimeStamp: (acquisitionTimeStampNs/1e6) as uint
+    physiologyTimeStamp: (physiologyTimeStampNs/1e6) as uint
+    
+>>>>>>> dev
 
 ImageMetaValue: [string, long, double]
 

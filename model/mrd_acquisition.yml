@@ -62,11 +62,12 @@ AcquisitionData: !array
     coils:
     samples:
 
-TrajectoryData: !array
-  items: float
-  dimensions:
-    basis:
-    samples:
+# REMOVED: replaced by gradient and pulse field
+# TrajectoryData: !array
+#   items: float
+#   dimensions:
+#     basis:
+#     samples:
 
 AcquisitionHeader: !record
   fields:
@@ -78,10 +79,10 @@ AcquisitionHeader: !record
     measurementUid: uint
     # Zero-indexed incrementing counter for readouts
     scanCounter: uint?
-    # Clock time stamp (e.g. milliseconds since midnight)
-    acquisitionTimeStamp: uint?
-    # Time stamps relative to physiological triggering
-    physiologyTimeStamp: uint*
+    # Clock time stamp EDIT: nanoseconds since midnight
+    acquisitionTimeStampNs: uint64
+    # Time stamp relative to physiological triggering in ns EDIT: unsure of use of vector previously
+    physiologyTimeStampNs: uint64
     # Channel numbers
     channelOrder: uint*
     # Number of readout samples to be discarded at the beginning
@@ -94,8 +95,8 @@ AcquisitionHeader: !record
     centerSample: uint?
     # Indexed reference to the encoding spaces enumerated in the MRD Header
     encodingSpaceRef: uint?
-    # Readout bandwidth, as time between samples in microseconds
-    sampleTimeUs: float?
+    # Readout bandwidth, EDIT: as time between samples in nanoseconds
+    sampleTimeNs: uint64
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position: float[3]
     # Directional cosine of readout/frequency encoding
@@ -110,6 +111,11 @@ AcquisitionHeader: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
+  computedFields:
+    # EDIT: conversion to legacy names and ns
+    acquisitionTimeStamp: (acquisitionTimeStampNs / 1e6) as uint
+    physiologyTimeStamp: (physiologyTimeStampNs/1e6) as uint
+    sampleTime: (sampleTimeNs/1e6) as float
 
 Acquisition: !record
   fields:
@@ -117,11 +123,11 @@ Acquisition: !record
     head: AcquisitionHeader
     # Raw k-space samples array
     data: AcquisitionData
-    # Trajectory array
-    trajectory: TrajectoryData
+    # Trajectory array EDIT: REMOVED
+    #trajectory: TrajectoryData
   computedFields:
     coils: size(data, "coils")
     samples: size(data, "samples")
     activeChannels: size(head.channelOrder)
-    trajectoryDimensions: size(trajectory, "basis")
-    trajectorySamples: size(trajectory, "samples")
+    # trajectoryDimensions: size(trajectory, "basis")  # EDIT: REMOVED
+    # trajectorySamples: size(trajectory, "samples")   # EDIT: REMOVED
