@@ -43,11 +43,7 @@ ImageData<Y>: !array
 
 ImageHeader: !record
   fields:
-<<<<<<< HEAD
     # A bit mask of common attributes applicable to individual images
-=======
-    # A bit mask 9of common attributes applicable to individual images
->>>>>>> dev
     flags: ImageFlags
     # Unique ID corresponding to the image
     measurementUid: uint
@@ -93,15 +89,11 @@ ImageHeader: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
-<<<<<<< HEAD
-
-=======
   computedFields:
     # ADD: original acquisitionTimeStamp in ms
     acquisitionTimeStamp: (acquisitionTimeStampNs/1e6) as uint
     physiologyTimeStamp: (physiologyTimeStampNs/1e6) as uint
     
->>>>>>> dev
 
 ImageMetaValue: [string, long, double]
 
