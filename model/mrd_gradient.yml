@@ -1,0 +1,31 @@
+# ADD: gradient field
+# similar to acquisition field, gradient shape described with timestamp
+
+# gradient xyz stored as 1D array shape (samples)
+GradientData: !array
+  items: float
+  dimensions:
+    samples:
+
+GradHeader: !record
+  fields:
+    # Clock time stamp, nanoseconds since midnight
+    gradientTimeStampNs: uint64
+    # Gradient sample duration in nanoseconds
+    gradientSampleTimeNs: uint
+    # Grad calibration (T/m/A). Can be here or as a calGradMap calibration image or neither
+    pulseCalibration: float*?
+
+Gradient: !record
+  fields:
+    # Grad header
+    head: GradHeader
+    # gradient directions
+    rl: GradientData
+    ap: GradientData
+    fh: GradientData
+  computedFields:
+    # EDIT: Assuming writer sets rl,ap,fh gradients, all have the same size. Computed fields are in ns
+    samples: size(rl, "samples")
+    starttime: head.gradientTimeStampNs
+    endtime: head.gradientTimeStampNs + samples * head.gradientSampleTimeNs

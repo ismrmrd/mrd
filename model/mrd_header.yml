@@ -15,8 +15,8 @@ SubjectInformationType: !record
 
 StudyInformationType: !record
   fields:
-    studyDate: date?
-    studyTime: time?
+    studyDate: date # EDIT: Made not optional
+    studyTime: time # EDIT: Made not optional
     studyID: string?
     accessionNumber: long?
     referringPhysicianName: string?

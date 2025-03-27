@@ -1,0 +1,31 @@
+# ADD: pulse field
+
+PulseData: !array
+  items: float
+  dimensions:
+    coils:
+    samples:
+
+PulseHeader: !record
+  fields:
+    # Clock time stamp nanoseconds since midnight
+    pulseTimeStampNs: uint64 
+    # Channel numbers
+    channelOrder: uint*
+    # Sample time in ns
+    sampleTimeNs: uint
+    # Pulse calibration (rad/s/V). Can be here or as a calB1Map calibration image or neither
+    pulseCalibration: float*?
+
+Pulse: !record
+  fields:
+    # Pulse header
+    head: PulseHeader
+    # Raw pulse amplitude/phase array
+    amplitude: PulseData
+    phase: PulseData
+  computedFields:
+    # Assuming writer sets amp and phase array the same size
+    coils: size(amplitude, "coils")
+    samples: size(amplitude, "samples")
+    activeChannels: size(head.channelOrder)

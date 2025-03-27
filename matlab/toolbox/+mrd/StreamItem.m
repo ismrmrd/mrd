@@ -130,7 +130,7 @@ classdef StreamItem < yardl.Union
     end
 
     function eq = eq(self, other)
-      eq = isa(other, "mrd.StreamItem") && isequal(self.index, other.index) && isequal(self.value, other.value);
+      eq = isa(other, "mrd.StreamItem") && all([self.index_] == [other.index_], 'all') && all([self.value] == [other.value], 'all');
     end
 
     function ne = ne(self, other)

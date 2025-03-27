@@ -12,7 +12,6 @@
 
 namespace mrd::hdf5 {
 // HDF5 writer for the Mrd protocol.
-// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   public:
   MrdWriter(std::string path);
@@ -32,7 +31,6 @@ class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
 };
 
 // HDF5 reader for the Mrd protocol.
-// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
   MrdReader(std::string path);
@@ -46,7 +44,6 @@ class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
 };
 
 // HDF5 writer for the MrdNoiseCovariance protocol.
-// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, public yardl::hdf5::Hdf5Writer {
   public:
   MrdNoiseCovarianceWriter(std::string path);
@@ -58,7 +55,6 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, publi
 };
 
 // HDF5 reader for the MrdNoiseCovariance protocol.
-// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
   MrdNoiseCovarianceReader(std::string path);
