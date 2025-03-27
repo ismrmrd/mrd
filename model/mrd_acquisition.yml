@@ -115,7 +115,7 @@ AcquisitionHeader: !record
     # EDIT: conversion to legacy names and ns
     acquisitionTimeStamp: (acquisitionTimeStampNs / 1e6) as uint
     physiologyTimeStamp: (physiologyTimeStampNs/1e6) as uint
-    sampleTime: (sampleTimeNs/1e6) as float
+    sampleTime: (sampleTimeNs/1e3) as float
 
 Acquisition: !record
   fields:
