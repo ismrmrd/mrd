@@ -23,16 +23,6 @@ ImageType: !enum
     imag: 4
     complex: 5
 
-# EDIT: Added new type
-ImageQuantitativeType: !enum
-  values:
-    quantT1: 1               # in s
-    quantT2star: 2           # in s
-    quantADC: 3              # in s/m^2
-    quantSpinDensity: 4      # in mol/m^3
-    quantB1Map: 5            # in rad/s/V
-    quantSensitivityMap: 6   # in Vm^3/mol
-
 ImageData<Y>: !array
   items: Y
   dimensions:
@@ -73,14 +63,12 @@ ImageHeader: !record
     repetition: uint?
     # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
-    # EDIT: Clock time stamp, ns since midnight
-    acquisitionTimeStampNs: uint64
-    # Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
-    physiologyTimeStampNs: uint64
+    # EDIT: ns since midnight
+    acquisitionTimeStampNs: uint64?
+    # ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+    physiologyTimeStampNs: uint64*
     # Interpretation type of the image
     imageType: ImageType
-    # Quantitative interpretation type of the image
-    imageQuantitativeType: ImageQuantitativeType?
     # Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
     imageIndex: uint?
     # Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
@@ -89,11 +77,6 @@ ImageHeader: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
-  computedFields:
-    # ADD: original acquisitionTimeStamp in ms
-    acquisitionTimeStamp: (acquisitionTimeStampNs/1e6) as uint
-    physiologyTimeStamp: (physiologyTimeStampNs/1e6) as uint
-    
 
 ImageMetaValue: [string, long, double]
 
