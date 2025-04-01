@@ -217,8 +217,8 @@ int main(int argc, char** argv) {
           im.head.phase = ref_acq.head.idx.phase;
           im.head.repetition = ref_acq.head.idx.repetition;
           im.head.set = ref_acq.head.idx.set;
-          im.head.acquisition_time_stamp = ref_acq.head.acquisition_time_stamp;
-          im.head.physiology_time_stamp = ref_acq.head.physiology_time_stamp;
+          im.head.acquisition_time_stamp_ns = ref_acq.head.acquisition_time_stamp_ns;
+          im.head.physiology_time_stamp_ns = ref_acq.head.physiology_time_stamp_ns;
           im.head.image_type = mrd::ImageType::kMagnitude;
           im.head.image_index = image_index++;
           im.head.image_series_index = 0;

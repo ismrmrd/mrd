@@ -47,15 +47,25 @@ struct AcquisitionFlags : yardl::BaseFlags<uint64_t, AcquisitionFlags> {
 };
 
 struct EncodingCounters {
+  // Phase encoding line
   std::optional<uint32_t> kspace_encode_step_1{};
+  // Partition encoding
   std::optional<uint32_t> kspace_encode_step_2{};
+  // Signal average
   std::optional<uint32_t> average{};
+  // Slice number (multi-slice 2D)
   std::optional<uint32_t> slice{};
+  // Echo number in multi-echo
   std::optional<uint32_t> contrast{};
+  // Cardiac phase
   std::optional<uint32_t> phase{};
+  // Counter in repeated/dynamic acquisitions
   std::optional<uint32_t> repetition{};
+  // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
+  // Counter for segmented acquisitions
   std::optional<uint32_t> segment{};
+  // User-defined counters
   std::vector<uint32_t> user{};
 
   bool operator==(const EncodingCounters& other) const {
@@ -78,27 +88,49 @@ struct EncodingCounters {
 
 using AcquisitionData = yardl::NDArray<std::complex<float>, 2>;
 
+// To be removed once gradient and pulse fields are merged
 using TrajectoryData = yardl::NDArray<float, 2>;
 
 struct AcquisitionHeader {
+  // A bit mask of common attributes applicable to individual acquisition
   mrd::AcquisitionFlags flags{};
+  // Encoding loop counters
   mrd::EncodingCounters idx{};
+  // Unique ID corresponding to the readout
   uint32_t measurement_uid{};
+  // Zero-indexed incrementing counter for readouts
   std::optional<uint32_t> scan_counter{};
-  std::optional<uint32_t> acquisition_time_stamp{};
-  std::vector<uint32_t> physiology_time_stamp{};
+  // EDIT: nanoseconds since midnight
+  std::optional<uint64_t> acquisition_time_stamp_ns{};
+  // EDIT: nanoseconds relative to physiological triggeringamp relative to physiVological triggering in ns EDIT: unsure of use of vector previously
+  std::vector<uint64_t> physiology_time_stamp_ns{};
+  // Channel numbers
   std::vector<uint32_t> channel_order{};
+  // Number of readout samples to be discarded at the beginning
+  //   (e.g. if the ADC is active during gradient events)
   std::optional<uint32_t> discard_pre{};
+  // Number of readout samples to be discarded at the end
+  //   (e.g. if the ADC is active during gradient events)
   std::optional<uint32_t> discard_post{};
+  // Index of the readout sample corresponing to k-space center (zero indexed)
   std::optional<uint32_t> center_sample{};
+  // Indexed reference to the encoding spaces enumerated in the MRD Header
   std::optional<uint32_t> encoding_space_ref{};
-  std::optional<float> sample_time_us{};
+  // EDIT: Readout bandwidth as time between samples in nanoseconds
+  std::optional<uint64_t> sample_time_ns{};
+  // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
   yardl::FixedNDArray<float, 3> position{};
+  // Directional cosine of readout/frequency encoding
   yardl::FixedNDArray<float, 3> read_dir{};
+  // Directional cosine of phase encoding (2D)
   yardl::FixedNDArray<float, 3> phase_dir{};
+  // Directional cosine of slice normal, i.e. cross-product of read_dir and phase_dir
   yardl::FixedNDArray<float, 3> slice_dir{};
+  // Offset position of the patient table, in LPS coordinates
   yardl::FixedNDArray<float, 3> patient_table_position{};
+  // User-defined integer parameters
   std::vector<int32_t> user_int{};
+  // User-defined float parameters
   std::vector<float> user_float{};
 
   bool operator==(const AcquisitionHeader& other) const {
@@ -106,14 +138,14 @@ struct AcquisitionHeader {
       idx == other.idx &&
       measurement_uid == other.measurement_uid &&
       scan_counter == other.scan_counter &&
-      acquisition_time_stamp == other.acquisition_time_stamp &&
-      physiology_time_stamp == other.physiology_time_stamp &&
+      acquisition_time_stamp_ns == other.acquisition_time_stamp_ns &&
+      physiology_time_stamp_ns == other.physiology_time_stamp_ns &&
       channel_order == other.channel_order &&
       discard_pre == other.discard_pre &&
       discard_post == other.discard_post &&
       center_sample == other.center_sample &&
       encoding_space_ref == other.encoding_space_ref &&
-      sample_time_us == other.sample_time_us &&
+      sample_time_ns == other.sample_time_ns &&
       position == other.position &&
       read_dir == other.read_dir &&
       phase_dir == other.phase_dir &&
@@ -129,8 +161,11 @@ struct AcquisitionHeader {
 };
 
 struct Acquisition {
+  // Acquisition header
   mrd::AcquisitionHeader head{};
+  // Raw k-space samples array
   mrd::AcquisitionData data{};
+  // To be removed
   mrd::TrajectoryData trajectory{};
 
   yardl::Size Coils() const {
@@ -844,31 +879,55 @@ template <typename Y>
 using ImageData = yardl::NDArray<Y, 4>;
 
 struct ImageHeader {
+  // A bit mask of common attributes applicable to individual images
   mrd::ImageFlags flags{};
+  // Unique ID corresponding to the image
   uint32_t measurement_uid{};
+  // NMR frequency of this measurement (Hz) SKADD 2/7/25
+  uint32_t measurement_freq{};
+  // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
+  // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
   yardl::FixedNDArray<float, 3> position{};
+  // Directional cosine of readout/frequency encoding
   yardl::FixedNDArray<float, 3> col_dir{};
+  // Directional cosine of phase encoding (2D)
   yardl::FixedNDArray<float, 3> line_dir{};
+  // Directional cosine of 3D phase encoding direction
   yardl::FixedNDArray<float, 3> slice_dir{};
+  // Offset position of the patient table, in LPS coordinates
   yardl::FixedNDArray<float, 3> patient_table_position{};
+  // Signal average
   std::optional<uint32_t> average{};
+  // Slice number (multi-slice 2D)
   std::optional<uint32_t> slice{};
+  // Echo number in multi-echo
   std::optional<uint32_t> contrast{};
+  // Cardiac phase
   std::optional<uint32_t> phase{};
+  // Counter in repeated/dynamic acquisitions
   std::optional<uint32_t> repetition{};
+  // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
-  std::optional<uint32_t> acquisition_time_stamp{};
-  std::vector<uint32_t> physiology_time_stamp{};
+  // EDIT: ns since midnight
+  std::optional<uint64_t> acquisition_time_stamp_ns{};
+  // ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+  std::vector<uint64_t> physiology_time_stamp_ns{};
+  // Interpretation type of the image
   mrd::ImageType image_type{};
+  // Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
   std::optional<uint32_t> image_index{};
+  // Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
   std::optional<uint32_t> image_series_index{};
+  // User-defined int parameters
   std::vector<int32_t> user_int{};
+  // User-defined float parameters
   std::vector<float> user_float{};
 
   bool operator==(const ImageHeader& other) const {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
+      measurement_freq == other.measurement_freq &&
       field_of_view == other.field_of_view &&
       position == other.position &&
       col_dir == other.col_dir &&
@@ -881,8 +940,8 @@ struct ImageHeader {
       phase == other.phase &&
       repetition == other.repetition &&
       set == other.set &&
-      acquisition_time_stamp == other.acquisition_time_stamp &&
-      physiology_time_stamp == other.physiology_time_stamp &&
+      acquisition_time_stamp_ns == other.acquisition_time_stamp_ns &&
+      physiology_time_stamp_ns == other.physiology_time_stamp_ns &&
       image_type == other.image_type &&
       image_index == other.image_index &&
       image_series_index == other.image_series_index &&
@@ -901,8 +960,11 @@ using ImageMeta = std::unordered_map<std::string, std::vector<mrd::ImageMetaValu
 
 template <typename T>
 struct Image {
+  // Image header
   mrd::ImageHeader head{};
+  // Image data array
   mrd::ImageData<T> data{};
+  // Meta attributes
   mrd::ImageMeta meta{};
 
   yardl::Size Channels() const {
@@ -948,19 +1010,25 @@ using ImageComplexFloat = mrd::Image<std::complex<float>>;
 
 using ImageComplexDouble = mrd::Image<std::complex<double>>;
 
+// Union of all MRD Image types
 using AnyImage = std::variant<mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble>;
 
 struct NoiseCovariance {
+  // Comes from Header.acquisitionSystemInformation.coilLabel
   std::vector<mrd::CoilLabelType> coil_labels{};
+  // Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
   float receiver_noise_bandwidth{};
-  float noise_dwell_time_us{};
+  // EDIT: Comes from Acquisition.sampleTimeNs
+  uint64_t noise_dwell_time_ns{};
+  // Number of samples used to compute matrix
   yardl::Size sample_count{};
+  // Noise covariance matrix with dimensions [coil, coil]
   yardl::NDArray<std::complex<float>, 2> matrix{};
 
   bool operator==(const NoiseCovariance& other) const {
     return coil_labels == other.coil_labels &&
       receiver_noise_bandwidth == other.receiver_noise_bandwidth &&
-      noise_dwell_time_us == other.noise_dwell_time_us &&
+      noise_dwell_time_ns == other.noise_dwell_time_ns &&
       sample_count == other.sample_count &&
       matrix == other.matrix;
   }
@@ -975,12 +1043,19 @@ using WaveformSamples = yardl::NDArray<T, 2>;
 
 template <typename T>
 struct Waveform {
+  // Bit field of flags. Currently unused
   uint64_t flags{};
+  // Unique ID for this measurement
   uint32_t measurement_uid{};
+  // Number of the acquisition after this waveform
   uint32_t scan_counter{};
-  uint32_t time_stamp{};
-  float sample_time_us{};
+  // EDIT: Starting timestamp as nanoseconds since midnight
+  uint64_t time_stamp_ns{};
+  // Time between samples in nanoseconds
+  uint64_t sample_time_ns{};
+  // ID matching the waveform in the MRD header
   uint32_t waveform_id{};
+  // Waveform sample array
   mrd::WaveformSamples<T> data{};
 
   yardl::Size Channels() const {
@@ -995,8 +1070,8 @@ struct Waveform {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
       scan_counter == other.scan_counter &&
-      time_stamp == other.time_stamp &&
-      sample_time_us == other.sample_time_us &&
+      time_stamp_ns == other.time_stamp_ns &&
+      sample_time_ns == other.sample_time_ns &&
       waveform_id == other.waveform_id &&
       data == other.data;
   }
@@ -1028,6 +1103,7 @@ struct AcquisitionBucket {
   }
 };
 
+// Sampled range along E0, E1, E2 (for asymmetric echo and partial fourier)
 struct SamplingLimits {
   mrd::LimitType kspace_encoding_step_0{};
   mrd::LimitType kspace_encoding_step_1{};
@@ -1065,10 +1141,15 @@ struct SamplingDescription {
 };
 
 struct ReconBuffer {
+  // Buffered Acquisition data
   yardl::NDArray<std::complex<float>, 7> data{};
+  // Buffered Trajectory data
   yardl::NDArray<float, 7> trajectory{};
+  // Buffered Density weights
   std::optional<yardl::NDArray<float, 6>> density{};
+  // Buffered AcquisitionHeaders
   yardl::NDArray<mrd::AcquisitionHeader, 5> headers{};
+  // Sampling details for these Acquisitions
   mrd::SamplingDescription sampling{};
 
   bool operator==(const ReconBuffer& other) const {
@@ -1133,6 +1214,7 @@ using Array = yardl::DynamicNDArray<T>;
 
 using ArrayComplexFloat = mrd::Array<std::complex<float>>;
 
+// Union of all primary types that can be streamed in the MRD Protocol
 using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>;
 
 } // namespace mrd

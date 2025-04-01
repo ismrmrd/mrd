@@ -8,6 +8,7 @@ enum class Version {
   Current
 };
 // Abstract writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriterBase {
   public:
   // Ordinal 0.
@@ -52,6 +53,7 @@ class MrdWriterBase {
 };
 
 // Abstract reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReaderBase {
   public:
   // Ordinal 0.
@@ -86,6 +88,7 @@ class MrdReaderBase {
 };
 
 // Abstract writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceWriterBase {
   public:
   // Ordinal 0.
@@ -116,6 +119,7 @@ class MrdNoiseCovarianceWriterBase {
 };
 
 // Abstract reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReaderBase {
   public:
   // Ordinal 0.

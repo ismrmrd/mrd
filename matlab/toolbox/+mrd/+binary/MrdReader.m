@@ -2,6 +2,7 @@
 
 classdef MrdReader < yardl.binary.BinaryProtocolReader & mrd.MrdReaderBase
   % Binary reader for the Mrd protocol
+  % The MRD Protocol
   properties (Access=protected)
     header_serializer
     data_serializer

@@ -2,20 +2,25 @@
 
 classdef ReconBuffer < handle
   properties
+    % Buffered Acquisition data
     data
+    % Buffered Trajectory data
     trajectory
+    % Buffered Density weights
     density
+    % Buffered AcquisitionHeaders
     headers
+    % Sampling details for these Acquisitions
     sampling
   end
 
   methods
     function self = ReconBuffer(kwargs)
       arguments
-        kwargs.data = single.empty();
-        kwargs.trajectory = single.empty();
+        kwargs.data = single.empty(0, 0, 0, 0, 0, 0, 0);
+        kwargs.trajectory = single.empty(0, 0, 0, 0, 0, 0, 0);
         kwargs.density = yardl.None;
-        kwargs.headers = mrd.AcquisitionHeader.empty();
+        kwargs.headers = mrd.AcquisitionHeader.empty(0, 0, 0, 0, 0);
         kwargs.sampling = mrd.SamplingDescription();
       end
       self.data = kwargs.data;
@@ -28,19 +33,15 @@ classdef ReconBuffer < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.ReconBuffer") && ...
-        isequal({self.data}, {other.data}) && ...
-        isequal({self.trajectory}, {other.trajectory}) && ...
-        isequal({self.density}, {other.density}) && ...
-        isequal({self.headers}, {other.headers}) && ...
-        isequal({self.sampling}, {other.sampling});
+        isequal(self.data, other.data) && ...
+        isequal(self.trajectory, other.trajectory) && ...
+        isequal(self.density, other.density) && ...
+        isequal(self.headers, other.headers) && ...
+        isequal(self.sampling, other.sampling);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

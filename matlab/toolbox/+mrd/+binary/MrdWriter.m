@@ -2,6 +2,7 @@
 
 classdef MrdWriter < yardl.binary.BinaryProtocolWriter & mrd.MrdWriterBase
   % Binary writer for the Mrd protocol
+  % The MRD Protocol
   properties (Access=protected)
     header_serializer
     data_serializer

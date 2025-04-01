@@ -17,7 +17,7 @@ classdef MapSerializer < yardl.binary.TypeSerializer
             arguments
                 self (1,1)
                 outstream (1,1) yardl.binary.CodedOutputStream
-                value (1,1) yardl.Map
+                value (1,1) dictionary
             end
 
             count = numEntries(value);
@@ -36,16 +36,16 @@ classdef MapSerializer < yardl.binary.TypeSerializer
 
         function res = read(self, instream)
             count = instream.read_unsigned_varint();
-            res = yardl.Map();
+            res = dictionary();
             for i = 1:count
                 k = self.key_serializer_.read(instream);
                 v = self.value_serializer_.read(instream);
-                insert(res, k, v);
+                res(k) = v;
             end
         end
 
         function c = get_class(~)
-            c = "yardl.Map";
+            c = "dictionary";
         end
     end
 end

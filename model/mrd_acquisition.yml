@@ -96,7 +96,7 @@ AcquisitionHeader: !record
     # Indexed reference to the encoding spaces enumerated in the MRD Header
     encodingSpaceRef: uint?
     # EDIT: Readout bandwidth as time between samples in nanoseconds
-    sampleTimeNs: uint64
+    sampleTimeNs: uint64?
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position: float[3]
     # Directional cosine of readout/frequency encoding

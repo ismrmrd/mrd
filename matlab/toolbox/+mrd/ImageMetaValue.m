@@ -42,7 +42,7 @@ classdef ImageMetaValue < yardl.Union
     end
 
     function eq = eq(self, other)
-      eq = isa(other, "mrd.ImageMetaValue") && all([self.index_] == [other.index_], 'all') && all([self.value] == [other.value], 'all');
+      eq = isa(other, "mrd.ImageMetaValue") && isequal(self.index, other.index) && isequal(self.value, other.value);
     end
 
     function ne = ne(self, other)

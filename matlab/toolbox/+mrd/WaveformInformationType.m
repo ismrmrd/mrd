@@ -22,17 +22,13 @@ classdef WaveformInformationType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.WaveformInformationType") && ...
-        isequal({self.waveform_name}, {other.waveform_name}) && ...
-        isequal({self.waveform_type}, {other.waveform_type}) && ...
-        isequal({self.user_parameters}, {other.user_parameters});
+        isequal(self.waveform_name, other.waveform_name) && ...
+        isequal(self.waveform_type, other.waveform_type) && ...
+        isequal(self.user_parameters, other.user_parameters);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

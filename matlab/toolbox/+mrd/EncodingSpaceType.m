@@ -19,16 +19,12 @@ classdef EncodingSpaceType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.EncodingSpaceType") && ...
-        isequal({self.matrix_size}, {other.matrix_size}) && ...
-        isequal({self.field_of_view_mm}, {other.field_of_view_mm});
+        isequal(self.matrix_size, other.matrix_size) && ...
+        isequal(self.field_of_view_mm, other.field_of_view_mm);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

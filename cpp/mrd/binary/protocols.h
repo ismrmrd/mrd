@@ -13,6 +13,7 @@
 
 namespace mrd::binary {
 // Binary writer for the Mrd protocol.
+// The MRD Protocol
 class MrdWriter : public mrd::MrdWriterBase, yardl::binary::BinaryWriter {
   public:
   MrdWriter(std::ostream& stream, Version version = Version::Current)
@@ -34,6 +35,7 @@ class MrdWriter : public mrd::MrdWriterBase, yardl::binary::BinaryWriter {
 };
 
 // Binary reader for the Mrd protocol.
+// The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, yardl::binary::BinaryReader {
   public:
   MrdReader(std::istream& stream)
@@ -57,6 +59,7 @@ class MrdReader : public mrd::MrdReaderBase, yardl::binary::BinaryReader {
 };
 
 // Binary writer for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl::binary::BinaryWriter {
   public:
   MrdNoiseCovarianceWriter(std::ostream& stream, Version version = Version::Current)
@@ -75,6 +78,7 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl
 };
 
 // Binary reader for the MrdNoiseCovariance protocol.
+// Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::binary::BinaryReader {
   public:
   MrdNoiseCovarianceReader(std::istream& stream)
