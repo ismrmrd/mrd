@@ -946,7 +946,7 @@ ISMRMRD::Waveform convert(mrd::Waveform<uint32_t>& wfm) {
   waveform.head.flags = wfm.flags;
   waveform.head.measurement_uid = wfm.measurement_uid;
   waveform.head.scan_counter = wfm.scan_counter;
-  waveform.head.time_stamp = wfm.time_stamp_ns / 1e6;      // ms to ns
+  waveform.head.time_stamp = wfm.time_stamp_ns / 1e6;      // ns to ms
   waveform.head.sample_time_us = wfm.sample_time_ns / 1e3; // ns to us
 
   waveform.head.channels = wfm.data.shape()[0];
@@ -981,10 +981,10 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
   im.setPhase(head.phase.value_or(0));
   im.setRepetition(head.repetition.value_or(0));
   im.setSet(head.set.value_or(0));
-  im.setAcquisitionTimeStamp(head.acquisition_time_stamp_ns.value_or(0));
+  im.setAcquisitionTimeStamp(head.acquisition_time_stamp_ns.value_or(0) / 1e6); // ns to ms
   for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++) {
     if (i < head.physiology_time_stamp_ns.size()) {
-      im.setPhysiologyTimeStamp(i, head.physiology_time_stamp_ns[i]);
+      im.setPhysiologyTimeStamp(i, head.physiology_time_stamp_ns[i] / 1e6); // ns to ms
     } else {
       im.setPhysiologyTimeStamp(i, 0);
     }
@@ -2032,10 +2032,10 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
   image.head.phase = im.getPhase();
   image.head.repetition = im.getRepetition();
   image.head.set = im.getSet();
-  image.head.acquisition_time_stamp_ns = im.getAcquisitionTimeStamp() / 1e6; // millisec->nanosec
-  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(0));
-  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(1));
-  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(2));
+  image.head.acquisition_time_stamp_ns = im.getAcquisitionTimeStamp() * 1e6;         // ms->ns
+  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(0) * 1e6); // ms->ns
+  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(1) * 1e6); // ms->ns
+  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(2) * 1e6); // ms->ns
 
   if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_COMPLEX) {
     image.head.image_type = mrd::ImageType::kComplex;
