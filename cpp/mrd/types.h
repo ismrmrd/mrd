@@ -88,7 +88,6 @@ struct EncodingCounters {
 
 using AcquisitionData = yardl::NDArray<std::complex<float>, 2>;
 
-// To be removed once gradient and pulse fields are merged
 using TrajectoryData = yardl::NDArray<float, 2>;
 
 struct AcquisitionHeader {
@@ -100,9 +99,9 @@ struct AcquisitionHeader {
   uint32_t measurement_uid{};
   // Zero-indexed incrementing counter for readouts
   std::optional<uint32_t> scan_counter{};
-  // EDIT: nanoseconds since midnight
+  // Clock time stamp (e.g. nanoseconds since midnight)
   std::optional<uint64_t> acquisition_time_stamp_ns{};
-  // EDIT: nanoseconds relative to physiological triggeringamp relative to physiVological triggering in ns EDIT: unsure of use of vector previously
+  // Time stamps relative to physiological triggering in nanoseconds
   std::vector<uint64_t> physiology_time_stamp_ns{};
   // Channel numbers
   std::vector<uint32_t> channel_order{};
@@ -116,7 +115,7 @@ struct AcquisitionHeader {
   std::optional<uint32_t> center_sample{};
   // Indexed reference to the encoding spaces enumerated in the MRD Header
   std::optional<uint32_t> encoding_space_ref{};
-  // EDIT: Readout bandwidth as time between samples in nanoseconds
+  // Readout bandwidth, as time between samples in nanoseconds
   std::optional<uint64_t> sample_time_ns{};
   // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
   yardl::FixedNDArray<float, 3> position{};
@@ -165,7 +164,7 @@ struct Acquisition {
   mrd::AcquisitionHeader head{};
   // Raw k-space samples array
   mrd::AcquisitionData data{};
-  // To be removed
+  // Trajectory array
   mrd::TrajectoryData trajectory{};
 
   yardl::Size Coils() const {
@@ -883,8 +882,6 @@ struct ImageHeader {
   mrd::ImageFlags flags{};
   // Unique ID corresponding to the image
   uint32_t measurement_uid{};
-  // NMR frequency of this measurement (Hz) SKADD 2/7/25
-  uint32_t measurement_freq{};
   // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
   // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -909,9 +906,9 @@ struct ImageHeader {
   std::optional<uint32_t> repetition{};
   // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
-  // EDIT: ns since midnight
+  // Clock time stamp (e.g. nanoseconds since midnight)
   std::optional<uint64_t> acquisition_time_stamp_ns{};
-  // ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+  // Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
   std::vector<uint64_t> physiology_time_stamp_ns{};
   // Interpretation type of the image
   mrd::ImageType image_type{};
@@ -927,7 +924,6 @@ struct ImageHeader {
   bool operator==(const ImageHeader& other) const {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
-      measurement_freq == other.measurement_freq &&
       field_of_view == other.field_of_view &&
       position == other.position &&
       col_dir == other.col_dir &&
@@ -1018,7 +1014,7 @@ struct NoiseCovariance {
   std::vector<mrd::CoilLabelType> coil_labels{};
   // Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
   float receiver_noise_bandwidth{};
-  // EDIT: Comes from Acquisition.sampleTimeNs
+  // Comes from Acquisition.sampleTimeNs
   uint64_t noise_dwell_time_ns{};
   // Number of samples used to compute matrix
   yardl::Size sample_count{};
@@ -1049,7 +1045,7 @@ struct Waveform {
   uint32_t measurement_uid{};
   // Number of the acquisition after this waveform
   uint32_t scan_counter{};
-  // EDIT: Starting timestamp as nanoseconds since midnight
+  // Starting timestamp of this waveform
   uint64_t time_stamp_ns{};
   // Time between samples in nanoseconds
   uint64_t sample_time_ns{};

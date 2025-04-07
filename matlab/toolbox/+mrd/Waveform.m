@@ -8,7 +8,7 @@ classdef Waveform < handle
     measurement_uid
     % Number of the acquisition after this waveform
     scan_counter
-    % EDIT: Starting timestamp as nanoseconds since midnight
+    % Starting timestamp of this waveform
     time_stamp_ns
     % Time between samples in nanoseconds
     sample_time_ns

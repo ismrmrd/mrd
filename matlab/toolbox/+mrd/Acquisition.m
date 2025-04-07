@@ -6,7 +6,7 @@ classdef Acquisition < handle
     head
     % Raw k-space samples array
     data
-    % To be removed
+    % Trajectory array
     trajectory
   end
 

@@ -2032,10 +2032,10 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
   image.head.phase = im.getPhase();
   image.head.repetition = im.getRepetition();
   image.head.set = im.getSet();
-  image.head.acquisition_time_stamp_ns = im.getAcquisitionTimeStamp() * 1e6;         // ms->ns
-  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(0) * 1e6); // ms->ns
-  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(1) * 1e6); // ms->ns
-  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(2) * 1e6); // ms->ns
+  image.head.acquisition_time_stamp_ns = im.getAcquisitionTimeStamp() * 1e6;         // ms to ns
+  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(0) * 1e6); // ms to ns
+  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(1) * 1e6); // ms to ns
+  image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(2) * 1e6); // ms to ns
 
   if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_COMPLEX) {
     image.head.image_type = mrd::ImageType::kComplex;

@@ -2590,9 +2590,6 @@ void to_json(ordered_json& j, mrd::ImageHeader const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.measurement_uid)) {
     j.push_back({"measurementUid", value.measurement_uid});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.measurement_freq)) {
-    j.push_back({"measurementFreq", value.measurement_freq});
-  }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.field_of_view)) {
     j.push_back({"fieldOfView", value.field_of_view});
   }
@@ -2658,9 +2655,6 @@ void from_json(ordered_json const& j, mrd::ImageHeader& value) {
   }
   if (auto it = j.find("measurementUid"); it != j.end()) {
     it->get_to(value.measurement_uid);
-  }
-  if (auto it = j.find("measurementFreq"); it != j.end()) {
-    it->get_to(value.measurement_freq);
   }
   if (auto it = j.find("fieldOfView"); it != j.end()) {
     it->get_to(value.field_of_view);

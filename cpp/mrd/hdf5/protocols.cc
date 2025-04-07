@@ -1441,7 +1441,6 @@ struct _Inner_ImageHeader {
   _Inner_ImageHeader(mrd::ImageHeader const& o) 
       : flags(o.flags),
       measurement_uid(o.measurement_uid),
-      measurement_freq(o.measurement_freq),
       field_of_view(o.field_of_view),
       position(o.position),
       col_dir(o.col_dir),
@@ -1466,7 +1465,6 @@ struct _Inner_ImageHeader {
   void ToOuter (mrd::ImageHeader& o) const {
     yardl::hdf5::ToOuter(flags, o.flags);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
-    yardl::hdf5::ToOuter(measurement_freq, o.measurement_freq);
     yardl::hdf5::ToOuter(field_of_view, o.field_of_view);
     yardl::hdf5::ToOuter(position, o.position);
     yardl::hdf5::ToOuter(col_dir, o.col_dir);
@@ -1490,7 +1488,6 @@ struct _Inner_ImageHeader {
 
   mrd::ImageFlags flags;
   uint32_t measurement_uid;
-  uint32_t measurement_freq;
   yardl::FixedNDArray<float, 3> field_of_view;
   yardl::FixedNDArray<float, 3> position;
   yardl::FixedNDArray<float, 3> col_dir;
@@ -2063,7 +2060,6 @@ struct _Inner_ImageArray {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("flags", HOFFSET(RecordType, flags), H5::PredType::NATIVE_UINT64);
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
-  t.insertMember("measurementFreq", HOFFSET(RecordType, measurement_freq), H5::PredType::NATIVE_UINT32);
   t.insertMember("fieldOfView", HOFFSET(RecordType, field_of_view), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("colDir", HOFFSET(RecordType, col_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));

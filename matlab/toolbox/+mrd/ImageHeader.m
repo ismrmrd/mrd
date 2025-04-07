@@ -6,8 +6,6 @@ classdef ImageHeader < handle
     flags
     % Unique ID corresponding to the image
     measurement_uid
-    % NMR frequency of this measurement (Hz) SKADD 2/7/25
-    measurement_freq
     % Physical size (in mm) in each of the 3 dimensions in the image
     field_of_view
     % Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -32,9 +30,9 @@ classdef ImageHeader < handle
     repetition
     % Sets of different preparation, e.g. flow encoding, diffusion weighting
     set
-    % EDIT: ns since midnight
+    % Clock time stamp (e.g. nanoseconds since midnight)
     acquisition_time_stamp_ns
-    % ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+    % Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
     physiology_time_stamp_ns
     % Interpretation type of the image
     image_type
@@ -53,7 +51,6 @@ classdef ImageHeader < handle
       arguments
         kwargs.flags = mrd.ImageFlags(0);
         kwargs.measurement_uid = uint32(0);
-        kwargs.measurement_freq = uint32(0);
         kwargs.field_of_view = repelem(single(0), 3, 1);
         kwargs.position = repelem(single(0), 3, 1);
         kwargs.col_dir = repelem(single(0), 3, 1);
@@ -76,7 +73,6 @@ classdef ImageHeader < handle
       end
       self.flags = kwargs.flags;
       self.measurement_uid = kwargs.measurement_uid;
-      self.measurement_freq = kwargs.measurement_freq;
       self.field_of_view = kwargs.field_of_view;
       self.position = kwargs.position;
       self.col_dir = kwargs.col_dir;
@@ -106,7 +102,6 @@ classdef ImageHeader < handle
         isa(other, "mrd.ImageHeader") && ...
         isequal(self.flags, other.flags) && ...
         isequal(self.measurement_uid, other.measurement_uid) && ...
-        isequal(self.measurement_freq, other.measurement_freq) && ...
         isequal(self.field_of_view, other.field_of_view) && ...
         isequal(self.position, other.position) && ...
         isequal(self.col_dir, other.col_dir) && ...
