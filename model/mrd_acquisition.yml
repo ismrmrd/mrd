@@ -62,7 +62,6 @@ AcquisitionData: !array
     coils:
     samples:
 
-# To be removed once gradient and pulse fields are merged
 TrajectoryData: !array
   items: float
   dimensions:
@@ -79,9 +78,9 @@ AcquisitionHeader: !record
     measurementUid: uint
     # Zero-indexed incrementing counter for readouts
     scanCounter: uint?
-    # EDIT: nanoseconds since midnight
+    # Clock time stamp (e.g. nanoseconds since midnight)
     acquisitionTimeStampNs: uint64?
-    # EDIT: nanoseconds relative to physiological triggeringamp relative to physiVological triggering in ns EDIT: unsure of use of vector previously
+    # Time stamps relative to physiological triggering in nanoseconds
     physiologyTimeStampNs: uint64*
     # Channel numbers
     channelOrder: uint*
@@ -95,7 +94,7 @@ AcquisitionHeader: !record
     centerSample: uint?
     # Indexed reference to the encoding spaces enumerated in the MRD Header
     encodingSpaceRef: uint?
-    # EDIT: Readout bandwidth as time between samples in nanoseconds
+    # Readout bandwidth, as time between samples in nanoseconds
     sampleTimeNs: uint64?
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position: float[3]
@@ -118,11 +117,11 @@ Acquisition: !record
     head: AcquisitionHeader
     # Raw k-space samples array
     data: AcquisitionData
-    # To be removed
+    # Trajectory array
     trajectory: TrajectoryData
   computedFields:
     coils: size(data, "coils")
     samples: size(data, "samples")
     activeChannels: size(head.channelOrder)
-    trajectoryDimensions: size(trajectory, "basis")  # To be removed
-    trajectorySamples: size(trajectory, "samples")   # To be removed
+    trajectoryDimensions: size(trajectory, "basis")
+    trajectorySamples: size(trajectory, "samples")

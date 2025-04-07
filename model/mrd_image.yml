@@ -37,8 +37,6 @@ ImageHeader: !record
     flags: ImageFlags
     # Unique ID corresponding to the image
     measurementUid: uint
-    # NMR frequency of this measurement (Hz) SKADD 2/7/25
-    measurementFreq: uint
     # Physical size (in mm) in each of the 3 dimensions in the image
     fieldOfView: float[3]
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -63,9 +61,9 @@ ImageHeader: !record
     repetition: uint?
     # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
-    # EDIT: ns since midnight
+    # Clock time stamp (e.g. nanoseconds since midnight) 
     acquisitionTimeStampNs: uint64?
-    # ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+    # Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
     physiologyTimeStampNs: uint64*
     # Interpretation type of the image
     imageType: ImageType
@@ -77,6 +75,7 @@ ImageHeader: !record
     userInt: int*
     # User-defined float parameters
     userFloat: float*
+
 
 ImageMetaValue: [string, long, double]
 
