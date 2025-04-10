@@ -10,10 +10,10 @@ classdef AcquisitionHeader < handle
     measurement_uid
     % Zero-indexed incrementing counter for readouts
     scan_counter
-    % Clock time stamp (e.g. milliseconds since midnight)
-    acquisition_time_stamp
-    % Time stamps relative to physiological triggering
-    physiology_time_stamp
+    % Clock time stamp (e.g. nanoseconds since midnight)
+    acquisition_time_stamp_ns
+    % Time stamps relative to physiological triggering in nanoseconds
+    physiology_time_stamp_ns
     % Channel numbers
     channel_order
     % Number of readout samples to be discarded at the beginning
@@ -26,8 +26,8 @@ classdef AcquisitionHeader < handle
     center_sample
     % Indexed reference to the encoding spaces enumerated in the MRD Header
     encoding_space_ref
-    % Readout bandwidth, as time between samples in microseconds
-    sample_time_us
+    % Readout bandwidth, as time between samples in nanoseconds
+    sample_time_ns
     % Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position
     % Directional cosine of readout/frequency encoding
@@ -51,14 +51,14 @@ classdef AcquisitionHeader < handle
         kwargs.idx = mrd.EncodingCounters();
         kwargs.measurement_uid = uint32(0);
         kwargs.scan_counter = yardl.None;
-        kwargs.acquisition_time_stamp = yardl.None;
-        kwargs.physiology_time_stamp = uint32.empty();
+        kwargs.acquisition_time_stamp_ns = yardl.None;
+        kwargs.physiology_time_stamp_ns = uint64.empty();
         kwargs.channel_order = uint32.empty();
         kwargs.discard_pre = yardl.None;
         kwargs.discard_post = yardl.None;
         kwargs.center_sample = yardl.None;
         kwargs.encoding_space_ref = yardl.None;
-        kwargs.sample_time_us = yardl.None;
+        kwargs.sample_time_ns = yardl.None;
         kwargs.position = repelem(single(0), 3, 1);
         kwargs.read_dir = repelem(single(0), 3, 1);
         kwargs.phase_dir = repelem(single(0), 3, 1);
@@ -71,14 +71,14 @@ classdef AcquisitionHeader < handle
       self.idx = kwargs.idx;
       self.measurement_uid = kwargs.measurement_uid;
       self.scan_counter = kwargs.scan_counter;
-      self.acquisition_time_stamp = kwargs.acquisition_time_stamp;
-      self.physiology_time_stamp = kwargs.physiology_time_stamp;
+      self.acquisition_time_stamp_ns = kwargs.acquisition_time_stamp_ns;
+      self.physiology_time_stamp_ns = kwargs.physiology_time_stamp_ns;
       self.channel_order = kwargs.channel_order;
       self.discard_pre = kwargs.discard_pre;
       self.discard_post = kwargs.discard_post;
       self.center_sample = kwargs.center_sample;
       self.encoding_space_ref = kwargs.encoding_space_ref;
-      self.sample_time_us = kwargs.sample_time_us;
+      self.sample_time_ns = kwargs.sample_time_ns;
       self.position = kwargs.position;
       self.read_dir = kwargs.read_dir;
       self.phase_dir = kwargs.phase_dir;
@@ -95,14 +95,14 @@ classdef AcquisitionHeader < handle
         isequal(self.idx, other.idx) && ...
         isequal(self.measurement_uid, other.measurement_uid) && ...
         isequal(self.scan_counter, other.scan_counter) && ...
-        isequal(self.acquisition_time_stamp, other.acquisition_time_stamp) && ...
-        isequal(self.physiology_time_stamp, other.physiology_time_stamp) && ...
+        isequal(self.acquisition_time_stamp_ns, other.acquisition_time_stamp_ns) && ...
+        isequal(self.physiology_time_stamp_ns, other.physiology_time_stamp_ns) && ...
         isequal(self.channel_order, other.channel_order) && ...
         isequal(self.discard_pre, other.discard_pre) && ...
         isequal(self.discard_post, other.discard_post) && ...
         isequal(self.center_sample, other.center_sample) && ...
         isequal(self.encoding_space_ref, other.encoding_space_ref) && ...
-        isequal(self.sample_time_us, other.sample_time_us) && ...
+        isequal(self.sample_time_ns, other.sample_time_ns) && ...
         isequal(self.position, other.position) && ...
         isequal(self.read_dir, other.read_dir) && ...
         isequal(self.phase_dir, other.phase_dir) && ...

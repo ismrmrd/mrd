@@ -61,10 +61,10 @@ ImageHeader: !record
     repetition: uint?
     # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
-    # Clock time stamp (e.g. milliseconds since midnight)
-    acquisitionTimeStamp: uint?
-    # Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
-    physiologyTimeStamp: uint*
+    # Clock time stamp (e.g. nanoseconds since midnight) 
+    acquisitionTimeStampNs: uint64?
+    # Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
+    physiologyTimeStampNs: uint64*
     # Interpretation type of the image
     imageType: ImageType
     # Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)

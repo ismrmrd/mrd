@@ -13,9 +13,9 @@ Waveform<T>: !record
     # Number of the acquisition after this waveform
     scanCounter: uint
     # Starting timestamp of this waveform
-    timeStamp: uint
-    # Time between samples in microseconds
-    sampleTimeUs: float
+    timeStampNs: uint64
+    # Time between samples in nanoseconds
+    sampleTimeNs: uint64
     # ID matching the waveform in the MRD header
     waveformId: uint
     # Waveform sample array

@@ -99,10 +99,10 @@ struct AcquisitionHeader {
   uint32_t measurement_uid{};
   // Zero-indexed incrementing counter for readouts
   std::optional<uint32_t> scan_counter{};
-  // Clock time stamp (e.g. milliseconds since midnight)
-  std::optional<uint32_t> acquisition_time_stamp{};
-  // Time stamps relative to physiological triggering
-  std::vector<uint32_t> physiology_time_stamp{};
+  // Clock time stamp (e.g. nanoseconds since midnight)
+  std::optional<uint64_t> acquisition_time_stamp_ns{};
+  // Time stamps relative to physiological triggering in nanoseconds
+  std::vector<uint64_t> physiology_time_stamp_ns{};
   // Channel numbers
   std::vector<uint32_t> channel_order{};
   // Number of readout samples to be discarded at the beginning
@@ -115,8 +115,8 @@ struct AcquisitionHeader {
   std::optional<uint32_t> center_sample{};
   // Indexed reference to the encoding spaces enumerated in the MRD Header
   std::optional<uint32_t> encoding_space_ref{};
-  // Readout bandwidth, as time between samples in microseconds
-  std::optional<float> sample_time_us{};
+  // Readout bandwidth, as time between samples in nanoseconds
+  std::optional<uint64_t> sample_time_ns{};
   // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
   yardl::FixedNDArray<float, 3> position{};
   // Directional cosine of readout/frequency encoding
@@ -137,14 +137,14 @@ struct AcquisitionHeader {
       idx == other.idx &&
       measurement_uid == other.measurement_uid &&
       scan_counter == other.scan_counter &&
-      acquisition_time_stamp == other.acquisition_time_stamp &&
-      physiology_time_stamp == other.physiology_time_stamp &&
+      acquisition_time_stamp_ns == other.acquisition_time_stamp_ns &&
+      physiology_time_stamp_ns == other.physiology_time_stamp_ns &&
       channel_order == other.channel_order &&
       discard_pre == other.discard_pre &&
       discard_post == other.discard_post &&
       center_sample == other.center_sample &&
       encoding_space_ref == other.encoding_space_ref &&
-      sample_time_us == other.sample_time_us &&
+      sample_time_ns == other.sample_time_ns &&
       position == other.position &&
       read_dir == other.read_dir &&
       phase_dir == other.phase_dir &&
@@ -906,10 +906,10 @@ struct ImageHeader {
   std::optional<uint32_t> repetition{};
   // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
-  // Clock time stamp (e.g. milliseconds since midnight)
-  std::optional<uint32_t> acquisition_time_stamp{};
-  // Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
-  std::vector<uint32_t> physiology_time_stamp{};
+  // Clock time stamp (e.g. nanoseconds since midnight)
+  std::optional<uint64_t> acquisition_time_stamp_ns{};
+  // Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
+  std::vector<uint64_t> physiology_time_stamp_ns{};
   // Interpretation type of the image
   mrd::ImageType image_type{};
   // Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
@@ -936,8 +936,8 @@ struct ImageHeader {
       phase == other.phase &&
       repetition == other.repetition &&
       set == other.set &&
-      acquisition_time_stamp == other.acquisition_time_stamp &&
-      physiology_time_stamp == other.physiology_time_stamp &&
+      acquisition_time_stamp_ns == other.acquisition_time_stamp_ns &&
+      physiology_time_stamp_ns == other.physiology_time_stamp_ns &&
       image_type == other.image_type &&
       image_index == other.image_index &&
       image_series_index == other.image_series_index &&
@@ -1014,8 +1014,8 @@ struct NoiseCovariance {
   std::vector<mrd::CoilLabelType> coil_labels{};
   // Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
   float receiver_noise_bandwidth{};
-  // Comes from Acquisition.sampleTimeUs
-  float noise_dwell_time_us{};
+  // Comes from Acquisition.sampleTimeNs
+  uint64_t noise_dwell_time_ns{};
   // Number of samples used to compute matrix
   yardl::Size sample_count{};
   // Noise covariance matrix with dimensions [coil, coil]
@@ -1024,7 +1024,7 @@ struct NoiseCovariance {
   bool operator==(const NoiseCovariance& other) const {
     return coil_labels == other.coil_labels &&
       receiver_noise_bandwidth == other.receiver_noise_bandwidth &&
-      noise_dwell_time_us == other.noise_dwell_time_us &&
+      noise_dwell_time_ns == other.noise_dwell_time_ns &&
       sample_count == other.sample_count &&
       matrix == other.matrix;
   }
@@ -1046,9 +1046,9 @@ struct Waveform {
   // Number of the acquisition after this waveform
   uint32_t scan_counter{};
   // Starting timestamp of this waveform
-  uint32_t time_stamp{};
-  // Time between samples in microseconds
-  float sample_time_us{};
+  uint64_t time_stamp_ns{};
+  // Time between samples in nanoseconds
+  uint64_t sample_time_ns{};
   // ID matching the waveform in the MRD header
   uint32_t waveform_id{};
   // Waveform sample array
@@ -1066,8 +1066,8 @@ struct Waveform {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
       scan_counter == other.scan_counter &&
-      time_stamp == other.time_stamp &&
-      sample_time_us == other.sample_time_us &&
+      time_stamp_ns == other.time_stamp_ns &&
+      sample_time_ns == other.sample_time_ns &&
       waveform_id == other.waveform_id &&
       data == other.data;
   }

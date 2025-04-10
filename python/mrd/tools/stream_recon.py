@@ -130,8 +130,8 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
                 imghdr.phase = ref_acq.head.idx.phase
                 imghdr.repetition = ref_acq.head.idx.repetition
                 imghdr.set = ref_acq.head.idx.set
-                imghdr.acquisition_time_stamp = ref_acq.head.acquisition_time_stamp
-                imghdr.physiology_time_stamp = ref_acq.head.physiology_time_stamp
+                imghdr.acquisition_time_stamp_ns = ref_acq.head.acquisition_time_stamp_ns  # ns
+                imghdr.physiology_time_stamp_ns = ref_acq.head.physiology_time_stamp_ns    # ns
                 imghdr.image_index = image_index
                 image_index += 1
 

@@ -30,10 +30,10 @@ classdef ImageHeader < handle
     repetition
     % Sets of different preparation, e.g. flow encoding, diffusion weighting
     set
-    % Clock time stamp (e.g. milliseconds since midnight)
-    acquisition_time_stamp
-    % Time stamps relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
-    physiology_time_stamp
+    % Clock time stamp (e.g. nanoseconds since midnight)
+    acquisition_time_stamp_ns
+    % Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
+    physiology_time_stamp_ns
     % Interpretation type of the image
     image_type
     % Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
@@ -63,8 +63,8 @@ classdef ImageHeader < handle
         kwargs.phase = yardl.None;
         kwargs.repetition = yardl.None;
         kwargs.set = yardl.None;
-        kwargs.acquisition_time_stamp = yardl.None;
-        kwargs.physiology_time_stamp = uint32.empty();
+        kwargs.acquisition_time_stamp_ns = yardl.None;
+        kwargs.physiology_time_stamp_ns = uint64.empty();
         kwargs.image_type;
         kwargs.image_index = yardl.None;
         kwargs.image_series_index = yardl.None;
@@ -85,8 +85,8 @@ classdef ImageHeader < handle
       self.phase = kwargs.phase;
       self.repetition = kwargs.repetition;
       self.set = kwargs.set;
-      self.acquisition_time_stamp = kwargs.acquisition_time_stamp;
-      self.physiology_time_stamp = kwargs.physiology_time_stamp;
+      self.acquisition_time_stamp_ns = kwargs.acquisition_time_stamp_ns;
+      self.physiology_time_stamp_ns = kwargs.physiology_time_stamp_ns;
       if ~isfield(kwargs, "image_type")
         throw(yardl.TypeError("Missing required keyword argument 'image_type'"))
       end
@@ -114,8 +114,8 @@ classdef ImageHeader < handle
         isequal(self.phase, other.phase) && ...
         isequal(self.repetition, other.repetition) && ...
         isequal(self.set, other.set) && ...
-        isequal(self.acquisition_time_stamp, other.acquisition_time_stamp) && ...
-        isequal(self.physiology_time_stamp, other.physiology_time_stamp) && ...
+        isequal(self.acquisition_time_stamp_ns, other.acquisition_time_stamp_ns) && ...
+        isequal(self.physiology_time_stamp_ns, other.physiology_time_stamp_ns) && ...
         isequal(self.image_type, other.image_type) && ...
         isequal(self.image_index, other.image_index) && ...
         isequal(self.image_series_index, other.image_series_index) && ...

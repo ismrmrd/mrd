@@ -796,11 +796,11 @@ void to_json(ordered_json& j, mrd::AcquisitionHeader const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.scan_counter)) {
     j.push_back({"scanCounter", value.scan_counter});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_time_stamp)) {
-    j.push_back({"acquisitionTimeStamp", value.acquisition_time_stamp});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_time_stamp_ns)) {
+    j.push_back({"acquisitionTimeStampNs", value.acquisition_time_stamp_ns});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.physiology_time_stamp)) {
-    j.push_back({"physiologyTimeStamp", value.physiology_time_stamp});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.physiology_time_stamp_ns)) {
+    j.push_back({"physiologyTimeStampNs", value.physiology_time_stamp_ns});
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.channel_order)) {
     j.push_back({"channelOrder", value.channel_order});
@@ -817,8 +817,8 @@ void to_json(ordered_json& j, mrd::AcquisitionHeader const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.encoding_space_ref)) {
     j.push_back({"encodingSpaceRef", value.encoding_space_ref});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_time_us)) {
-    j.push_back({"sampleTimeUs", value.sample_time_us});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_time_ns)) {
+    j.push_back({"sampleTimeNs", value.sample_time_ns});
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.position)) {
     j.push_back({"position", value.position});
@@ -856,11 +856,11 @@ void from_json(ordered_json const& j, mrd::AcquisitionHeader& value) {
   if (auto it = j.find("scanCounter"); it != j.end()) {
     it->get_to(value.scan_counter);
   }
-  if (auto it = j.find("acquisitionTimeStamp"); it != j.end()) {
-    it->get_to(value.acquisition_time_stamp);
+  if (auto it = j.find("acquisitionTimeStampNs"); it != j.end()) {
+    it->get_to(value.acquisition_time_stamp_ns);
   }
-  if (auto it = j.find("physiologyTimeStamp"); it != j.end()) {
-    it->get_to(value.physiology_time_stamp);
+  if (auto it = j.find("physiologyTimeStampNs"); it != j.end()) {
+    it->get_to(value.physiology_time_stamp_ns);
   }
   if (auto it = j.find("channelOrder"); it != j.end()) {
     it->get_to(value.channel_order);
@@ -877,8 +877,8 @@ void from_json(ordered_json const& j, mrd::AcquisitionHeader& value) {
   if (auto it = j.find("encodingSpaceRef"); it != j.end()) {
     it->get_to(value.encoding_space_ref);
   }
-  if (auto it = j.find("sampleTimeUs"); it != j.end()) {
-    it->get_to(value.sample_time_us);
+  if (auto it = j.find("sampleTimeNs"); it != j.end()) {
+    it->get_to(value.sample_time_ns);
   }
   if (auto it = j.find("position"); it != j.end()) {
     it->get_to(value.position);
@@ -2626,11 +2626,11 @@ void to_json(ordered_json& j, mrd::ImageHeader const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.set)) {
     j.push_back({"set", value.set});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_time_stamp)) {
-    j.push_back({"acquisitionTimeStamp", value.acquisition_time_stamp});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_time_stamp_ns)) {
+    j.push_back({"acquisitionTimeStampNs", value.acquisition_time_stamp_ns});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.physiology_time_stamp)) {
-    j.push_back({"physiologyTimeStamp", value.physiology_time_stamp});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.physiology_time_stamp_ns)) {
+    j.push_back({"physiologyTimeStampNs", value.physiology_time_stamp_ns});
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.image_type)) {
     j.push_back({"imageType", value.image_type});
@@ -2692,11 +2692,11 @@ void from_json(ordered_json const& j, mrd::ImageHeader& value) {
   if (auto it = j.find("set"); it != j.end()) {
     it->get_to(value.set);
   }
-  if (auto it = j.find("acquisitionTimeStamp"); it != j.end()) {
-    it->get_to(value.acquisition_time_stamp);
+  if (auto it = j.find("acquisitionTimeStampNs"); it != j.end()) {
+    it->get_to(value.acquisition_time_stamp_ns);
   }
-  if (auto it = j.find("physiologyTimeStamp"); it != j.end()) {
-    it->get_to(value.physiology_time_stamp);
+  if (auto it = j.find("physiologyTimeStampNs"); it != j.end()) {
+    it->get_to(value.physiology_time_stamp_ns);
   }
   if (auto it = j.find("imageType"); it != j.end()) {
     it->get_to(value.image_type);
@@ -2750,8 +2750,8 @@ void to_json(ordered_json& j, mrd::NoiseCovariance const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.receiver_noise_bandwidth)) {
     j.push_back({"receiverNoiseBandwidth", value.receiver_noise_bandwidth});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.noise_dwell_time_us)) {
-    j.push_back({"noiseDwellTimeUs", value.noise_dwell_time_us});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.noise_dwell_time_ns)) {
+    j.push_back({"noiseDwellTimeNs", value.noise_dwell_time_ns});
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_count)) {
     j.push_back({"sampleCount", value.sample_count});
@@ -2768,8 +2768,8 @@ void from_json(ordered_json const& j, mrd::NoiseCovariance& value) {
   if (auto it = j.find("receiverNoiseBandwidth"); it != j.end()) {
     it->get_to(value.receiver_noise_bandwidth);
   }
-  if (auto it = j.find("noiseDwellTimeUs"); it != j.end()) {
-    it->get_to(value.noise_dwell_time_us);
+  if (auto it = j.find("noiseDwellTimeNs"); it != j.end()) {
+    it->get_to(value.noise_dwell_time_ns);
   }
   if (auto it = j.find("sampleCount"); it != j.end()) {
     it->get_to(value.sample_count);
@@ -2791,11 +2791,11 @@ void to_json(ordered_json& j, mrd::Waveform<T> const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.scan_counter)) {
     j.push_back({"scanCounter", value.scan_counter});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.time_stamp)) {
-    j.push_back({"timeStamp", value.time_stamp});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.time_stamp_ns)) {
+    j.push_back({"timeStampNs", value.time_stamp_ns});
   }
-  if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_time_us)) {
-    j.push_back({"sampleTimeUs", value.sample_time_us});
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_time_ns)) {
+    j.push_back({"sampleTimeNs", value.sample_time_ns});
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.waveform_id)) {
     j.push_back({"waveformId", value.waveform_id});
@@ -2816,11 +2816,11 @@ void from_json(ordered_json const& j, mrd::Waveform<T>& value) {
   if (auto it = j.find("scanCounter"); it != j.end()) {
     it->get_to(value.scan_counter);
   }
-  if (auto it = j.find("timeStamp"); it != j.end()) {
-    it->get_to(value.time_stamp);
+  if (auto it = j.find("timeStampNs"); it != j.end()) {
+    it->get_to(value.time_stamp_ns);
   }
-  if (auto it = j.find("sampleTimeUs"); it != j.end()) {
-    it->get_to(value.sample_time_us);
+  if (auto it = j.find("sampleTimeNs"); it != j.end()) {
+    it->get_to(value.sample_time_ns);
   }
   if (auto it = j.find("waveformId"); it != j.end()) {
     it->get_to(value.waveform_id);

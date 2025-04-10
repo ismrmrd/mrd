@@ -33,7 +33,7 @@ classdef (Abstract) MrdNoiseCovarianceWriterBase < handle
 
   methods (Static)
     function res = schema()
-      res = string('{"protocol":{"name":"MrdNoiseCovariance","sequence":[{"name":"noiseCovariance","type":"Mrd.NoiseCovariance"}]},"types":[{"name":"CoilLabelType","fields":[{"name":"coilNumber","type":"uint32"},{"name":"coilName","type":"string"}]},{"name":"NoiseCovariance","fields":[{"name":"coilLabels","type":{"vector":{"items":"Mrd.CoilLabelType"}}},{"name":"receiverNoiseBandwidth","type":"float32"},{"name":"noiseDwellTimeUs","type":"float32"},{"name":"sampleCount","type":"size"},{"name":"matrix","type":{"array":{"items":"complexfloat32","dimensions":2}}}]}]}');
+      res = string('{"protocol":{"name":"MrdNoiseCovariance","sequence":[{"name":"noiseCovariance","type":"Mrd.NoiseCovariance"}]},"types":[{"name":"CoilLabelType","fields":[{"name":"coilNumber","type":"uint32"},{"name":"coilName","type":"string"}]},{"name":"NoiseCovariance","fields":[{"name":"coilLabels","type":{"vector":{"items":"Mrd.CoilLabelType"}}},{"name":"receiverNoiseBandwidth","type":"float32"},{"name":"noiseDwellTimeNs","type":"uint64"},{"name":"sampleCount","type":"size"},{"name":"matrix","type":{"array":{"items":"complexfloat32","dimensions":2}}}]}]}');
     end
   end
 

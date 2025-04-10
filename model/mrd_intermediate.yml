@@ -4,8 +4,8 @@ NoiseCovariance: !record
     coilLabels: CoilLabelType*
     # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
     receiverNoiseBandwidth: float
-    # Comes from Acquisition.sampleTimeUs
-    noiseDwellTimeUs: float
+    # Comes from Acquisition.sampleTimeNs
+    noiseDwellTimeNs: uint64
     # Number of samples used to compute matrix
     sampleCount: size
     # Noise covariance matrix with dimensions [coil, coil]

@@ -78,10 +78,10 @@ AcquisitionHeader: !record
     measurementUid: uint
     # Zero-indexed incrementing counter for readouts
     scanCounter: uint?
-    # Clock time stamp (e.g. milliseconds since midnight)
-    acquisitionTimeStamp: uint?
-    # Time stamps relative to physiological triggering
-    physiologyTimeStamp: uint*
+    # Clock time stamp (e.g. nanoseconds since midnight)
+    acquisitionTimeStampNs: uint64?
+    # Time stamps relative to physiological triggering in nanoseconds
+    physiologyTimeStampNs: uint64*
     # Channel numbers
     channelOrder: uint*
     # Number of readout samples to be discarded at the beginning
@@ -94,8 +94,8 @@ AcquisitionHeader: !record
     centerSample: uint?
     # Indexed reference to the encoding spaces enumerated in the MRD Header
     encodingSpaceRef: uint?
-    # Readout bandwidth, as time between samples in microseconds
-    sampleTimeUs: float?
+    # Readout bandwidth, as time between samples in nanoseconds
+    sampleTimeNs: uint64?
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
     position: float[3]
     # Directional cosine of readout/frequency encoding

@@ -5,7 +5,7 @@ classdef NoiseCovarianceSerializer < yardl.binary.RecordSerializer
     function self = NoiseCovarianceSerializer()
       field_serializers{1} = yardl.binary.VectorSerializer(mrd.binary.CoilLabelTypeSerializer());
       field_serializers{2} = yardl.binary.Float32Serializer;
-      field_serializers{3} = yardl.binary.Float32Serializer;
+      field_serializers{3} = yardl.binary.Uint64Serializer;
       field_serializers{4} = yardl.binary.SizeSerializer;
       field_serializers{5} = yardl.binary.NDArraySerializer(yardl.binary.Complexfloat32Serializer, 2);
       self@yardl.binary.RecordSerializer('mrd.NoiseCovariance', field_serializers);
@@ -17,12 +17,12 @@ classdef NoiseCovarianceSerializer < yardl.binary.RecordSerializer
         outstream (1,1) yardl.binary.CodedOutputStream
         value (1,1) mrd.NoiseCovariance
       end
-      self.write_(outstream, value.coil_labels, value.receiver_noise_bandwidth, value.noise_dwell_time_us, value.sample_count, value.matrix);
+      self.write_(outstream, value.coil_labels, value.receiver_noise_bandwidth, value.noise_dwell_time_ns, value.sample_count, value.matrix);
     end
 
     function value = read(self, instream)
       fields = self.read_(instream);
-      value = mrd.NoiseCovariance(coil_labels=fields{1}, receiver_noise_bandwidth=fields{2}, noise_dwell_time_us=fields{3}, sample_count=fields{4}, matrix=fields{5});
+      value = mrd.NoiseCovariance(coil_labels=fields{1}, receiver_noise_bandwidth=fields{2}, noise_dwell_time_ns=fields{3}, sample_count=fields{4}, matrix=fields{5});
     end
   end
 end

@@ -799,14 +799,14 @@ struct _Inner_AcquisitionHeader {
       idx(o.idx),
       measurement_uid(o.measurement_uid),
       scan_counter(o.scan_counter),
-      acquisition_time_stamp(o.acquisition_time_stamp),
-      physiology_time_stamp(o.physiology_time_stamp),
+      acquisition_time_stamp_ns(o.acquisition_time_stamp_ns),
+      physiology_time_stamp_ns(o.physiology_time_stamp_ns),
       channel_order(o.channel_order),
       discard_pre(o.discard_pre),
       discard_post(o.discard_post),
       center_sample(o.center_sample),
       encoding_space_ref(o.encoding_space_ref),
-      sample_time_us(o.sample_time_us),
+      sample_time_ns(o.sample_time_ns),
       position(o.position),
       read_dir(o.read_dir),
       phase_dir(o.phase_dir),
@@ -821,14 +821,14 @@ struct _Inner_AcquisitionHeader {
     yardl::hdf5::ToOuter(idx, o.idx);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
     yardl::hdf5::ToOuter(scan_counter, o.scan_counter);
-    yardl::hdf5::ToOuter(acquisition_time_stamp, o.acquisition_time_stamp);
-    yardl::hdf5::ToOuter(physiology_time_stamp, o.physiology_time_stamp);
+    yardl::hdf5::ToOuter(acquisition_time_stamp_ns, o.acquisition_time_stamp_ns);
+    yardl::hdf5::ToOuter(physiology_time_stamp_ns, o.physiology_time_stamp_ns);
     yardl::hdf5::ToOuter(channel_order, o.channel_order);
     yardl::hdf5::ToOuter(discard_pre, o.discard_pre);
     yardl::hdf5::ToOuter(discard_post, o.discard_post);
     yardl::hdf5::ToOuter(center_sample, o.center_sample);
     yardl::hdf5::ToOuter(encoding_space_ref, o.encoding_space_ref);
-    yardl::hdf5::ToOuter(sample_time_us, o.sample_time_us);
+    yardl::hdf5::ToOuter(sample_time_ns, o.sample_time_ns);
     yardl::hdf5::ToOuter(position, o.position);
     yardl::hdf5::ToOuter(read_dir, o.read_dir);
     yardl::hdf5::ToOuter(phase_dir, o.phase_dir);
@@ -842,14 +842,14 @@ struct _Inner_AcquisitionHeader {
   mrd::hdf5::_Inner_EncodingCounters idx;
   uint32_t measurement_uid;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> scan_counter;
-  yardl::hdf5::InnerOptional<uint32_t, uint32_t> acquisition_time_stamp;
-  yardl::hdf5::InnerVlen<uint32_t, uint32_t> physiology_time_stamp;
+  yardl::hdf5::InnerOptional<uint64_t, uint64_t> acquisition_time_stamp_ns;
+  yardl::hdf5::InnerVlen<uint64_t, uint64_t> physiology_time_stamp_ns;
   yardl::hdf5::InnerVlen<uint32_t, uint32_t> channel_order;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> discard_pre;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> discard_post;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> center_sample;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> encoding_space_ref;
-  yardl::hdf5::InnerOptional<float, float> sample_time_us;
+  yardl::hdf5::InnerOptional<uint64_t, uint64_t> sample_time_ns;
   yardl::FixedNDArray<float, 3> position;
   yardl::FixedNDArray<float, 3> read_dir;
   yardl::FixedNDArray<float, 3> phase_dir;
@@ -1453,8 +1453,8 @@ struct _Inner_ImageHeader {
       phase(o.phase),
       repetition(o.repetition),
       set(o.set),
-      acquisition_time_stamp(o.acquisition_time_stamp),
-      physiology_time_stamp(o.physiology_time_stamp),
+      acquisition_time_stamp_ns(o.acquisition_time_stamp_ns),
+      physiology_time_stamp_ns(o.physiology_time_stamp_ns),
       image_type(o.image_type),
       image_index(o.image_index),
       image_series_index(o.image_series_index),
@@ -1477,8 +1477,8 @@ struct _Inner_ImageHeader {
     yardl::hdf5::ToOuter(phase, o.phase);
     yardl::hdf5::ToOuter(repetition, o.repetition);
     yardl::hdf5::ToOuter(set, o.set);
-    yardl::hdf5::ToOuter(acquisition_time_stamp, o.acquisition_time_stamp);
-    yardl::hdf5::ToOuter(physiology_time_stamp, o.physiology_time_stamp);
+    yardl::hdf5::ToOuter(acquisition_time_stamp_ns, o.acquisition_time_stamp_ns);
+    yardl::hdf5::ToOuter(physiology_time_stamp_ns, o.physiology_time_stamp_ns);
     yardl::hdf5::ToOuter(image_type, o.image_type);
     yardl::hdf5::ToOuter(image_index, o.image_index);
     yardl::hdf5::ToOuter(image_series_index, o.image_series_index);
@@ -1500,8 +1500,8 @@ struct _Inner_ImageHeader {
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> phase;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> repetition;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> set;
-  yardl::hdf5::InnerOptional<uint32_t, uint32_t> acquisition_time_stamp;
-  yardl::hdf5::InnerVlen<uint32_t, uint32_t> physiology_time_stamp;
+  yardl::hdf5::InnerOptional<uint64_t, uint64_t> acquisition_time_stamp_ns;
+  yardl::hdf5::InnerVlen<uint64_t, uint64_t> physiology_time_stamp_ns;
   mrd::ImageType image_type;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> image_index;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> image_series_index;
@@ -1534,7 +1534,7 @@ struct _Inner_NoiseCovariance {
   _Inner_NoiseCovariance(mrd::NoiseCovariance const& o) 
       : coil_labels(o.coil_labels),
       receiver_noise_bandwidth(o.receiver_noise_bandwidth),
-      noise_dwell_time_us(o.noise_dwell_time_us),
+      noise_dwell_time_ns(o.noise_dwell_time_ns),
       sample_count(o.sample_count),
       matrix(o.matrix) {
   }
@@ -1542,14 +1542,14 @@ struct _Inner_NoiseCovariance {
   void ToOuter (mrd::NoiseCovariance& o) const {
     yardl::hdf5::ToOuter(coil_labels, o.coil_labels);
     yardl::hdf5::ToOuter(receiver_noise_bandwidth, o.receiver_noise_bandwidth);
-    yardl::hdf5::ToOuter(noise_dwell_time_us, o.noise_dwell_time_us);
+    yardl::hdf5::ToOuter(noise_dwell_time_ns, o.noise_dwell_time_ns);
     yardl::hdf5::ToOuter(sample_count, o.sample_count);
     yardl::hdf5::ToOuter(matrix, o.matrix);
   }
 
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_CoilLabelType, mrd::CoilLabelType> coil_labels;
   float receiver_noise_bandwidth;
-  float noise_dwell_time_us;
+  uint64_t noise_dwell_time_ns;
   yardl::Size sample_count;
   yardl::hdf5::InnerNdArray<std::complex<float>, std::complex<float>, 2> matrix;
 };
@@ -1561,8 +1561,8 @@ struct _Inner_Waveform {
       : flags(o.flags),
       measurement_uid(o.measurement_uid),
       scan_counter(o.scan_counter),
-      time_stamp(o.time_stamp),
-      sample_time_us(o.sample_time_us),
+      time_stamp_ns(o.time_stamp_ns),
+      sample_time_ns(o.sample_time_ns),
       waveform_id(o.waveform_id),
       data(o.data) {
   }
@@ -1571,8 +1571,8 @@ struct _Inner_Waveform {
     yardl::hdf5::ToOuter(flags, o.flags);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
     yardl::hdf5::ToOuter(scan_counter, o.scan_counter);
-    yardl::hdf5::ToOuter(time_stamp, o.time_stamp);
-    yardl::hdf5::ToOuter(sample_time_us, o.sample_time_us);
+    yardl::hdf5::ToOuter(time_stamp_ns, o.time_stamp_ns);
+    yardl::hdf5::ToOuter(sample_time_ns, o.sample_time_ns);
     yardl::hdf5::ToOuter(waveform_id, o.waveform_id);
     yardl::hdf5::ToOuter(data, o.data);
   }
@@ -1580,8 +1580,8 @@ struct _Inner_Waveform {
   uint64_t flags;
   uint32_t measurement_uid;
   uint32_t scan_counter;
-  uint32_t time_stamp;
-  float sample_time_us;
+  uint64_t time_stamp_ns;
+  uint64_t sample_time_ns;
   uint32_t waveform_id;
   yardl::hdf5::InnerNdArray<_T_Inner, T, 2> data;
 };
@@ -1710,14 +1710,14 @@ struct _Inner_ImageArray {
   t.insertMember("idx", HOFFSET(RecordType, idx), mrd::hdf5::GetEncodingCountersHdf5Ddl());
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
   t.insertMember("scanCounter", HOFFSET(RecordType, scan_counter), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
-  t.insertMember("acquisitionTimeStamp", HOFFSET(RecordType, acquisition_time_stamp), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
-  t.insertMember("physiologyTimeStamp", HOFFSET(RecordType, physiology_time_stamp), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT32));
+  t.insertMember("acquisitionTimeStampNs", HOFFSET(RecordType, acquisition_time_stamp_ns), yardl::hdf5::OptionalTypeDdl<uint64_t, uint64_t>(H5::PredType::NATIVE_UINT64));
+  t.insertMember("physiologyTimeStampNs", HOFFSET(RecordType, physiology_time_stamp_ns), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT64));
   t.insertMember("channelOrder", HOFFSET(RecordType, channel_order), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT32));
   t.insertMember("discardPre", HOFFSET(RecordType, discard_pre), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("discardPost", HOFFSET(RecordType, discard_post), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("centerSample", HOFFSET(RecordType, center_sample), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("encodingSpaceRef", HOFFSET(RecordType, encoding_space_ref), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
-  t.insertMember("sampleTimeUs", HOFFSET(RecordType, sample_time_us), yardl::hdf5::OptionalTypeDdl<float, float>(H5::PredType::NATIVE_FLOAT));
+  t.insertMember("sampleTimeNs", HOFFSET(RecordType, sample_time_ns), yardl::hdf5::OptionalTypeDdl<uint64_t, uint64_t>(H5::PredType::NATIVE_UINT64));
   t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("readDir", HOFFSET(RecordType, read_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("phaseDir", HOFFSET(RecordType, phase_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
@@ -2072,8 +2072,8 @@ struct _Inner_ImageArray {
   t.insertMember("phase", HOFFSET(RecordType, phase), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("repetition", HOFFSET(RecordType, repetition), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("set", HOFFSET(RecordType, set), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
-  t.insertMember("acquisitionTimeStamp", HOFFSET(RecordType, acquisition_time_stamp), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
-  t.insertMember("physiologyTimeStamp", HOFFSET(RecordType, physiology_time_stamp), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT32));
+  t.insertMember("acquisitionTimeStampNs", HOFFSET(RecordType, acquisition_time_stamp_ns), yardl::hdf5::OptionalTypeDdl<uint64_t, uint64_t>(H5::PredType::NATIVE_UINT64));
+  t.insertMember("physiologyTimeStampNs", HOFFSET(RecordType, physiology_time_stamp_ns), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT64));
   t.insertMember("imageType", HOFFSET(RecordType, image_type), mrd::hdf5::GetImageTypeHdf5Ddl());
   t.insertMember("imageIndex", HOFFSET(RecordType, image_index), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
   t.insertMember("imageSeriesIndex", HOFFSET(RecordType, image_series_index), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
@@ -2097,7 +2097,7 @@ template <typename _T_Inner, typename T>
   H5::CompType t(sizeof(RecordType));
   t.insertMember("coilLabels", HOFFSET(RecordType, coil_labels), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetCoilLabelTypeHdf5Ddl()));
   t.insertMember("receiverNoiseBandwidth", HOFFSET(RecordType, receiver_noise_bandwidth), H5::PredType::NATIVE_FLOAT);
-  t.insertMember("noiseDwellTimeUs", HOFFSET(RecordType, noise_dwell_time_us), H5::PredType::NATIVE_FLOAT);
+  t.insertMember("noiseDwellTimeNs", HOFFSET(RecordType, noise_dwell_time_ns), H5::PredType::NATIVE_UINT64);
   t.insertMember("sampleCount", HOFFSET(RecordType, sample_count), yardl::hdf5::SizeTypeDdl());
   t.insertMember("matrix", HOFFSET(RecordType, matrix), yardl::hdf5::NDArrayDdl<std::complex<float>, std::complex<float>, 2>(yardl::hdf5::ComplexTypeDdl<float>()));
   return t;
@@ -2110,8 +2110,8 @@ template <typename _T_Inner, typename T>
   t.insertMember("flags", HOFFSET(RecordType, flags), H5::PredType::NATIVE_UINT64);
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
   t.insertMember("scanCounter", HOFFSET(RecordType, scan_counter), H5::PredType::NATIVE_UINT32);
-  t.insertMember("timeStamp", HOFFSET(RecordType, time_stamp), H5::PredType::NATIVE_UINT32);
-  t.insertMember("sampleTimeUs", HOFFSET(RecordType, sample_time_us), H5::PredType::NATIVE_FLOAT);
+  t.insertMember("timeStampNs", HOFFSET(RecordType, time_stamp_ns), H5::PredType::NATIVE_UINT64);
+  t.insertMember("sampleTimeNs", HOFFSET(RecordType, sample_time_ns), H5::PredType::NATIVE_UINT64);
   t.insertMember("waveformId", HOFFSET(RecordType, waveform_id), H5::PredType::NATIVE_UINT32);
   t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<_T_Inner, T, 2>(T_type));
   return t;
