@@ -10,6 +10,8 @@ else ()
   endif ()
 endif ()
 
+string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
+
 project(mrd VERSION ${MRD_VERSION_STRING})
 
 message(STATUS "MRD_VERSION_STRING: ${MRD_VERSION_STRING}")
