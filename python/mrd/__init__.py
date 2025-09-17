@@ -26,6 +26,7 @@ from .types import (
     AcquisitionData,
     AcquisitionFlags,
     AcquisitionHeader,
+    AcquisitionPhase,
     AcquisitionSystemInformationType,
     AnyImage,
     Array,

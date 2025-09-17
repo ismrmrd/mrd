@@ -143,6 +143,8 @@ class EncodingCounters:
 
 AcquisitionData = npt.NDArray[np.complex64]
 
+AcquisitionPhase = npt.NDArray[np.float32]
+
 TrajectoryData = npt.NDArray[np.float32]
 
 class AcquisitionHeader:
@@ -157,6 +159,9 @@ class AcquisitionHeader:
 
     scan_counter: typing.Optional[yardl.UInt32]
     """Zero-indexed incrementing counter for readouts"""
+
+    acquisition_center_frequency: typing.Optional[yardl.UInt64]
+    """Acquisition center frequency (Hz)"""
 
     acquisition_time_stamp_ns: typing.Optional[yardl.UInt64]
     """Clock time stamp (e.g. nanoseconds since midnight)"""
@@ -213,6 +218,7 @@ class AcquisitionHeader:
         idx: typing.Optional[EncodingCounters] = None,
         measurement_uid: yardl.UInt32 = 0,
         scan_counter: typing.Optional[yardl.UInt32] = None,
+        acquisition_center_frequency: typing.Optional[yardl.UInt64] = None,
         acquisition_time_stamp_ns: typing.Optional[yardl.UInt64] = None,
         physiology_time_stamp_ns: typing.Optional[list[yardl.UInt64]] = None,
         channel_order: typing.Optional[list[yardl.UInt32]] = None,
@@ -233,6 +239,7 @@ class AcquisitionHeader:
         self.idx = idx if idx is not None else EncodingCounters()
         self.measurement_uid = measurement_uid
         self.scan_counter = scan_counter
+        self.acquisition_center_frequency = acquisition_center_frequency
         self.acquisition_time_stamp_ns = acquisition_time_stamp_ns
         self.physiology_time_stamp_ns = physiology_time_stamp_ns if physiology_time_stamp_ns is not None else []
         self.channel_order = channel_order if channel_order is not None else []
@@ -256,6 +263,7 @@ class AcquisitionHeader:
             and self.idx == other.idx
             and self.measurement_uid == other.measurement_uid
             and self.scan_counter == other.scan_counter
+            and self.acquisition_center_frequency == other.acquisition_center_frequency
             and self.acquisition_time_stamp_ns == other.acquisition_time_stamp_ns
             and self.physiology_time_stamp_ns == other.physiology_time_stamp_ns
             and self.channel_order == other.channel_order
@@ -274,10 +282,10 @@ class AcquisitionHeader:
         )
 
     def __str__(self) -> str:
-        return f"AcquisitionHeader(flags={self.flags}, idx={self.idx}, measurementUid={self.measurement_uid}, scanCounter={self.scan_counter}, acquisitionTimeStampNs={self.acquisition_time_stamp_ns}, physiologyTimeStampNs={self.physiology_time_stamp_ns}, channelOrder={self.channel_order}, discardPre={self.discard_pre}, discardPost={self.discard_post}, centerSample={self.center_sample}, encodingSpaceRef={self.encoding_space_ref}, sampleTimeNs={self.sample_time_ns}, position={self.position}, readDir={self.read_dir}, phaseDir={self.phase_dir}, sliceDir={self.slice_dir}, patientTablePosition={self.patient_table_position}, userInt={self.user_int}, userFloat={self.user_float})"
+        return f"AcquisitionHeader(flags={self.flags}, idx={self.idx}, measurementUid={self.measurement_uid}, scanCounter={self.scan_counter}, acquisitionCenterFrequency={self.acquisition_center_frequency}, acquisitionTimeStampNs={self.acquisition_time_stamp_ns}, physiologyTimeStampNs={self.physiology_time_stamp_ns}, channelOrder={self.channel_order}, discardPre={self.discard_pre}, discardPost={self.discard_post}, centerSample={self.center_sample}, encodingSpaceRef={self.encoding_space_ref}, sampleTimeNs={self.sample_time_ns}, position={self.position}, readDir={self.read_dir}, phaseDir={self.phase_dir}, sliceDir={self.slice_dir}, patientTablePosition={self.patient_table_position}, userInt={self.user_int}, userFloat={self.user_float})"
 
     def __repr__(self) -> str:
-        return f"AcquisitionHeader(flags={repr(self.flags)}, idx={repr(self.idx)}, measurementUid={repr(self.measurement_uid)}, scanCounter={repr(self.scan_counter)}, acquisitionTimeStampNs={repr(self.acquisition_time_stamp_ns)}, physiologyTimeStampNs={repr(self.physiology_time_stamp_ns)}, channelOrder={repr(self.channel_order)}, discardPre={repr(self.discard_pre)}, discardPost={repr(self.discard_post)}, centerSample={repr(self.center_sample)}, encodingSpaceRef={repr(self.encoding_space_ref)}, sampleTimeNs={repr(self.sample_time_ns)}, position={repr(self.position)}, readDir={repr(self.read_dir)}, phaseDir={repr(self.phase_dir)}, sliceDir={repr(self.slice_dir)}, patientTablePosition={repr(self.patient_table_position)}, userInt={repr(self.user_int)}, userFloat={repr(self.user_float)})"
+        return f"AcquisitionHeader(flags={repr(self.flags)}, idx={repr(self.idx)}, measurementUid={repr(self.measurement_uid)}, scanCounter={repr(self.scan_counter)}, acquisitionCenterFrequency={repr(self.acquisition_center_frequency)}, acquisitionTimeStampNs={repr(self.acquisition_time_stamp_ns)}, physiologyTimeStampNs={repr(self.physiology_time_stamp_ns)}, channelOrder={repr(self.channel_order)}, discardPre={repr(self.discard_pre)}, discardPost={repr(self.discard_post)}, centerSample={repr(self.center_sample)}, encodingSpaceRef={repr(self.encoding_space_ref)}, sampleTimeNs={repr(self.sample_time_ns)}, position={repr(self.position)}, readDir={repr(self.read_dir)}, phaseDir={repr(self.phase_dir)}, sliceDir={repr(self.slice_dir)}, patientTablePosition={repr(self.patient_table_position)}, userInt={repr(self.user_int)}, userFloat={repr(self.user_float)})"
 
 
 class Acquisition:
@@ -287,6 +295,9 @@ class Acquisition:
     data: AcquisitionData
     """Raw k-space samples array"""
 
+    phase: AcquisitionPhase
+    """Phase offset array"""
+
     trajectory: TrajectoryData
     """Trajectory array"""
 
@@ -294,10 +305,12 @@ class Acquisition:
     def __init__(self, *,
         head: typing.Optional[AcquisitionHeader] = None,
         data: typing.Optional[AcquisitionData] = None,
+        phase: typing.Optional[AcquisitionPhase] = None,
         trajectory: typing.Optional[TrajectoryData] = None,
     ):
         self.head = head if head is not None else AcquisitionHeader()
         self.data = data if data is not None else np.zeros((0, 0), dtype=np.dtype(np.complex64))
+        self.phase = phase if phase is not None else np.zeros((0), dtype=np.dtype(np.float32))
         self.trajectory = trajectory if trajectory is not None else np.zeros((0, 0), dtype=np.dtype(np.float32))
 
     def coils(self) -> yardl.Size:
@@ -320,14 +333,15 @@ class Acquisition:
             isinstance(other, Acquisition)
             and self.head == other.head
             and yardl.structural_equal(self.data, other.data)
+            and yardl.structural_equal(self.phase, other.phase)
             and yardl.structural_equal(self.trajectory, other.trajectory)
         )
 
     def __str__(self) -> str:
-        return f"Acquisition(head={self.head}, data={self.data}, trajectory={self.trajectory})"
+        return f"Acquisition(head={self.head}, data={self.data}, phase={self.phase}, trajectory={self.trajectory})"
 
     def __repr__(self) -> str:
-        return f"Acquisition(head={repr(self.head)}, data={repr(self.data)}, trajectory={repr(self.trajectory)})"
+        return f"Acquisition(head={repr(self.head)}, data={repr(self.data)}, phase={repr(self.phase)}, trajectory={repr(self.trajectory)})"
 
 
 class PatientGender(yardl.OutOfRangeEnum):
@@ -2129,8 +2143,8 @@ def _mk_get_dtype():
 
     dtype_map.setdefault(AcquisitionFlags, np.dtype(np.uint64))
     dtype_map.setdefault(EncodingCounters, np.dtype([('kspace_encode_step_1', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('kspace_encode_step_2', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('segment', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(AcquisitionHeader, np.dtype([('flags', get_dtype(AcquisitionFlags)), ('idx', get_dtype(EncodingCounters)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('channel_order', np.dtype(np.object_)), ('discard_pre', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('discard_post', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('center_sample', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('encoding_space_ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('sample_time_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('position', np.dtype(np.float32), (3,)), ('read_dir', np.dtype(np.float32), (3,)), ('phase_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(Acquisition, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(AcquisitionHeader, np.dtype([('flags', get_dtype(AcquisitionFlags)), ('idx', get_dtype(EncodingCounters)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_center_frequency', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('channel_order', np.dtype(np.object_)), ('discard_pre', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('discard_post', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('center_sample', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('encoding_space_ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('sample_time_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('position', np.dtype(np.float32), (3,)), ('read_dir', np.dtype(np.float32), (3,)), ('phase_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(Acquisition, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data', np.dtype(np.object_)), ('phase', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PatientGender, np.dtype(np.int32))
     dtype_map.setdefault(SubjectInformationType, np.dtype([('patient_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_weight_kg', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_height_m', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_birthdate', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('patient_gender', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(PatientGender))], align=True))], align=True))
     dtype_map.setdefault(StudyInformationType, np.dtype([('study_date', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('study_time', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.timedelta64))], align=True)), ('study_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('accession_number', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.int64))], align=True)), ('referring_physician_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_description', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_instance_uid', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('body_part_examined', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))
