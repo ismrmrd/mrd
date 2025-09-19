@@ -738,17 +738,37 @@ namespace {
 }
 
 [[maybe_unused]] H5::EnumType GetImageTypeHdf5Ddl() {
-  H5::EnumType t(H5::PredType::NATIVE_INT32);
-  int32_t i = 1;
+  H5::EnumType t(H5::PredType::NATIVE_UINT64);
+  uint64_t i = 1ULL;
   t.insert("magnitude", &i);
-  i = 2;
+  i = 2ULL;
   t.insert("phase", &i);
-  i = 3;
+  i = 4ULL;
   t.insert("real", &i);
-  i = 4;
+  i = 8ULL;
   t.insert("imag", &i);
-  i = 5;
+  i = 16ULL;
   t.insert("complex", &i);
+  i = 32ULL;
+  t.insert("bitmap", &i);
+  i = 64ULL;
+  t.insert("spinDensityMap", &i);
+  i = 128ULL;
+  t.insert("t1Map", &i);
+  i = 256ULL;
+  t.insert("t2Map", &i);
+  i = 512ULL;
+  t.insert("t2starMap", &i);
+  i = 1024ULL;
+  t.insert("adcMap", &i);
+  i = 2048ULL;
+  t.insert("b0Map", &i);
+  i = 4096ULL;
+  t.insert("b1Map", &i);
+  i = 8192ULL;
+  t.insert("sensitivityMap", &i);
+  i = 16384ULL;
+  t.insert("userMap", &i);
   return t;
 }
 
@@ -1441,6 +1461,8 @@ struct _Inner_ImageHeader {
   _Inner_ImageHeader(mrd::ImageHeader const& o) 
       : flags(o.flags),
       measurement_uid(o.measurement_uid),
+      measurement_freq(o.measurement_freq),
+      measurement_freq_label(o.measurement_freq_label),
       field_of_view(o.field_of_view),
       position(o.position),
       col_dir(o.col_dir),
@@ -1465,6 +1487,8 @@ struct _Inner_ImageHeader {
   void ToOuter (mrd::ImageHeader& o) const {
     yardl::hdf5::ToOuter(flags, o.flags);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
+    yardl::hdf5::ToOuter(measurement_freq, o.measurement_freq);
+    yardl::hdf5::ToOuter(measurement_freq_label, o.measurement_freq_label);
     yardl::hdf5::ToOuter(field_of_view, o.field_of_view);
     yardl::hdf5::ToOuter(position, o.position);
     yardl::hdf5::ToOuter(col_dir, o.col_dir);
@@ -1488,6 +1512,8 @@ struct _Inner_ImageHeader {
 
   mrd::ImageFlags flags;
   uint32_t measurement_uid;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>> measurement_freq;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>> measurement_freq_label;
   yardl::FixedNDArray<float, 3> field_of_view;
   yardl::FixedNDArray<float, 3> position;
   yardl::FixedNDArray<float, 3> col_dir;
@@ -1525,7 +1551,7 @@ struct _Inner_Image {
   }
 
   mrd::hdf5::_Inner_ImageHeader head;
-  yardl::hdf5::InnerNdArray<_T_Inner, T, 4> data;
+  yardl::hdf5::InnerNdArray<_T_Inner, T, 5> data;
   yardl::hdf5::InnerMap<yardl::hdf5::InnerVlenString, std::string, yardl::hdf5::InnerVlen<::InnerUnion3<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>, mrd::ImageMetaValue>, std::vector<mrd::ImageMetaValue>> meta;
 };
 
@@ -2060,6 +2086,8 @@ struct _Inner_ImageArray {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("flags", HOFFSET(RecordType, flags), H5::PredType::NATIVE_UINT64);
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
+  t.insertMember("measurementFreq", HOFFSET(RecordType, measurement_freq), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>>(yardl::hdf5::DynamicNDArrayDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32)));
+  t.insertMember("measurementFreqLabel", HOFFSET(RecordType, measurement_freq_label), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>>(yardl::hdf5::DynamicNDArrayDdl<yardl::hdf5::InnerVlenString, std::string>(yardl::hdf5::InnerVlenStringDdl())));
   t.insertMember("fieldOfView", HOFFSET(RecordType, field_of_view), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("colDir", HOFFSET(RecordType, col_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
@@ -2087,7 +2115,7 @@ template <typename _T_Inner, typename T>
   using RecordType = mrd::hdf5::_Inner_Image<_T_Inner, T>;
   H5::CompType t(sizeof(RecordType));
   t.insertMember("head", HOFFSET(RecordType, head), mrd::hdf5::GetImageHeaderHdf5Ddl());
-  t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<_T_Inner, T, 4>(T_type));
+  t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<_T_Inner, T, 5>(T_type));
   t.insertMember("meta", HOFFSET(RecordType, meta), yardl::hdf5::InnerMapDdl<yardl::hdf5::InnerVlenString, yardl::hdf5::InnerVlen<::InnerUnion3<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>, mrd::ImageMetaValue>>(yardl::hdf5::InnerVlenStringDdl(), yardl::hdf5::InnerVlenDdl(::InnerUnion3Ddl<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>(false, yardl::hdf5::InnerVlenStringDdl(), "string", H5::PredType::NATIVE_INT64, "int64", H5::PredType::NATIVE_DOUBLE, "float64"))));
   return t;
 }

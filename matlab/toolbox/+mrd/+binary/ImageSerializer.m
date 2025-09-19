@@ -4,7 +4,7 @@ classdef ImageSerializer < yardl.binary.RecordSerializer
   methods
     function self = ImageSerializer(t_serializer)
       field_serializers{1} = mrd.binary.ImageHeaderSerializer();
-      field_serializers{2} = yardl.binary.NDArraySerializer(t_serializer, 4);
+      field_serializers{2} = yardl.binary.NDArraySerializer(t_serializer, 5);
       field_serializers{3} = yardl.binary.MapSerializer(yardl.binary.StringSerializer, yardl.binary.VectorSerializer(yardl.binary.UnionSerializer('mrd.ImageMetaValue', {yardl.binary.StringSerializer, yardl.binary.Int64Serializer, yardl.binary.Float64Serializer}, {@mrd.ImageMetaValue.String, @mrd.ImageMetaValue.Int64, @mrd.ImageMetaValue.Float64})));
       self@yardl.binary.RecordSerializer('mrd.Image', field_serializers);
     end

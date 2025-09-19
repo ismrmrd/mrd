@@ -485,6 +485,8 @@ struct IsTriviallySerializable<mrd::ImageHeader> {
     std::is_standard_layout_v<__T__> &&
     IsTriviallySerializable<decltype(__T__::flags)>::value &&
     IsTriviallySerializable<decltype(__T__::measurement_uid)>::value &&
+    IsTriviallySerializable<decltype(__T__::measurement_freq)>::value &&
+    IsTriviallySerializable<decltype(__T__::measurement_freq_label)>::value &&
     IsTriviallySerializable<decltype(__T__::field_of_view)>::value &&
     IsTriviallySerializable<decltype(__T__::position)>::value &&
     IsTriviallySerializable<decltype(__T__::col_dir)>::value &&
@@ -504,8 +506,8 @@ struct IsTriviallySerializable<mrd::ImageHeader> {
     IsTriviallySerializable<decltype(__T__::image_series_index)>::value &&
     IsTriviallySerializable<decltype(__T__::user_int)>::value &&
     IsTriviallySerializable<decltype(__T__::user_float)>::value &&
-    (sizeof(__T__) == (sizeof(__T__::flags) + sizeof(__T__::measurement_uid) + sizeof(__T__::field_of_view) + sizeof(__T__::position) + sizeof(__T__::col_dir) + sizeof(__T__::line_dir) + sizeof(__T__::slice_dir) + sizeof(__T__::patient_table_position) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::acquisition_time_stamp_ns) + sizeof(__T__::physiology_time_stamp_ns) + sizeof(__T__::image_type) + sizeof(__T__::image_index) + sizeof(__T__::image_series_index) + sizeof(__T__::user_int) + sizeof(__T__::user_float))) &&
-    offsetof(__T__, flags) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, field_of_view) && offsetof(__T__, field_of_view) < offsetof(__T__, position) && offsetof(__T__, position) < offsetof(__T__, col_dir) && offsetof(__T__, col_dir) < offsetof(__T__, line_dir) && offsetof(__T__, line_dir) < offsetof(__T__, slice_dir) && offsetof(__T__, slice_dir) < offsetof(__T__, patient_table_position) && offsetof(__T__, patient_table_position) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, acquisition_time_stamp_ns) && offsetof(__T__, acquisition_time_stamp_ns) < offsetof(__T__, physiology_time_stamp_ns) && offsetof(__T__, physiology_time_stamp_ns) < offsetof(__T__, image_type) && offsetof(__T__, image_type) < offsetof(__T__, image_index) && offsetof(__T__, image_index) < offsetof(__T__, image_series_index) && offsetof(__T__, image_series_index) < offsetof(__T__, user_int) && offsetof(__T__, user_int) < offsetof(__T__, user_float);
+    (sizeof(__T__) == (sizeof(__T__::flags) + sizeof(__T__::measurement_uid) + sizeof(__T__::measurement_freq) + sizeof(__T__::measurement_freq_label) + sizeof(__T__::field_of_view) + sizeof(__T__::position) + sizeof(__T__::col_dir) + sizeof(__T__::line_dir) + sizeof(__T__::slice_dir) + sizeof(__T__::patient_table_position) + sizeof(__T__::average) + sizeof(__T__::slice) + sizeof(__T__::contrast) + sizeof(__T__::phase) + sizeof(__T__::repetition) + sizeof(__T__::set) + sizeof(__T__::acquisition_time_stamp_ns) + sizeof(__T__::physiology_time_stamp_ns) + sizeof(__T__::image_type) + sizeof(__T__::image_index) + sizeof(__T__::image_series_index) + sizeof(__T__::user_int) + sizeof(__T__::user_float))) &&
+    offsetof(__T__, flags) < offsetof(__T__, measurement_uid) && offsetof(__T__, measurement_uid) < offsetof(__T__, measurement_freq) && offsetof(__T__, measurement_freq) < offsetof(__T__, measurement_freq_label) && offsetof(__T__, measurement_freq_label) < offsetof(__T__, field_of_view) && offsetof(__T__, field_of_view) < offsetof(__T__, position) && offsetof(__T__, position) < offsetof(__T__, col_dir) && offsetof(__T__, col_dir) < offsetof(__T__, line_dir) && offsetof(__T__, line_dir) < offsetof(__T__, slice_dir) && offsetof(__T__, slice_dir) < offsetof(__T__, patient_table_position) && offsetof(__T__, patient_table_position) < offsetof(__T__, average) && offsetof(__T__, average) < offsetof(__T__, slice) && offsetof(__T__, slice) < offsetof(__T__, contrast) && offsetof(__T__, contrast) < offsetof(__T__, phase) && offsetof(__T__, phase) < offsetof(__T__, repetition) && offsetof(__T__, repetition) < offsetof(__T__, set) && offsetof(__T__, set) < offsetof(__T__, acquisition_time_stamp_ns) && offsetof(__T__, acquisition_time_stamp_ns) < offsetof(__T__, physiology_time_stamp_ns) && offsetof(__T__, physiology_time_stamp_ns) < offsetof(__T__, image_type) && offsetof(__T__, image_type) < offsetof(__T__, image_index) && offsetof(__T__, image_index) < offsetof(__T__, image_series_index) && offsetof(__T__, image_series_index) < offsetof(__T__, user_int) && offsetof(__T__, user_int) < offsetof(__T__, user_float);
 };
 
 template <typename T>
@@ -1883,7 +1885,7 @@ template<typename Y, yardl::binary::Writer<Y> WriteY>
     return;
   }
 
-  yardl::binary::WriteNDArray<Y, WriteY, 4>(stream, value);
+  yardl::binary::WriteNDArray<Y, WriteY, 5>(stream, value);
 }
 
 template<typename Y, yardl::binary::Reader<Y> ReadY>
@@ -1893,7 +1895,7 @@ template<typename Y, yardl::binary::Reader<Y> ReadY>
     return;
   }
 
-  yardl::binary::ReadNDArray<Y, ReadY, 4>(stream, value);
+  yardl::binary::ReadNDArray<Y, ReadY, 5>(stream, value);
 }
 
 [[maybe_unused]] void WriteImageHeader(yardl::binary::CodedOutputStream& stream, mrd::ImageHeader const& value) {
@@ -1904,6 +1906,8 @@ template<typename Y, yardl::binary::Reader<Y> ReadY>
 
   yardl::binary::WriteFlags<mrd::ImageFlags>(stream, value.flags);
   yardl::binary::WriteInteger(stream, value.measurement_uid);
+  yardl::binary::WriteOptional<yardl::DynamicNDArray<uint32_t>, yardl::binary::WriteDynamicNDArray<uint32_t, yardl::binary::WriteInteger>>(stream, value.measurement_freq);
+  yardl::binary::WriteOptional<yardl::DynamicNDArray<std::string>, yardl::binary::WriteDynamicNDArray<std::string, yardl::binary::WriteString>>(stream, value.measurement_freq_label);
   yardl::binary::WriteFixedNDArray<float, yardl::binary::WriteFloatingPoint, 3>(stream, value.field_of_view);
   yardl::binary::WriteFixedNDArray<float, yardl::binary::WriteFloatingPoint, 3>(stream, value.position);
   yardl::binary::WriteFixedNDArray<float, yardl::binary::WriteFloatingPoint, 3>(stream, value.col_dir);
@@ -1933,6 +1937,8 @@ template<typename Y, yardl::binary::Reader<Y> ReadY>
 
   yardl::binary::ReadFlags<mrd::ImageFlags>(stream, value.flags);
   yardl::binary::ReadInteger(stream, value.measurement_uid);
+  yardl::binary::ReadOptional<yardl::DynamicNDArray<uint32_t>, yardl::binary::ReadDynamicNDArray<uint32_t, yardl::binary::ReadInteger>>(stream, value.measurement_freq);
+  yardl::binary::ReadOptional<yardl::DynamicNDArray<std::string>, yardl::binary::ReadDynamicNDArray<std::string, yardl::binary::ReadString>>(stream, value.measurement_freq_label);
   yardl::binary::ReadFixedNDArray<float, yardl::binary::ReadFloatingPoint, 3>(stream, value.field_of_view);
   yardl::binary::ReadFixedNDArray<float, yardl::binary::ReadFloatingPoint, 3>(stream, value.position);
   yardl::binary::ReadFixedNDArray<float, yardl::binary::ReadFloatingPoint, 3>(stream, value.col_dir);

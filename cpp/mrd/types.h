@@ -866,22 +866,37 @@ struct ImageFlags : yardl::BaseFlags<uint64_t, ImageFlags> {
   static const ImageFlags kLastInSet;
 };
 
-enum class ImageType {
-  kMagnitude = 1,
-  kPhase = 2,
-  kReal = 3,
-  kImag = 4,
-  kComplex = 5,
+// EDIT: Image Type. Used flags to allow requests for multiple types with one command. Added 'quantitative' types
+enum class ImageType : uint64_t {
+  kMagnitude = 1ULL,
+  kPhase = 2ULL,
+  kReal = 4ULL,
+  kImag = 8ULL,
+  kComplex = 16ULL,
+  kBitmap = 32ULL,
+  kSpinDensityMap = 64ULL,
+  kT1Map = 128ULL,
+  kT2Map = 256ULL,
+  kT2starMap = 512ULL,
+  kAdcMap = 1024ULL,
+  kB0Map = 2048ULL,
+  kB1Map = 4096ULL,
+  kSensitivityMap = 8192ULL,
+  kUserMap = 16384ULL,
 };
 
 template <typename Y>
-using ImageData = yardl::NDArray<Y, 4>;
+using ImageData = yardl::NDArray<Y, 5>;
 
 struct ImageHeader {
   // A bit mask of common attributes applicable to individual images
   mrd::ImageFlags flags{};
   // Unique ID corresponding to the image
   uint32_t measurement_uid{};
+  // NMR frequencies of this measurement (Hz). Same size as ImageData freq dimension SKADD 2/7/25
+  std::optional<yardl::DynamicNDArray<uint32_t>> measurement_freq{};
+  // NMR label of the measurementFreqs. Same size as measurementFreq. SKADD 8/17/25
+  std::optional<yardl::DynamicNDArray<std::string>> measurement_freq_label{};
   // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
   // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -906,9 +921,9 @@ struct ImageHeader {
   std::optional<uint32_t> repetition{};
   // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
-  // Clock time stamp (e.g. nanoseconds since midnight)
+  // Clock time stamp, ns since midnight
   std::optional<uint64_t> acquisition_time_stamp_ns{};
-  // Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
+  // Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
   std::vector<uint64_t> physiology_time_stamp_ns{};
   // Interpretation type of the image
   mrd::ImageType image_type{};
@@ -924,6 +939,8 @@ struct ImageHeader {
   bool operator==(const ImageHeader& other) const {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
+      measurement_freq == other.measurement_freq &&
+      measurement_freq_label == other.measurement_freq_label &&
       field_of_view == other.field_of_view &&
       position == other.position &&
       col_dir == other.col_dir &&
@@ -977,6 +994,10 @@ struct Image {
 
   yardl::Size Cols() const {
     return yardl::shape(data, 3);
+  }
+
+  yardl::Size Frequencies() const {
+    return yardl::shape(data, 4);
   }
 
   bool operator==(const Image& other) const {

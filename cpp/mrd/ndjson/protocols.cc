@@ -2542,6 +2542,16 @@ std::unordered_map<std::string, mrd::ImageType> const __ImageType_values = {
   {"real", mrd::ImageType::kReal},
   {"imag", mrd::ImageType::kImag},
   {"complex", mrd::ImageType::kComplex},
+  {"bitmap", mrd::ImageType::kBitmap},
+  {"spinDensityMap", mrd::ImageType::kSpinDensityMap},
+  {"t1Map", mrd::ImageType::kT1Map},
+  {"t2Map", mrd::ImageType::kT2Map},
+  {"t2starMap", mrd::ImageType::kT2starMap},
+  {"adcMap", mrd::ImageType::kAdcMap},
+  {"b0Map", mrd::ImageType::kB0Map},
+  {"b1Map", mrd::ImageType::kB1Map},
+  {"sensitivityMap", mrd::ImageType::kSensitivityMap},
+  {"userMap", mrd::ImageType::kUserMap},
 };
 } //namespace
 
@@ -2561,6 +2571,36 @@ void to_json(ordered_json& j, mrd::ImageType const& value) {
       break;
     case mrd::ImageType::kComplex:
       j = "complex";
+      break;
+    case mrd::ImageType::kBitmap:
+      j = "bitmap";
+      break;
+    case mrd::ImageType::kSpinDensityMap:
+      j = "spinDensityMap";
+      break;
+    case mrd::ImageType::kT1Map:
+      j = "t1Map";
+      break;
+    case mrd::ImageType::kT2Map:
+      j = "t2Map";
+      break;
+    case mrd::ImageType::kT2starMap:
+      j = "t2starMap";
+      break;
+    case mrd::ImageType::kAdcMap:
+      j = "adcMap";
+      break;
+    case mrd::ImageType::kB0Map:
+      j = "b0Map";
+      break;
+    case mrd::ImageType::kB1Map:
+      j = "b1Map";
+      break;
+    case mrd::ImageType::kSensitivityMap:
+      j = "sensitivityMap";
+      break;
+    case mrd::ImageType::kUserMap:
+      j = "userMap";
       break;
     default:
       using underlying_type = typename std::underlying_type<mrd::ImageType>::type;
@@ -2589,6 +2629,12 @@ void to_json(ordered_json& j, mrd::ImageHeader const& value) {
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.measurement_uid)) {
     j.push_back({"measurementUid", value.measurement_uid});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.measurement_freq)) {
+    j.push_back({"measurementFreq", value.measurement_freq});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.measurement_freq_label)) {
+    j.push_back({"measurementFreqLabel", value.measurement_freq_label});
   }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.field_of_view)) {
     j.push_back({"fieldOfView", value.field_of_view});
@@ -2655,6 +2701,12 @@ void from_json(ordered_json const& j, mrd::ImageHeader& value) {
   }
   if (auto it = j.find("measurementUid"); it != j.end()) {
     it->get_to(value.measurement_uid);
+  }
+  if (auto it = j.find("measurementFreq"); it != j.end()) {
+    it->get_to(value.measurement_freq);
+  }
+  if (auto it = j.find("measurementFreqLabel"); it != j.end()) {
+    it->get_to(value.measurement_freq_label);
   }
   if (auto it = j.find("fieldOfView"); it != j.end()) {
     it->get_to(value.field_of_view);
