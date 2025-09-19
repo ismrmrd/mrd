@@ -88,6 +88,8 @@ struct EncodingCounters {
 
 using AcquisitionData = yardl::NDArray<std::complex<float>, 2>;
 
+using AcquisitionPhase = yardl::NDArray<float, 1>;
+
 using TrajectoryData = yardl::NDArray<float, 2>;
 
 struct AcquisitionHeader {
@@ -99,6 +101,8 @@ struct AcquisitionHeader {
   uint32_t measurement_uid{};
   // Zero-indexed incrementing counter for readouts
   std::optional<uint32_t> scan_counter{};
+  // Acquisition center frequency in Hz
+  std::optional<uint64_t> acquisition_center_frequency{};
   // Clock time stamp (e.g. nanoseconds since midnight)
   std::optional<uint64_t> acquisition_time_stamp_ns{};
   // Time stamps relative to physiological triggering in nanoseconds
@@ -137,6 +141,7 @@ struct AcquisitionHeader {
       idx == other.idx &&
       measurement_uid == other.measurement_uid &&
       scan_counter == other.scan_counter &&
+      acquisition_center_frequency == other.acquisition_center_frequency &&
       acquisition_time_stamp_ns == other.acquisition_time_stamp_ns &&
       physiology_time_stamp_ns == other.physiology_time_stamp_ns &&
       channel_order == other.channel_order &&
@@ -164,6 +169,8 @@ struct Acquisition {
   mrd::AcquisitionHeader head{};
   // Raw k-space samples array
   mrd::AcquisitionData data{};
+  // Phase offset array
+  mrd::AcquisitionPhase phase{};
   // Trajectory array
   mrd::TrajectoryData trajectory{};
 
@@ -190,6 +197,7 @@ struct Acquisition {
   bool operator==(const Acquisition& other) const {
     return head == other.head &&
       data == other.data &&
+      phase == other.phase &&
       trajectory == other.trajectory;
   }
 

@@ -170,6 +170,7 @@ class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.voi
         self._idx_converter = EncodingCountersConverter()
         self._measurement_uid_converter = _ndjson.uint32_converter
         self._scan_counter_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
+        self._acquisition_center_frequency_converter = _ndjson.OptionalConverter(_ndjson.uint64_converter)
         self._acquisition_time_stamp_ns_converter = _ndjson.OptionalConverter(_ndjson.uint64_converter)
         self._physiology_time_stamp_ns_converter = _ndjson.VectorConverter(_ndjson.uint64_converter)
         self._channel_order_converter = _ndjson.VectorConverter(_ndjson.uint32_converter)
@@ -190,6 +191,7 @@ class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.voi
             ("idx", self._idx_converter.overall_dtype()),
             ("measurement_uid", self._measurement_uid_converter.overall_dtype()),
             ("scan_counter", self._scan_counter_converter.overall_dtype()),
+            ("acquisition_center_frequency", self._acquisition_center_frequency_converter.overall_dtype()),
             ("acquisition_time_stamp_ns", self._acquisition_time_stamp_ns_converter.overall_dtype()),
             ("physiology_time_stamp_ns", self._physiology_time_stamp_ns_converter.overall_dtype()),
             ("channel_order", self._channel_order_converter.overall_dtype()),
@@ -217,6 +219,8 @@ class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.voi
         json_object["measurementUid"] = self._measurement_uid_converter.to_json(value.measurement_uid)
         if value.scan_counter is not None:
             json_object["scanCounter"] = self._scan_counter_converter.to_json(value.scan_counter)
+        if value.acquisition_center_frequency is not None:
+            json_object["acquisitionCenterFrequency"] = self._acquisition_center_frequency_converter.to_json(value.acquisition_center_frequency)
         if value.acquisition_time_stamp_ns is not None:
             json_object["acquisitionTimeStampNs"] = self._acquisition_time_stamp_ns_converter.to_json(value.acquisition_time_stamp_ns)
         json_object["physiologyTimeStampNs"] = self._physiology_time_stamp_ns_converter.to_json(value.physiology_time_stamp_ns)
@@ -250,6 +254,8 @@ class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.voi
         json_object["measurementUid"] = self._measurement_uid_converter.numpy_to_json(value["measurement_uid"])
         if (field_val := value["scan_counter"]) is not None:
             json_object["scanCounter"] = self._scan_counter_converter.numpy_to_json(field_val)
+        if (field_val := value["acquisition_center_frequency"]) is not None:
+            json_object["acquisitionCenterFrequency"] = self._acquisition_center_frequency_converter.numpy_to_json(field_val)
         if (field_val := value["acquisition_time_stamp_ns"]) is not None:
             json_object["acquisitionTimeStampNs"] = self._acquisition_time_stamp_ns_converter.numpy_to_json(field_val)
         json_object["physiologyTimeStampNs"] = self._physiology_time_stamp_ns_converter.numpy_to_json(value["physiology_time_stamp_ns"])
@@ -281,6 +287,7 @@ class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.voi
             idx=self._idx_converter.from_json(json_object["idx"],),
             measurement_uid=self._measurement_uid_converter.from_json(json_object["measurementUid"],),
             scan_counter=self._scan_counter_converter.from_json(json_object.get("scanCounter")),
+            acquisition_center_frequency=self._acquisition_center_frequency_converter.from_json(json_object.get("acquisitionCenterFrequency")),
             acquisition_time_stamp_ns=self._acquisition_time_stamp_ns_converter.from_json(json_object.get("acquisitionTimeStampNs")),
             physiology_time_stamp_ns=self._physiology_time_stamp_ns_converter.from_json(json_object["physiologyTimeStampNs"],),
             channel_order=self._channel_order_converter.from_json(json_object["channelOrder"],),
@@ -306,6 +313,7 @@ class AcquisitionHeaderConverter(_ndjson.JsonConverter[AcquisitionHeader, np.voi
             self._idx_converter.from_json_to_numpy(json_object["idx"]),
             self._measurement_uid_converter.from_json_to_numpy(json_object["measurementUid"]),
             self._scan_counter_converter.from_json_to_numpy(json_object.get("scanCounter")),
+            self._acquisition_center_frequency_converter.from_json_to_numpy(json_object.get("acquisitionCenterFrequency")),
             self._acquisition_time_stamp_ns_converter.from_json_to_numpy(json_object.get("acquisitionTimeStampNs")),
             self._physiology_time_stamp_ns_converter.from_json_to_numpy(json_object["physiologyTimeStampNs"]),
             self._channel_order_converter.from_json_to_numpy(json_object["channelOrder"]),
@@ -328,10 +336,12 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
     def __init__(self) -> None:
         self._head_converter = AcquisitionHeaderConverter()
         self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 2)
+        self._phase_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 1)
         self._trajectory_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 2)
         super().__init__(np.dtype([
             ("head", self._head_converter.overall_dtype()),
             ("data", self._data_converter.overall_dtype()),
+            ("phase", self._phase_converter.overall_dtype()),
             ("trajectory", self._trajectory_converter.overall_dtype()),
         ]))
 
@@ -342,6 +352,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
 
         json_object["head"] = self._head_converter.to_json(value.head)
         json_object["data"] = self._data_converter.to_json(value.data)
+        json_object["phase"] = self._phase_converter.to_json(value.phase)
         json_object["trajectory"] = self._trajectory_converter.to_json(value.trajectory)
         return json_object
 
@@ -352,6 +363,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
 
         json_object["head"] = self._head_converter.numpy_to_json(value["head"])
         json_object["data"] = self._data_converter.numpy_to_json(value["data"])
+        json_object["phase"] = self._phase_converter.numpy_to_json(value["phase"])
         json_object["trajectory"] = self._trajectory_converter.numpy_to_json(value["trajectory"])
         return json_object
 
@@ -361,6 +373,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         return Acquisition(
             head=self._head_converter.from_json(json_object["head"],),
             data=self._data_converter.from_json(json_object["data"],),
+            phase=self._phase_converter.from_json(json_object["phase"],),
             trajectory=self._trajectory_converter.from_json(json_object["trajectory"],),
         )
 
@@ -370,6 +383,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         return (
             self._head_converter.from_json_to_numpy(json_object["head"]),
             self._data_converter.from_json_to_numpy(json_object["data"]),
+            self._phase_converter.from_json_to_numpy(json_object["phase"]),
             self._trajectory_converter.from_json_to_numpy(json_object["trajectory"]),
         ) # type:ignore 
 
@@ -3179,8 +3193,8 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str], skip_completed_check: bool = False) -> None:
-        MrdReaderBase.__init__(self, skip_completed_check)
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
+        MrdReaderBase.__init__(self)
         _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdReaderBase.schema)
 
     def _read_header(self) -> typing.Optional[Header]:
@@ -3217,8 +3231,8 @@ class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovar
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str], skip_completed_check: bool = False) -> None:
-        MrdNoiseCovarianceReaderBase.__init__(self, skip_completed_check)
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self)
         _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
 
     def _read_noise_covariance(self) -> NoiseCovariance:

@@ -19,16 +19,12 @@ classdef AccelerationFactorType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.AccelerationFactorType") && ...
-        isequal({self.kspace_encoding_step_1}, {other.kspace_encoding_step_1}) && ...
-        isequal({self.kspace_encoding_step_2}, {other.kspace_encoding_step_2});
+        isequal(self.kspace_encoding_step_1, other.kspace_encoding_step_1) && ...
+        isequal(self.kspace_encoding_step_2, other.kspace_encoding_step_2);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

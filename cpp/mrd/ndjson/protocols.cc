@@ -796,6 +796,9 @@ void to_json(ordered_json& j, mrd::AcquisitionHeader const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.scan_counter)) {
     j.push_back({"scanCounter", value.scan_counter});
   }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_center_frequency)) {
+    j.push_back({"acquisitionCenterFrequency", value.acquisition_center_frequency});
+  }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_time_stamp_ns)) {
     j.push_back({"acquisitionTimeStampNs", value.acquisition_time_stamp_ns});
   }
@@ -856,6 +859,9 @@ void from_json(ordered_json const& j, mrd::AcquisitionHeader& value) {
   if (auto it = j.find("scanCounter"); it != j.end()) {
     it->get_to(value.scan_counter);
   }
+  if (auto it = j.find("acquisitionCenterFrequency"); it != j.end()) {
+    it->get_to(value.acquisition_center_frequency);
+  }
   if (auto it = j.find("acquisitionTimeStampNs"); it != j.end()) {
     it->get_to(value.acquisition_time_stamp_ns);
   }
@@ -911,6 +917,9 @@ void to_json(ordered_json& j, mrd::Acquisition const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.data)) {
     j.push_back({"data", value.data});
   }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase)) {
+    j.push_back({"phase", value.phase});
+  }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.trajectory)) {
     j.push_back({"trajectory", value.trajectory});
   }
@@ -922,6 +931,9 @@ void from_json(ordered_json const& j, mrd::Acquisition& value) {
   }
   if (auto it = j.find("data"); it != j.end()) {
     it->get_to(value.data);
+  }
+  if (auto it = j.find("phase"); it != j.end()) {
+    it->get_to(value.phase);
   }
   if (auto it = j.find("trajectory"); it != j.end()) {
     it->get_to(value.trajectory);
@@ -3057,9 +3069,7 @@ bool MrdReader::ReadDataImpl(mrd::StreamItem& value) {
 }
 
 void MrdReader::CloseImpl() {
-  if (!skip_completed_check_) {
-    VerifyFinished();
-  }
+  VerifyFinished();
 }
 
 void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) {
@@ -3079,9 +3089,7 @@ void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& val
 }
 
 void MrdNoiseCovarianceReader::CloseImpl() {
-  if (!skip_completed_check_) {
-    VerifyFinished();
-  }
+  VerifyFinished();
 }
 
 } // namespace mrd::ndjson

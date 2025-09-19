@@ -62,6 +62,11 @@ AcquisitionData: !array
     coils:
     samples:
 
+AcquisitionPhase: !array
+  items: float
+  dimensions:
+    samples:
+
 TrajectoryData: !array
   items: float
   dimensions:
@@ -78,6 +83,8 @@ AcquisitionHeader: !record
     measurementUid: uint
     # Zero-indexed incrementing counter for readouts
     scanCounter: uint?
+    # Acquisition center frequency in Hz
+    acquisitionCenterFrequency: uint64?
     # Clock time stamp (e.g. nanoseconds since midnight)
     acquisitionTimeStampNs: uint64?
     # Time stamps relative to physiological triggering in nanoseconds
@@ -117,6 +124,8 @@ Acquisition: !record
     head: AcquisitionHeader
     # Raw k-space samples array
     data: AcquisitionData
+    # Phase offset array
+    phase: AcquisitionPhase
     # Trajectory array
     trajectory: TrajectoryData
   computedFields:

@@ -16,15 +16,11 @@ classdef ExperimentalConditionsType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.ExperimentalConditionsType") && ...
-        isequal({self.h1resonance_frequency_hz}, {other.h1resonance_frequency_hz});
+        isequal(self.h1resonance_frequency_hz, other.h1resonance_frequency_hz);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 
