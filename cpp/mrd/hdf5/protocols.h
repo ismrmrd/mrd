@@ -28,7 +28,7 @@ class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
   void Flush() override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<14>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetWriter<16>> data_dataset_state_;
 };
 
 // HDF5 reader for the Mrd protocol.
@@ -42,7 +42,7 @@ class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   bool ReadDataImpl(mrd::StreamItem& value) override;
 
   private:
-  std::unique_ptr<yardl::hdf5::UnionDatasetReader<14>> data_dataset_state_;
+  std::unique_ptr<yardl::hdf5::UnionDatasetReader<16>> data_dataset_state_;
 };
 
 // HDF5 writer for the MrdNoiseCovariance protocol.

@@ -330,6 +330,96 @@ class Acquisition:
         return f"Acquisition(head={repr(self.head)}, data={repr(self.data)}, trajectory={repr(self.trajectory)})"
 
 
+GradientData = npt.NDArray[np.float32]
+"""gradient of defined direction stored as 1D array samples"""
+
+
+class GradientDirection(yardl.OutOfRangeEnum):
+    Z = 1
+    Y = 2
+    X = 3
+
+class GradientHeader:
+    gradient_time_stamp_ns: yardl.UInt64
+    """Clock time stamp (e.g. nanoseconds since midnight)"""
+
+    gradient_sample_time_ns: yardl.UInt32
+    """Gradient sample duration in nanoseconds"""
+
+    pulse_calibration: typing.Optional[list[yardl.Float32]]
+    """Grad calibration (T/m/A). Can be here or as a calGradMap calibration image or neither"""
+
+    gradient_direction: GradientDirection
+    """Gradient direction as enum"""
+
+
+    def __init__(self, *,
+        gradient_time_stamp_ns: yardl.UInt64 = 0,
+        gradient_sample_time_ns: yardl.UInt32 = 0,
+        pulse_calibration: typing.Optional[list[yardl.Float32]] = None,
+        gradient_direction: GradientDirection,
+    ):
+        self.gradient_time_stamp_ns = gradient_time_stamp_ns
+        self.gradient_sample_time_ns = gradient_sample_time_ns
+        self.pulse_calibration = pulse_calibration
+        self.gradient_direction = gradient_direction
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, GradientHeader)
+            and self.gradient_time_stamp_ns == other.gradient_time_stamp_ns
+            and self.gradient_sample_time_ns == other.gradient_sample_time_ns
+            and self.pulse_calibration == other.pulse_calibration
+            and self.gradient_direction == other.gradient_direction
+        )
+
+    def __str__(self) -> str:
+        return f"GradientHeader(gradientTimeStampNs={self.gradient_time_stamp_ns}, gradientSampleTimeNs={self.gradient_sample_time_ns}, pulseCalibration={self.pulse_calibration}, gradientDirection={self.gradient_direction})"
+
+    def __repr__(self) -> str:
+        return f"GradientHeader(gradientTimeStampNs={repr(self.gradient_time_stamp_ns)}, gradientSampleTimeNs={repr(self.gradient_sample_time_ns)}, pulseCalibration={repr(self.pulse_calibration)}, gradientDirection={repr(self.gradient_direction)})"
+
+
+class Gradient:
+    head: GradientHeader
+    """Grad header"""
+
+    data: GradientData
+    """gradient data"""
+
+
+    def __init__(self, *,
+        head: GradientHeader,
+        data: typing.Optional[GradientData] = None,
+    ):
+        self.head = head
+        self.data = data if data is not None else np.zeros((0), dtype=np.dtype(np.float32))
+
+    def samples(self) -> yardl.Size:
+        return self.data.shape[0]
+
+    def starttime(self) -> yardl.UInt64:
+        """timestamps in ns"""
+
+        return self.head.gradient_time_stamp_ns
+
+    def endtime(self) -> yardl.Size:
+        return self.head.gradient_time_stamp_ns + self.samples() * int(self.head.gradient_sample_time_ns)
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, Gradient)
+            and self.head == other.head
+            and yardl.structural_equal(self.data, other.data)
+        )
+
+    def __str__(self) -> str:
+        return f"Gradient(head={self.head}, data={self.data})"
+
+    def __repr__(self) -> str:
+        return f"Gradient(head={repr(self.head)}, data={repr(self.data)})"
+
+
 class PatientGender(yardl.OutOfRangeEnum):
     M = 0
     F = 1
@@ -2088,8 +2178,109 @@ Array = npt.NDArray[T_NP]
 
 ArrayComplexFloat = Array[np.complex64]
 
+class PulseHeader:
+    pulse_time_stamp_ns: yardl.UInt64
+    """Clock time stamp (e.g. nanoseconds since midnight)"""
+
+    channel_order: list[yardl.UInt32]
+    """Channel numbers"""
+
+    sample_time_ns: yardl.UInt32
+    """Sample time in ns"""
+
+    pulse_calibration: typing.Optional[list[yardl.Float32]]
+    """Pulse calibration (rad/s/V). Can be here or as a calB1Map calibration image or neither"""
+
+
+    def __init__(self, *,
+        pulse_time_stamp_ns: yardl.UInt64 = 0,
+        channel_order: typing.Optional[list[yardl.UInt32]] = None,
+        sample_time_ns: yardl.UInt32 = 0,
+        pulse_calibration: typing.Optional[list[yardl.Float32]] = None,
+    ):
+        self.pulse_time_stamp_ns = pulse_time_stamp_ns
+        self.channel_order = channel_order if channel_order is not None else []
+        self.sample_time_ns = sample_time_ns
+        self.pulse_calibration = pulse_calibration
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, PulseHeader)
+            and self.pulse_time_stamp_ns == other.pulse_time_stamp_ns
+            and self.channel_order == other.channel_order
+            and self.sample_time_ns == other.sample_time_ns
+            and self.pulse_calibration == other.pulse_calibration
+        )
+
+    def __str__(self) -> str:
+        return f"PulseHeader(pulseTimeStampNs={self.pulse_time_stamp_ns}, channelOrder={self.channel_order}, sampleTimeNs={self.sample_time_ns}, pulseCalibration={self.pulse_calibration})"
+
+    def __repr__(self) -> str:
+        return f"PulseHeader(pulseTimeStampNs={repr(self.pulse_time_stamp_ns)}, channelOrder={repr(self.channel_order)}, sampleTimeNs={repr(self.sample_time_ns)}, pulseCalibration={repr(self.pulse_calibration)})"
+
+
+PulseData = npt.NDArray[np.float32]
+
+PulsePhase = npt.NDArray[np.float32]
+
+PulsePhaseOffset = npt.NDArray[np.float32]
+
+class Pulse:
+    head: PulseHeader
+    """Pulse header"""
+
+    amplitude: PulseData
+    """Raw pulse amplitude array"""
+
+    phase: PulsePhase
+    """Full profile of pulse phase array"""
+
+    phase_offset: PulsePhaseOffset
+    """Pulse phase offset"""
+
+
+    def __init__(self, *,
+        head: typing.Optional[PulseHeader] = None,
+        amplitude: typing.Optional[PulseData] = None,
+        phase: typing.Optional[PulsePhase] = None,
+        phase_offset: typing.Optional[PulsePhaseOffset] = None,
+    ):
+        self.head = head if head is not None else PulseHeader()
+        self.amplitude = amplitude if amplitude is not None else np.zeros((0, 0), dtype=np.dtype(np.float32))
+        self.phase = phase if phase is not None else np.zeros((0), dtype=np.dtype(np.float32))
+        self.phase_offset = phase_offset if phase_offset is not None else np.zeros((0), dtype=np.dtype(np.float32))
+
+    def coils(self) -> yardl.Size:
+        """Assuming writer sets amp and phase array the same size"""
+
+        return self.amplitude.shape[0]
+
+    def samples(self) -> yardl.Size:
+        return self.amplitude.shape[1]
+
+    def active_channels(self) -> yardl.Size:
+        return len(self.head.channel_order)
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, Pulse)
+            and self.head == other.head
+            and yardl.structural_equal(self.amplitude, other.amplitude)
+            and yardl.structural_equal(self.phase, other.phase)
+            and yardl.structural_equal(self.phase_offset, other.phase_offset)
+        )
+
+    def __str__(self) -> str:
+        return f"Pulse(head={self.head}, amplitude={self.amplitude}, phase={self.phase}, phaseOffset={self.phase_offset})"
+
+    def __repr__(self) -> str:
+        return f"Pulse(head={repr(self.head)}, amplitude={repr(self.amplitude)}, phase={repr(self.phase)}, phaseOffset={repr(self.phase_offset)})"
+
+
 class StreamItem:
     Acquisition: typing.ClassVar[type["StreamItemUnionCase[Acquisition]"]]
+    Pulse: typing.ClassVar[type["StreamItemUnionCase[Pulse]"]]
+    Gradient: typing.ClassVar[type["StreamItemUnionCase[Gradient]"]]
     WaveformUint32: typing.ClassVar[type["StreamItemUnionCase[WaveformUint32]"]]
     ImageUint16: typing.ClassVar[type["StreamItemUnionCase[ImageUint16]"]]
     ImageInt16: typing.ClassVar[type["StreamItemUnionCase[ImageInt16]"]]
@@ -2108,19 +2299,21 @@ class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
 
 StreamItem.Acquisition = type("StreamItem.Acquisition", (StreamItemUnionCase,), {"index": 0, "tag": "Acquisition"})
-StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 1, "tag": "WaveformUint32"})
-StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 2, "tag": "ImageUint16"})
-StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 3, "tag": "ImageInt16"})
-StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 4, "tag": "ImageUint32"})
-StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 5, "tag": "ImageInt32"})
-StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 6, "tag": "ImageFloat"})
-StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 7, "tag": "ImageDouble"})
-StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 8, "tag": "ImageComplexFloat"})
-StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 9, "tag": "ImageComplexDouble"})
-StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 10, "tag": "AcquisitionBucket"})
-StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 11, "tag": "ReconData"})
-StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 12, "tag": "ArrayComplexFloat"})
-StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 13, "tag": "ImageArray"})
+StreamItem.Pulse = type("StreamItem.Pulse", (StreamItemUnionCase,), {"index": 1, "tag": "Pulse"})
+StreamItem.Gradient = type("StreamItem.Gradient", (StreamItemUnionCase,), {"index": 2, "tag": "Gradient"})
+StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 3, "tag": "WaveformUint32"})
+StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 4, "tag": "ImageUint16"})
+StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 5, "tag": "ImageInt16"})
+StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 6, "tag": "ImageUint32"})
+StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 7, "tag": "ImageInt32"})
+StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 8, "tag": "ImageFloat"})
+StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 9, "tag": "ImageDouble"})
+StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 10, "tag": "ImageComplexFloat"})
+StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 11, "tag": "ImageComplexDouble"})
+StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 12, "tag": "AcquisitionBucket"})
+StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 13, "tag": "ReconData"})
+StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 14, "tag": "ArrayComplexFloat"})
+StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 15, "tag": "ImageArray"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():
@@ -2131,6 +2324,9 @@ def _mk_get_dtype():
     dtype_map.setdefault(EncodingCounters, np.dtype([('kspace_encode_step_1', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('kspace_encode_step_2', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('segment', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(AcquisitionHeader, np.dtype([('flags', get_dtype(AcquisitionFlags)), ('idx', get_dtype(EncodingCounters)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('channel_order', np.dtype(np.object_)), ('discard_pre', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('discard_post', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('center_sample', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('encoding_space_ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('sample_time_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('position', np.dtype(np.float32), (3,)), ('read_dir', np.dtype(np.float32), (3,)), ('phase_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(Acquisition, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(GradientDirection, np.dtype(np.int32))
+    dtype_map.setdefault(GradientHeader, np.dtype([('gradient_time_stamp_ns', np.dtype(np.uint64)), ('gradient_sample_time_ns', np.dtype(np.uint32)), ('pulse_calibration', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('gradient_direction', get_dtype(GradientDirection))], align=True))
+    dtype_map.setdefault(Gradient, np.dtype([('head', get_dtype(GradientHeader)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PatientGender, np.dtype(np.int32))
     dtype_map.setdefault(SubjectInformationType, np.dtype([('patient_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_weight_kg', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_height_m', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_birthdate', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('patient_gender', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(PatientGender))], align=True))], align=True))
     dtype_map.setdefault(StudyInformationType, np.dtype([('study_date', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('study_time', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.timedelta64))], align=True)), ('study_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('accession_number', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.int64))], align=True)), ('referring_physician_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_description', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_instance_uid', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('body_part_examined', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))
@@ -2193,6 +2389,8 @@ def _mk_get_dtype():
     dtype_map.setdefault(ReconAssembly, np.dtype([('data', get_dtype(ReconBuffer)), ('ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ReconBuffer))], align=True))], align=True))
     dtype_map.setdefault(ReconData, np.dtype([('buffers', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageArray, np.dtype([('data', np.dtype(np.object_)), ('headers', np.dtype(np.object_)), ('meta', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(PulseHeader, np.dtype([('pulse_time_stamp_ns', np.dtype(np.uint64)), ('channel_order', np.dtype(np.object_)), ('sample_time_ns', np.dtype(np.uint32)), ('pulse_calibration', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))
+    dtype_map.setdefault(Pulse, np.dtype([('head', get_dtype(PulseHeader)), ('amplitude', np.dtype(np.object_)), ('phase', np.dtype(np.object_)), ('phase_offset', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(StreamItem, np.dtype(np.object_))
 
     return get_dtype
