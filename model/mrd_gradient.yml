@@ -1,0 +1,34 @@
+# gradient of defined direction stored as 1D array samples
+GradientData: !array
+  items: float
+  dimensions:
+    samples:
+
+GradientDirection: !enum
+  values:
+    z: 1
+    y: 2
+    x: 3
+
+GradientHeader: !record
+  fields:
+    # Clock time stamp (e.g. nanoseconds since midnight)
+    gradientTimeStampNs: uint64
+    # Gradient sample duration in nanoseconds
+    gradientSampleTimeNs: uint
+    # Grad calibration (T/m/A). Can be here or as a calGradMap calibration image or neither
+    pulseCalibration: float*?
+    # Gradient direction as enum
+    gradientDirection: GradientDirection
+
+Gradient: !record
+  fields:
+    # Grad header
+    head: GradientHeader
+    # gradient data
+    data: GradientData
+  computedFields:
+    samples: size(data, "samples")
+    # timestamps in ns
+    starttime: head.gradientTimeStampNs
+    endtime: head.gradientTimeStampNs + samples * head.gradientSampleTimeNs
