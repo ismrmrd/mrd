@@ -82,6 +82,8 @@ int main(int argc, char** argv) {
 
   mrd::StreamItem item;
   while (r.ReadData(item)) {
+    // if item type is mrd::Pulse or mrd::Gradient, skip from visit serailizer
+    // as the ISMRMRD format does not support these types
     std::visit([&serializer](auto&& arg) { serializer.serialize(convert(arg)); },
                item);
   }

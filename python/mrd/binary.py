@@ -34,7 +34,7 @@ class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
         _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).write(self._stream, value)
+        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.Pulse, PulseSerializer()), (StreamItem.Gradient, GradientSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).write(self._stream, value)
 
 
 class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
@@ -52,7 +52,7 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).read(self._stream)
+        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.Pulse, PulseSerializer()), (StreamItem.Gradient, GradientSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer())])).read(self._stream)
 
 class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovarianceWriterBase):
     """Binary writer for the MrdNoiseCovariance protocol.
@@ -135,6 +135,42 @@ class AcquisitionSerializer(_binary.RecordSerializer[Acquisition]):
     def read(self, stream: _binary.CodedInputStream) -> Acquisition:
         field_values = self._read(stream)
         return Acquisition(head=field_values[0], data=field_values[1], trajectory=field_values[2])
+
+
+class GradientHeaderSerializer(_binary.RecordSerializer[GradientHeader]):
+    def __init__(self) -> None:
+        super().__init__([("gradient_time_stamp_ns", _binary.uint64_serializer), ("gradient_sample_time_ns", _binary.uint32_serializer), ("pulse_calibration", _binary.OptionalSerializer(_binary.VectorSerializer(_binary.float32_serializer))), ("gradient_direction", _binary.EnumSerializer(_binary.int32_serializer, GradientDirection))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: GradientHeader) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.gradient_time_stamp_ns, value.gradient_sample_time_ns, value.pulse_calibration, value.gradient_direction)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['gradient_time_stamp_ns'], value['gradient_sample_time_ns'], value['pulse_calibration'], value['gradient_direction'])
+
+    def read(self, stream: _binary.CodedInputStream) -> GradientHeader:
+        field_values = self._read(stream)
+        return GradientHeader(gradient_time_stamp_ns=field_values[0], gradient_sample_time_ns=field_values[1], pulse_calibration=field_values[2], gradient_direction=field_values[3])
+
+
+class GradientSerializer(_binary.RecordSerializer[Gradient]):
+    def __init__(self) -> None:
+        super().__init__([("head", GradientHeaderSerializer()), ("data", _binary.NDArraySerializer(_binary.float32_serializer, 1))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: Gradient) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.head, value.data)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['head'], value['data'])
+
+    def read(self, stream: _binary.CodedInputStream) -> Gradient:
+        field_values = self._read(stream)
+        return Gradient(head=field_values[0], data=field_values[1])
 
 
 class SubjectInformationTypeSerializer(_binary.RecordSerializer[SubjectInformationType]):
@@ -873,5 +909,41 @@ class ImageArraySerializer(_binary.RecordSerializer[ImageArray]):
     def read(self, stream: _binary.CodedInputStream) -> ImageArray:
         field_values = self._read(stream)
         return ImageArray(data=field_values[0], headers=field_values[1], meta=field_values[2], waveforms=field_values[3])
+
+
+class PulseHeaderSerializer(_binary.RecordSerializer[PulseHeader]):
+    def __init__(self) -> None:
+        super().__init__([("pulse_time_stamp_ns", _binary.uint64_serializer), ("channel_order", _binary.VectorSerializer(_binary.uint32_serializer)), ("sample_time_ns", _binary.uint32_serializer), ("pulse_calibration", _binary.OptionalSerializer(_binary.VectorSerializer(_binary.float32_serializer)))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: PulseHeader) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.pulse_time_stamp_ns, value.channel_order, value.sample_time_ns, value.pulse_calibration)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['pulse_time_stamp_ns'], value['channel_order'], value['sample_time_ns'], value['pulse_calibration'])
+
+    def read(self, stream: _binary.CodedInputStream) -> PulseHeader:
+        field_values = self._read(stream)
+        return PulseHeader(pulse_time_stamp_ns=field_values[0], channel_order=field_values[1], sample_time_ns=field_values[2], pulse_calibration=field_values[3])
+
+
+class PulseSerializer(_binary.RecordSerializer[Pulse]):
+    def __init__(self) -> None:
+        super().__init__([("head", PulseHeaderSerializer()), ("amplitude", _binary.NDArraySerializer(_binary.float32_serializer, 2)), ("phase", _binary.NDArraySerializer(_binary.float32_serializer, 1)), ("phase_offset", _binary.NDArraySerializer(_binary.float32_serializer, 1))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: Pulse) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.head, value.amplitude, value.phase, value.phase_offset)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['head'], value['amplitude'], value['phase'], value['phase_offset'])
+
+    def read(self, stream: _binary.CodedInputStream) -> Pulse:
+        field_values = self._read(stream)
+        return Pulse(head=field_values[0], amplitude=field_values[1], phase=field_values[2], phase_offset=field_values[3])
 
 

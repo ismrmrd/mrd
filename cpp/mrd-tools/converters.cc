@@ -1107,6 +1107,16 @@ int convert(ArrayComplexFloat&) {
   return 0;
 }
 
+// Convert mrd::Gradient - no equivalent in ISMRMRD::
+int convert(Gradient&) {
+  return 0;
+}
+
+// Convert mrd::Pulse - no equivalent in ISMRMRD::
+int convert(Pulse&) {
+  return 0;
+}
+
 yardl::Date date_from_string(const std::string& s) {
   std::stringstream ss{s};
 
