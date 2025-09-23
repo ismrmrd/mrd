@@ -2406,6 +2406,16 @@ image_type_name_to_value_map = {
     "real": ImageType.REAL,
     "imag": ImageType.IMAG,
     "complex": ImageType.COMPLEX,
+    "bitmap": ImageType.BITMAP,
+    "spinDensityMap": ImageType.SPIN_DENSITY_MAP,
+    "t1Map": ImageType.T1_MAP,
+    "t2Map": ImageType.T2_MAP,
+    "t2starMap": ImageType.T2STAR_MAP,
+    "adcMap": ImageType.ADC_MAP,
+    "b0Map": ImageType.B0_MAP,
+    "b1Map": ImageType.B1_MAP,
+    "sensitivityMap": ImageType.SENSITIVITY_MAP,
+    "userMap": ImageType.USER_MAP,
 }
 image_type_value_to_name_map = {v: n for n, v in image_type_name_to_value_map.items()}
 
@@ -2413,6 +2423,8 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
     def __init__(self) -> None:
         self._flags_converter = _ndjson.FlagsConverter(ImageFlags, np.uint64, image_flags_name_to_value_map, image_flags_value_to_name_map)
         self._measurement_uid_converter = _ndjson.uint32_converter
+        self._measurement_freq_converter = _ndjson.OptionalConverter(_ndjson.DynamicNDArrayConverter(_ndjson.uint32_converter))
+        self._measurement_freq_label_converter = _ndjson.OptionalConverter(_ndjson.DynamicNDArrayConverter(_ndjson.string_converter))
         self._field_of_view_converter = _ndjson.FixedNDArrayConverter(_ndjson.float32_converter, (3,))
         self._position_converter = _ndjson.FixedNDArrayConverter(_ndjson.float32_converter, (3,))
         self._col_dir_converter = _ndjson.FixedNDArrayConverter(_ndjson.float32_converter, (3,))
@@ -2427,7 +2439,7 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
         self._set_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._acquisition_time_stamp_ns_converter = _ndjson.OptionalConverter(_ndjson.uint64_converter)
         self._physiology_time_stamp_ns_converter = _ndjson.VectorConverter(_ndjson.uint64_converter)
-        self._image_type_converter = _ndjson.EnumConverter(ImageType, np.int32, image_type_name_to_value_map, image_type_value_to_name_map)
+        self._image_type_converter = _ndjson.EnumConverter(ImageType, np.uint64, image_type_name_to_value_map, image_type_value_to_name_map)
         self._image_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._image_series_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._user_int_converter = _ndjson.VectorConverter(_ndjson.int32_converter)
@@ -2435,6 +2447,8 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
         super().__init__(np.dtype([
             ("flags", self._flags_converter.overall_dtype()),
             ("measurement_uid", self._measurement_uid_converter.overall_dtype()),
+            ("measurement_freq", self._measurement_freq_converter.overall_dtype()),
+            ("measurement_freq_label", self._measurement_freq_label_converter.overall_dtype()),
             ("field_of_view", self._field_of_view_converter.overall_dtype()),
             ("position", self._position_converter.overall_dtype()),
             ("col_dir", self._col_dir_converter.overall_dtype()),
@@ -2463,6 +2477,10 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
 
         json_object["flags"] = self._flags_converter.to_json(value.flags)
         json_object["measurementUid"] = self._measurement_uid_converter.to_json(value.measurement_uid)
+        if value.measurement_freq is not None:
+            json_object["measurementFreq"] = self._measurement_freq_converter.to_json(value.measurement_freq)
+        if value.measurement_freq_label is not None:
+            json_object["measurementFreqLabel"] = self._measurement_freq_label_converter.to_json(value.measurement_freq_label)
         json_object["fieldOfView"] = self._field_of_view_converter.to_json(value.field_of_view)
         json_object["position"] = self._position_converter.to_json(value.position)
         json_object["colDir"] = self._col_dir_converter.to_json(value.col_dir)
@@ -2500,6 +2518,10 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
 
         json_object["flags"] = self._flags_converter.numpy_to_json(value["flags"])
         json_object["measurementUid"] = self._measurement_uid_converter.numpy_to_json(value["measurement_uid"])
+        if (field_val := value["measurement_freq"]) is not None:
+            json_object["measurementFreq"] = self._measurement_freq_converter.numpy_to_json(field_val)
+        if (field_val := value["measurement_freq_label"]) is not None:
+            json_object["measurementFreqLabel"] = self._measurement_freq_label_converter.numpy_to_json(field_val)
         json_object["fieldOfView"] = self._field_of_view_converter.numpy_to_json(value["field_of_view"])
         json_object["position"] = self._position_converter.numpy_to_json(value["position"])
         json_object["colDir"] = self._col_dir_converter.numpy_to_json(value["col_dir"])
@@ -2536,6 +2558,8 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
         return ImageHeader(
             flags=self._flags_converter.from_json(json_object["flags"],),
             measurement_uid=self._measurement_uid_converter.from_json(json_object["measurementUid"],),
+            measurement_freq=self._measurement_freq_converter.from_json(json_object.get("measurementFreq")),
+            measurement_freq_label=self._measurement_freq_label_converter.from_json(json_object.get("measurementFreqLabel")),
             field_of_view=self._field_of_view_converter.from_json(json_object["fieldOfView"],),
             position=self._position_converter.from_json(json_object["position"],),
             col_dir=self._col_dir_converter.from_json(json_object["colDir"],),
@@ -2563,6 +2587,8 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
         return (
             self._flags_converter.from_json_to_numpy(json_object["flags"]),
             self._measurement_uid_converter.from_json_to_numpy(json_object["measurementUid"]),
+            self._measurement_freq_converter.from_json_to_numpy(json_object.get("measurementFreq")),
+            self._measurement_freq_label_converter.from_json_to_numpy(json_object.get("measurementFreqLabel")),
             self._field_of_view_converter.from_json_to_numpy(json_object["fieldOfView"]),
             self._position_converter.from_json_to_numpy(json_object["position"]),
             self._col_dir_converter.from_json_to_numpy(json_object["colDir"]),
@@ -2588,7 +2614,7 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
 class ImageConverter(typing.Generic[T, T_NP], _ndjson.JsonConverter[Image[T_NP], np.void]):
     def __init__(self, t_converter: _ndjson.JsonConverter[T, T_NP]) -> None:
         self._head_converter = ImageHeaderConverter()
-        self._data_converter = _ndjson.NDArrayConverter(t_converter, 4)
+        self._data_converter = _ndjson.NDArrayConverter(t_converter, 5)
         self._meta_converter = _ndjson.MapConverter(_ndjson.string_converter, _ndjson.VectorConverter(_ndjson.UnionConverter(ImageMetaValue, [(ImageMetaValue.String, _ndjson.string_converter, [str]), (ImageMetaValue.Int64, _ndjson.int64_converter, [int, float]), (ImageMetaValue.Float64, _ndjson.float64_converter, [int, float])], False)))
         super().__init__(np.dtype([
             ("head", self._head_converter.overall_dtype()),
