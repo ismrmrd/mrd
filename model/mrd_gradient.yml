@@ -4,7 +4,7 @@ GradientData: !array
   dimensions:
     samples:
 
-GradientDirection: !enum
+GradientAxis: !enum
   values:
     z: 1
     y: 2
@@ -18,8 +18,8 @@ GradientHeader: !record
     gradientSampleTimeNs: uint
     # Grad calibration (T/m/A). Can be here or as a calGradMap calibration image or neither
     pulseCalibration: float*?
-    # Gradient direction as enum
-    gradientDirection: GradientDirection
+    # Gradient axis as enum
+    gradientAxis: GradientAxis
 
 Gradient: !record
   fields:
