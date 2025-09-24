@@ -174,7 +174,7 @@ bool MrdReaderBase::ReadDataImpl(std::vector<mrd::StreamItem>& values) {
 }
 
 void MrdReaderBase::Close() {
-  if (unlikely(state_ != 4)) {
+  if (!skip_completed_check_ && unlikely(state_ != 4)) {
     if (state_ == 3) {
       state_ = 4;
     } else {
@@ -282,7 +282,7 @@ void MrdNoiseCovarianceReaderBase::ReadNoiseCovariance(mrd::NoiseCovariance& val
 }
 
 void MrdNoiseCovarianceReaderBase::Close() {
-  if (unlikely(state_ != 2)) {
+  if (!skip_completed_check_ && unlikely(state_ != 2)) {
     MrdNoiseCovarianceReaderBaseInvalidState(2, state_);
   }
 

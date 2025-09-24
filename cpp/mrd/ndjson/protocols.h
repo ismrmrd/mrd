@@ -37,12 +37,12 @@ class MrdWriter : public mrd::MrdWriterBase, yardl::ndjson::NDJsonWriter {
 // The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, yardl::ndjson::NDJsonReader {
   public:
-  MrdReader(std::istream& stream)
-      : yardl::ndjson::NDJsonReader(stream, schema_) {
+  MrdReader(std::istream& stream, bool skip_completed_check=false)
+      : mrd::MrdReaderBase(skip_completed_check), yardl::ndjson::NDJsonReader(stream, schema_) {
   }
 
-  MrdReader(std::string file_name)
-      : yardl::ndjson::NDJsonReader(file_name, schema_) {
+  MrdReader(std::string file_name, bool skip_completed_check=false)
+      : mrd::MrdReaderBase(skip_completed_check), yardl::ndjson::NDJsonReader(file_name, schema_) {
   }
 
   protected:
@@ -74,12 +74,12 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl
 // Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::ndjson::NDJsonReader {
   public:
-  MrdNoiseCovarianceReader(std::istream& stream)
-      : yardl::ndjson::NDJsonReader(stream, schema_) {
+  MrdNoiseCovarianceReader(std::istream& stream, bool skip_completed_check=false)
+      : mrd::MrdNoiseCovarianceReaderBase(skip_completed_check), yardl::ndjson::NDJsonReader(stream, schema_) {
   }
 
-  MrdNoiseCovarianceReader(std::string file_name)
-      : yardl::ndjson::NDJsonReader(file_name, schema_) {
+  MrdNoiseCovarianceReader(std::string file_name, bool skip_completed_check=false)
+      : mrd::MrdNoiseCovarianceReaderBase(skip_completed_check), yardl::ndjson::NDJsonReader(file_name, schema_) {
   }
 
   protected:

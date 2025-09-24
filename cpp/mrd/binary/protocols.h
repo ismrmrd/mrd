@@ -38,11 +38,11 @@ class MrdWriter : public mrd::MrdWriterBase, yardl::binary::BinaryWriter {
 // The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, yardl::binary::BinaryReader {
   public:
-  MrdReader(std::istream& stream)
-      : yardl::binary::BinaryReader(stream), version_(mrd::MrdReaderBase::VersionFromSchema(schema_read_)) {}
+  MrdReader(std::istream& stream, bool skip_completed_check=false)
+      : mrd::MrdReaderBase(skip_completed_check), yardl::binary::BinaryReader(stream), version_(mrd::MrdReaderBase::VersionFromSchema(schema_read_)) {}
 
-  MrdReader(std::string file_name)
-      : yardl::binary::BinaryReader(file_name), version_(mrd::MrdReaderBase::VersionFromSchema(schema_read_)) {}
+  MrdReader(std::string file_name, bool skip_completed_check=false)
+      : mrd::MrdReaderBase(skip_completed_check), yardl::binary::BinaryReader(file_name), version_(mrd::MrdReaderBase::VersionFromSchema(schema_read_)) {}
 
   Version GetVersion() { return version_; }
 
@@ -81,11 +81,11 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, yardl
 // Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, yardl::binary::BinaryReader {
   public:
-  MrdNoiseCovarianceReader(std::istream& stream)
-      : yardl::binary::BinaryReader(stream), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+  MrdNoiseCovarianceReader(std::istream& stream, bool skip_completed_check=false)
+      : mrd::MrdNoiseCovarianceReaderBase(skip_completed_check), yardl::binary::BinaryReader(stream), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
 
-  MrdNoiseCovarianceReader(std::string file_name)
-      : yardl::binary::BinaryReader(file_name), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
+  MrdNoiseCovarianceReader(std::string file_name, bool skip_completed_check=false)
+      : mrd::MrdNoiseCovarianceReaderBase(skip_completed_check), yardl::binary::BinaryReader(file_name), version_(mrd::MrdNoiseCovarianceReaderBase::VersionFromSchema(schema_read_)) {}
 
   Version GetVersion() { return version_; }
 
