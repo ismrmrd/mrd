@@ -43,10 +43,10 @@ ifmatlab && run-matlab-command 'generate_phantom("phantom.mat.mrd", "ncoils", 14
 ## Reconstruct phantoms using each implementation
 mrd_stream_recon -i "phantom.cpp.mrd" -o "reconstructed.cpp.cpp.mrd"
 mrd_stream_recon -i "phantom.py.mrd" -o "reconstructed.py.cpp.mrd"
-mrd_stream_recon -i "phantom.mat.mrd" -o "reconstructed.mat.cpp.mrd"
+ifmatlab && mrd_stream_recon -i "phantom.mat.mrd" -o "reconstructed.mat.cpp.mrd"
 python -m mrd.tools.stream_recon --input "phantom.py.mrd" --output "reconstructed.py.py.mrd"
 python -m mrd.tools.stream_recon --input "phantom.cpp.mrd" --output "reconstructed.cpp.py.mrd"
-python -m mrd.tools.stream_recon --input "phantom.mat.mrd" --output "reconstructed.mat.py.mrd"
+ifmatlab && python -m mrd.tools.stream_recon --input "phantom.mat.mrd" --output "reconstructed.mat.py.mrd"
 ifmatlab && run-matlab-command 'stream_recon("phantom.mat.mrd", "reconstructed.mat.mat.mrd")'
 ifmatlab && run-matlab-command 'stream_recon("phantom.cpp.mrd", "reconstructed.cpp.mat.mrd")'
 ifmatlab && run-matlab-command 'stream_recon("phantom.py.mrd", "reconstructed.py.mat.mrd")'
@@ -54,10 +54,10 @@ ifmatlab && run-matlab-command 'stream_recon("phantom.py.mrd", "reconstructed.py
 ## Compare reconstructions to reference coil images
 python "$TESTDIR"/validate_recon.py --reference "coil_images.cpp.mrd" --testdata "reconstructed.cpp.cpp.mrd"
 python "$TESTDIR"/validate_recon.py --reference "coil_images.cpp.mrd" --testdata "reconstructed.cpp.py.mrd"
-python "$TESTDIR"/validate_recon.py --reference "coil_images.cpp.mrd" --testdata "reconstructed.cpp.mat.mrd"
+ifmatlab && python "$TESTDIR"/validate_recon.py --reference "coil_images.cpp.mrd" --testdata "reconstructed.cpp.mat.mrd"
 python "$TESTDIR"/validate_recon.py --reference "coil_images.py.mrd" --testdata "reconstructed.py.cpp.mrd"
 python "$TESTDIR"/validate_recon.py --reference "coil_images.py.mrd" --testdata "reconstructed.py.py.mrd"
-python "$TESTDIR"/validate_recon.py --reference "coil_images.py.mrd" --testdata "reconstructed.py.mat.mrd"
+ifmatlab && python "$TESTDIR"/validate_recon.py --reference "coil_images.py.mrd" --testdata "reconstructed.py.mat.mrd"
 ifmatlab && python "$TESTDIR"/validate_recon.py --reference "coil_images.mat.mrd" --testdata "reconstructed.mat.cpp.mrd"
 ifmatlab && python "$TESTDIR"/validate_recon.py --reference "coil_images.mat.mrd" --testdata "reconstructed.mat.py.mrd"
 ifmatlab && python "$TESTDIR"/validate_recon.py --reference "coil_images.mat.mrd" --testdata "reconstructed.mat.mat.mrd"
