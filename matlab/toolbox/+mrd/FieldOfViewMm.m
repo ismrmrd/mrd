@@ -22,13 +22,17 @@ classdef FieldOfViewMm < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.FieldOfViewMm") && ...
-        isequal(self.x, other.x) && ...
-        isequal(self.y, other.y) && ...
-        isequal(self.z, other.z);
+        isequal({self.x}, {other.x}) && ...
+        isequal({self.y}, {other.y}) && ...
+        isequal({self.z}, {other.z});
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
+    end
+
+    function res = isequal(self, other)
+      res = all(eq(self, other));
     end
   end
 

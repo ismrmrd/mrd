@@ -6,35 +6,40 @@
 # target_link_libraries(<your target> mrd_generated)
 # add_subdirectory(<path to this directory>)
 
+set(Mrd_GENERATED_SOURCES
+  protocols.cc
+  types.cc
+  binary/protocols.cc
+)
+
+set(Mrd_GENERATED_LINK_LIBRARIES
+  xtensor
+  date::date
+)
+
 set(HOWARD_HINNANT_DATE_MINIMUM_VERSION "3.0.0")
 find_package(date ${HOWARD_HINNANT_DATE_MINIMUM_VERSION} REQUIRED)
-
-if(VCPKG_TARGET_TRIPLET)
-  set(HDF5_CXX_LIBRARIES hdf5::hdf5_cpp-shared)
-else()
-  set(HDF5_CXX_LIBRARIES hdf5::hdf5_cpp)
-endif()
-
-set(HDF5_MINIMUM_VERSION "1.10.5")
-find_package(HDF5 ${HDF5_MINIMUM_VERSION} REQUIRED COMPONENTS C CXX)
 
 set(XTENSOR_MINIMUM_VERSION "0.21.10")
 find_package(xtensor ${XTENSOR_MINIMUM_VERSION} REQUIRED)
 
-set(NLOHMANN_JSON_MINIMUM_VERSION "3.11.1")
-find_package(nlohmann_json ${NLOHMANN_JSON_MINIMUM_VERSION} REQUIRED)
-add_library(mrd_generated OBJECT
-  protocols.cc
-  types.cc
-  ndjson/protocols.cc
-  binary/protocols.cc
-  hdf5/protocols.cc
-)
+option(Mrd_GENERATED_USE_HDF5 "Whether to use HDF5 in the generated code" ON)
+if(Mrd_GENERATED_USE_HDF5)
+	set(HDF5_MINIMUM_VERSION "1.10.5")
+	find_package(HDF5 ${HDF5_MINIMUM_VERSION} REQUIRED COMPONENTS CXX)
 
-target_link_libraries(mrd_generated
-  PUBLIC ${HDF5_C_LIBRARIES}
-  PUBLIC ${HDF5_CXX_LIBRARIES}
-  PUBLIC xtensor
-  PUBLIC date::date
-  PUBLIC nlohmann_json::nlohmann_json
-)
+	list(APPEND Mrd_GENERATED_SOURCES hdf5/protocols.cc)
+	list(APPEND Mrd_GENERATED_LINK_LIBRARIES HDF5::HDF5)
+endif()
+
+option(Mrd_GENERATED_USE_NDJSON "Whether to use NDJSON in the generated code" ON)
+if(Mrd_GENERATED_USE_NDJSON)
+	set(NLOHMANN_JSON_MINIMUM_VERSION "3.11.1")
+	find_package(nlohmann_json ${NLOHMANN_JSON_MINIMUM_VERSION} REQUIRED)
+
+	list(APPEND Mrd_GENERATED_SOURCES ndjson/protocols.cc)
+	list(APPEND Mrd_GENERATED_LINK_LIBRARIES nlohmann_json::nlohmann_json)
+endif()
+
+add_library(mrd_generated OBJECT ${Mrd_GENERATED_SOURCES})
+target_link_libraries(mrd_generated ${Mrd_GENERATED_LINK_LIBRARIES})
