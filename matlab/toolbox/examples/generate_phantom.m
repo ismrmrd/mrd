@@ -37,6 +37,9 @@ h.measurement_information = meas;
 
 sys_info = mrd.AcquisitionSystemInformationType();
 sys_info.receiver_channels = kwargs.ncoils;
+for c = 0:(kwargs.ncoils - 1)
+    sys_info.coil_label(c + 1) = mrd.CoilLabelType(coil_number=c, coil_name="Channel " + string(c));
+end
 h.acquisition_system_information = sys_info;
 
 exp = mrd.ExperimentalConditionsType();

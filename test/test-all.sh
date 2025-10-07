@@ -21,6 +21,7 @@ function cleanup() {
 pushd "$TESTDIR" >/dev/null || exit 1
 trap cleanup EXIT
 
+echo Running end-to-end tests...
 
 ####
 # Test basic reconstruction
@@ -114,8 +115,4 @@ python -m mrd.tools.export_png_images --input recon_out.pipe
 # ifmatlab && run-matlab-command 'stream_recon("recon_in.pipe", "recon_out.pipe")' &
 # ifmatlab && run-matlab-command 'export_png_images("recon_out.pipe")' &
 
-
-# # Cleanup
-# rm -f ./*.mrd ./*.png ./*.pipe
-
-# popd || exit 1
+echo Finished end-to-end tests

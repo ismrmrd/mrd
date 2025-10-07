@@ -66,6 +66,7 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
 
     sys_info = mrd.AcquisitionSystemInformationType()
     sys_info.receiver_channels = ncoils
+    sys_info.coil_label = [mrd.CoilLabelType(coil_number=c, coil_name=f"Channel {c}") for c in range(ncoils)]
     h.acquisition_system_information = sys_info
 
     exp = mrd.ExperimentalConditionsType()
@@ -142,7 +143,7 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
         if noise_calibration:
             # Write out a few noise scans
             for n in range(32):
-                noise = generate_noise((ncoils, nkx), noise_level)
+                noise = generate_noise(acq.data.shape, noise_level)
                 # Here's where we would make the noise correlated
                 acq.head.scan_counter = scan_counter
                 scan_counter += 1
