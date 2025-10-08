@@ -1,0 +1,203 @@
+# Pulseq definitions
+PulseqDefinitions: !record
+  fields:
+    # Default raster time (dwell time) of the shaped gradient events, specified in seconds
+    gradientRasterTime: float64
+
+    # Default raster time (dwell time) of the radio-frequency pulse shapes, specified in seconds
+    radiofrequencyRasterTime: float64
+
+    # The value defining the alignment of the ADC dwell times.
+    # ADC dwell time must be integer multiple of the specified adcRasterTime.
+    # adcRasterTime is specified in seconds
+    adcRasterTime: float64
+
+    # The value defining the alignment of the block durations, specified in seconds;
+    # the physical block duration must be integer multiple of the specified blockDurationRaster.
+    # Block duration in the blocks section are specified in the units of blockDurationRaster
+    blockDurationRaster: float64
+
+    # Human-readable name of the sequence
+    name: string?
+
+    # Field of view specified in meters.
+    fov: ThreeDimensionalFloat?
+
+    # Total duration of the sequence is seconds
+    totalDuration: float64?
+
+    custom: string->string
+
+# A sequence block that includes possible RF, gradient, and ADC events.
+Block: !record
+  fields:
+    # ID of the sequence block
+    id: int32
+
+    # Duration of the block in units of Definitions.blockDurationRaster
+    duration: uint64
+
+    # ID of the RF event
+    rf: int32
+
+    # ID of the gradient event on the X channel
+    gx: int32
+
+    # ID of the gradient event on the Y channel
+    gy: int32
+
+    # ID of the gradient event on the Z channel
+    gz: int32
+
+    # ID of the ADC event
+    adc: int32
+
+    # ID of the extension table entry
+    ext: int32
+
+
+RFPulseUse: !enum
+  values:
+    - undefined
+    - excitation
+    - refocusing
+    - inversion
+    - saturation
+    - preparation
+    - other
+
+# An RF event
+RFEvent: !record
+  fields:
+    # ID of the RF event
+    id: int32
+
+    # Peak amplitude in Hz
+    amp: float64
+
+    # Shape ID for the magnitude profile
+    magId: int32
+
+    # Shape ID for the phase profile
+    phaseId: int32
+
+    # Shape ID for the time sampling points, specified in the units of
+    # RadiofrequencyRasterTime.
+    # 0 means default time raster
+    timeId: int32
+
+    # Time point in microseconds relative to the beginning of
+    # the RF shape at which the effective rotation takes place
+    center: float64
+
+    # Delay before starting the RF pulse, specified in microseconds
+    delay: uint64
+
+    # Frequency offset relative to the main system's frequency,
+    # specified in parts per million (ppm)
+    freqPPM: float64
+
+    # Phase offset proportional to the main system's frequency,
+    # specified in rad/MHz
+    phasePPM: float64
+
+    # Frequency offset in absolute units, specified in Hz
+    freqOffset: float64
+
+    # Phase offset in absolute units, specified in radians
+    phaseOffset: float64
+
+    use: RFPulseUse
+
+# An arbitrary gradient event
+ArbitraryGradient: !record
+  fields:
+    # ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
+    id: int32
+
+    # Peak amplitude in Hz/m
+    amp: float64
+
+    # The amplitude at the start of the gradient.
+    first: float64
+
+    # The amplitude at the end of the gradient.
+    last: float64
+
+    # Shape ID for the gradient shape
+    shapeId: int32
+
+    # Shape ID for the time sampling points, specified in the units of GradientRasterTime.
+    # 0 means default time raster, -1 means 1/2 of the default time raster (gradient oversampling case).
+    timeId: int32
+
+    # Delay before starting the gradient, specified in microseconds
+    delay: uint64
+
+# A trapezoidal gradient event
+TrapezoidalGradient: !record
+  fields:
+    # ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
+    id: int32
+
+    # Peak amplitude in Hz/m
+    amp: float64
+
+    # Rise time of the trapezoid in microseconds
+    rise: uint64
+
+    # Flat-top time of the trapezoid in microseconds
+    flat: uint64
+
+    # Fall time of the trapezoid in microseconds
+    fall: uint64
+
+    # Delay before starting the gradient, specified in microseconds
+    delay: uint64
+
+
+# An ADC event
+ADCEvent: !record
+  fields:
+    # ID of the ADC event
+    id: int32
+
+    # Number of samples
+    num: uint64
+
+    # The ADC dwell time, specified in nanoseconds
+    dwell: float
+
+    # Delay between start of block and first sample, specified in microseconds
+    delay: uint64
+
+    # Frequency offset of the ADC receiver relative to the system frequency,
+    # specified in parts per million (ppm)
+    freqPPM: float64
+
+    # Phase offset of the ADC receiver proportional to the system frequency,
+    # specified in rad/MHz
+    phasePPM: float64
+
+    # Frequency offset of the ADC receiver in absolute units, specified in Hz
+    freq: float64
+
+    # Phase offset in absolute units, specified in radians
+    phase: float64
+
+    # The shape ID
+    phaseShapeId: int32
+
+# A list of samples that is potentially compressed.
+# If numSamples == size(data) then the shape is uncompressed.
+Shape: !record
+  fields:
+    # ID of the shape
+    id: int32
+
+    # Number of samples of the uncompressed shape
+    numSamples: uint64
+
+    # Samples of the (potentially) compressed shape. See the Pulseq specification for compression details.
+    # In the spec, this should be float32, but PyPulseq uses float64.
+    data: float64[()]

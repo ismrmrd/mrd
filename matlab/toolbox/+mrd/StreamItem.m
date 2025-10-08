@@ -58,6 +58,34 @@ classdef StreamItem < yardl.Union
       res = mrd.StreamItem(14, value);
     end
 
+    function res = PulseqDefinitions(value)
+      res = mrd.StreamItem(15, value);
+    end
+
+    function res = Blocks(value)
+      res = mrd.StreamItem(16, value);
+    end
+
+    function res = Rf(value)
+      res = mrd.StreamItem(17, value);
+    end
+
+    function res = ArbitraryGradient(value)
+      res = mrd.StreamItem(18, value);
+    end
+
+    function res = TrapezoidalGradient(value)
+      res = mrd.StreamItem(19, value);
+    end
+
+    function res = Adc(value)
+      res = mrd.StreamItem(20, value);
+    end
+
+    function res = Shape(value)
+      res = mrd.StreamItem(21, value);
+    end
+
     function z = zeros(varargin)
       elem = mrd.StreamItem(0, yardl.None);
       if nargin == 0
@@ -129,6 +157,34 @@ classdef StreamItem < yardl.Union
       res = self.index == 14;
     end
 
+    function res = isPulseqDefinitions(self)
+      res = self.index == 15;
+    end
+
+    function res = isBlocks(self)
+      res = self.index == 16;
+    end
+
+    function res = isRf(self)
+      res = self.index == 17;
+    end
+
+    function res = isArbitraryGradient(self)
+      res = self.index == 18;
+    end
+
+    function res = isTrapezoidalGradient(self)
+      res = self.index == 19;
+    end
+
+    function res = isAdc(self)
+      res = self.index == 20;
+    end
+
+    function res = isShape(self)
+      res = self.index == 21;
+    end
+
     function eq = eq(self, other)
       eq = isa(other, "mrd.StreamItem") && all([self.index_] == [other.index_], 'all') && all([self.value] == [other.value], 'all');
     end
@@ -138,7 +194,7 @@ classdef StreamItem < yardl.Union
     end
 
     function t = tag(self)
-      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ArrayComplexFloat", "ImageArray"];
+      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ArrayComplexFloat", "ImageArray", "PulseqDefinitions", "Blocks", "Rf", "ArbitraryGradient", "TrapezoidalGradient", "Adc", "Shape"];
       t = tags_(self.index_);
     end
   end

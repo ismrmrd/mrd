@@ -1107,6 +1107,41 @@ int convert(ArrayComplexFloat&) {
   return 0;
 }
 
+// no equivalent in ISMRMRD::
+int convert(PulseqDefinitions&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(std::vector<Block>&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD:://
+int convert(RFEvent&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(ArbitraryGradient&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(TrapezoidalGradient&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(ADCEvent&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(Shape&) {
+  return 0;
+}
+
 yardl::Date date_from_string(const std::string& s) {
   std::stringstream ss{s};
 

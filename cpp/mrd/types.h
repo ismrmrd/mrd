@@ -1210,8 +1210,266 @@ using Array = yardl::DynamicNDArray<T>;
 
 using ArrayComplexFloat = mrd::Array<std::complex<float>>;
 
+// Pulseq definitions
+struct PulseqDefinitions {
+  // Default raster time (dwell time) of the shaped gradient events, specified in seconds
+  double gradient_raster_time{};
+  // Default raster time (dwell time) of the radio-frequency pulse shapes, specified in seconds
+  double radiofrequency_raster_time{};
+  // The value defining the alignment of the ADC dwell times.
+  // ADC dwell time must be integer multiple of the specified adcRasterTime.
+  // adcRasterTime is specified in seconds
+  double adc_raster_time{};
+  // The value defining the alignment of the block durations, specified in seconds;
+  // the physical block duration must be integer multiple of the specified blockDurationRaster.
+  // Block duration in the blocks section are specified in the units of blockDurationRaster
+  double block_duration_raster{};
+  // Human-readable name of the sequence
+  std::optional<std::string> name{};
+  // Field of view specified in meters.
+  std::optional<mrd::ThreeDimensionalFloat> fov{};
+  // Total duration of the sequence is seconds
+  std::optional<double> total_duration{};
+  std::unordered_map<std::string, std::string> custom{};
+
+  bool operator==(const PulseqDefinitions& other) const {
+    return gradient_raster_time == other.gradient_raster_time &&
+      radiofrequency_raster_time == other.radiofrequency_raster_time &&
+      adc_raster_time == other.adc_raster_time &&
+      block_duration_raster == other.block_duration_raster &&
+      name == other.name &&
+      fov == other.fov &&
+      total_duration == other.total_duration &&
+      custom == other.custom;
+  }
+
+  bool operator!=(const PulseqDefinitions& other) const {
+    return !(*this == other);
+  }
+};
+
+// A sequence block that includes possible RF, gradient, and ADC events.
+struct Block {
+  // ID of the sequence block
+  int32_t id{};
+  // Duration of the block in units of Definitions.blockDurationRaster
+  uint64_t duration{};
+  // ID of the RF event
+  int32_t rf{};
+  // ID of the gradient event on the X channel
+  int32_t gx{};
+  // ID of the gradient event on the Y channel
+  int32_t gy{};
+  // ID of the gradient event on the Z channel
+  int32_t gz{};
+  // ID of the ADC event
+  int32_t adc{};
+  // ID of the extension table entry
+  int32_t ext{};
+
+  bool operator==(const Block& other) const {
+    return id == other.id &&
+      duration == other.duration &&
+      rf == other.rf &&
+      gx == other.gx &&
+      gy == other.gy &&
+      gz == other.gz &&
+      adc == other.adc &&
+      ext == other.ext;
+  }
+
+  bool operator!=(const Block& other) const {
+    return !(*this == other);
+  }
+};
+
+enum class RFPulseUse {
+  kUndefined = 0,
+  kExcitation = 1,
+  kRefocusing = 2,
+  kInversion = 3,
+  kSaturation = 4,
+  kPreparation = 5,
+  kOther = 6,
+};
+
+// An RF event
+struct RFEvent {
+  // ID of the RF event
+  int32_t id{};
+  // Peak amplitude in Hz
+  double amp{};
+  // Shape ID for the magnitude profile
+  int32_t mag_id{};
+  // Shape ID for the phase profile
+  int32_t phase_id{};
+  // Shape ID for the time sampling points, specified in the units of
+  // RadiofrequencyRasterTime.
+  // 0 means default time raster
+  int32_t time_id{};
+  // Time point in microseconds relative to the beginning of
+  // the RF shape at which the effective rotation takes place
+  double center{};
+  // Delay before starting the RF pulse, specified in microseconds
+  uint64_t delay{};
+  // Frequency offset relative to the main system's frequency,
+  // specified in parts per million (ppm)
+  double freq_ppm{};
+  // Phase offset proportional to the main system's frequency,
+  // specified in rad/MHz
+  double phase_ppm{};
+  // Frequency offset in absolute units, specified in Hz
+  double freq_offset{};
+  // Phase offset in absolute units, specified in radians
+  double phase_offset{};
+  mrd::RFPulseUse use{};
+
+  bool operator==(const RFEvent& other) const {
+    return id == other.id &&
+      amp == other.amp &&
+      mag_id == other.mag_id &&
+      phase_id == other.phase_id &&
+      time_id == other.time_id &&
+      center == other.center &&
+      delay == other.delay &&
+      freq_ppm == other.freq_ppm &&
+      phase_ppm == other.phase_ppm &&
+      freq_offset == other.freq_offset &&
+      phase_offset == other.phase_offset &&
+      use == other.use;
+  }
+
+  bool operator!=(const RFEvent& other) const {
+    return !(*this == other);
+  }
+};
+
+// An arbitrary gradient event
+struct ArbitraryGradient {
+  // ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
+  int32_t id{};
+  // Peak amplitude in Hz/m
+  double amp{};
+  // The amplitude at the start of the gradient.
+  double first{};
+  // The amplitude at the end of the gradient.
+  double last{};
+  // Shape ID for the gradient shape
+  int32_t shape_id{};
+  // Shape ID for the time sampling points, specified in the units of GradientRasterTime.
+  // 0 means default time raster, -1 means 1/2 of the default time raster (gradient oversampling case).
+  int32_t time_id{};
+  // Delay before starting the gradient, specified in microseconds
+  uint64_t delay{};
+
+  bool operator==(const ArbitraryGradient& other) const {
+    return id == other.id &&
+      amp == other.amp &&
+      first == other.first &&
+      last == other.last &&
+      shape_id == other.shape_id &&
+      time_id == other.time_id &&
+      delay == other.delay;
+  }
+
+  bool operator!=(const ArbitraryGradient& other) const {
+    return !(*this == other);
+  }
+};
+
+// A trapezoidal gradient event
+struct TrapezoidalGradient {
+  // ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
+  int32_t id{};
+  // Peak amplitude in Hz/m
+  double amp{};
+  // Rise time of the trapezoid in microseconds
+  uint64_t rise{};
+  // Flat-top time of the trapezoid in microseconds
+  uint64_t flat{};
+  // Fall time of the trapezoid in microseconds
+  uint64_t fall{};
+  // Delay before starting the gradient, specified in microseconds
+  uint64_t delay{};
+
+  bool operator==(const TrapezoidalGradient& other) const {
+    return id == other.id &&
+      amp == other.amp &&
+      rise == other.rise &&
+      flat == other.flat &&
+      fall == other.fall &&
+      delay == other.delay;
+  }
+
+  bool operator!=(const TrapezoidalGradient& other) const {
+    return !(*this == other);
+  }
+};
+
+// An ADC event
+struct ADCEvent {
+  // ID of the ADC event
+  int32_t id{};
+  // Number of samples
+  uint64_t num{};
+  // The ADC dwell time, specified in nanoseconds
+  float dwell{};
+  // Delay between start of block and first sample, specified in microseconds
+  uint64_t delay{};
+  // Frequency offset of the ADC receiver relative to the system frequency,
+  // specified in parts per million (ppm)
+  double freq_ppm{};
+  // Phase offset of the ADC receiver proportional to the system frequency,
+  // specified in rad/MHz
+  double phase_ppm{};
+  // Frequency offset of the ADC receiver in absolute units, specified in Hz
+  double freq{};
+  // Phase offset in absolute units, specified in radians
+  double phase{};
+  // The shape ID
+  int32_t phase_shape_id{};
+
+  bool operator==(const ADCEvent& other) const {
+    return id == other.id &&
+      num == other.num &&
+      dwell == other.dwell &&
+      delay == other.delay &&
+      freq_ppm == other.freq_ppm &&
+      phase_ppm == other.phase_ppm &&
+      freq == other.freq &&
+      phase == other.phase &&
+      phase_shape_id == other.phase_shape_id;
+  }
+
+  bool operator!=(const ADCEvent& other) const {
+    return !(*this == other);
+  }
+};
+
+// A list of samples that is potentially compressed.
+// If numSamples == size(data) then the shape is uncompressed.
+struct Shape {
+  // ID of the shape
+  int32_t id{};
+  // Number of samples of the uncompressed shape
+  uint64_t num_samples{};
+  // Samples of the (potentially) compressed shape. See the Pulseq specification for compression details.
+  // In the spec, this should be float32, but PyPulseq uses float64.
+  yardl::NDArray<double, 1> data{};
+
+  bool operator==(const Shape& other) const {
+    return id == other.id &&
+      num_samples == other.num_samples &&
+      data == other.data;
+  }
+
+  bool operator!=(const Shape& other) const {
+    return !(*this == other);
+  }
+};
+
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape>;
 
 } // namespace mrd
 

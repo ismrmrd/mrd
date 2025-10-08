@@ -56,5 +56,21 @@ python -m mrd.tools.stream_recon --input recon_in.pipe --output recon_out.pipe &
 python -m mrd.tools.export_png_images --input recon_out.pipe
 
 
+echo Verifying Pulseq conversion
+for dir in test_data/pulseq/*/; do
+  [[ -d "$dir" ]] || continue
+  pulseq_version=$(basename "$dir")
+  for file in "$dir"*; do
+    [[ -f "$file" ]] || continue
+    # convert to MRD stream and back, compare ignoring comments and whitespace
+    python -m mrd.tools.seq_to_mrd --input "$file" | python -m mrd.tools.mrd_to_seq --pulseq-version "$pulseq_version" | diff -I '#.*' --ignore-space-change "$file" -
+    if [[ "$pulseq_version" == "1.4.2" ]]; then
+      # Sanity check that PyPulseq can read the file
+      python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
+    fi
+  done
+done
+
+
 echo Cleaning up
 rm -f ./*.bin ./*.png ./*.pipe
