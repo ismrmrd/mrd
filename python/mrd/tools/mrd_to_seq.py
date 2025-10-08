@@ -1,6 +1,7 @@
 import argparse
 import sys
 from typing import Iterable, TextIO, Tuple, Union
+import warnings
 
 import mrd
 
@@ -156,6 +157,9 @@ def write_arbitrary_grad_events(
         file.write("# ..      Hz/m       ..         ..          us\n")
         file.write("[GRADIENTS]\n")
         for grad in arb_grad_events:
+            if grad.first or grad.last:
+                warnings.warn(f"Data loss when writing arbitrary gradient to pulseq version {_version_to_string(version)}")
+
             file.write(
                 f"{grad.id:.0f} {grad.amp:12g} {grad.shape_id:.0f} {grad.time_id:.0f} {grad.delay:.0f}\n"
             )
@@ -210,6 +214,9 @@ def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
         file.write("[RF]\n")
 
         for rf in rf_events:
+            if rf.center or rf.freq_ppm or rf.phase_ppm or rf.use != mrd.RFPulseUse.UNDEFINED:
+                warnings.warn(f"Data loss when writing RF event to pulseq version {_version_to_string(version)}")
+
             file.write(
                 f"{rf.id:.0f} {rf.amp:12g} {rf.mag_id:.0f} {rf.phase_id:.0f} {rf.time_id:.0f} "
                 f"{rf.delay:g} {rf.freq_offset:g} {rf.phase_offset:g}\n"
@@ -240,6 +247,9 @@ def write_adc_events(file, adc_events: list[mrd.ADCEvent], version) -> None:
         file.write("[ADC]\n")
 
         for adc in adc_events:
+            if adc.freq_ppm or adc.phase_ppm or adc.phase_shape_id:
+                warnings.warn(f"Data loss when writing ADC event to pulseq version {_version_to_string(version)}")
+
             file.write(
                 f"{adc.id:.0f} {adc.num:.0f} {adc.dwell:.0f} {adc.delay:.0f} "
                 f"{adc.freq:g} {adc.phase:g}\n"
@@ -273,7 +283,7 @@ if __name__ == "__main__":
         type=str,
         required=False,
         help="Pulseq version to use, defaults to 1.4.2",
-        choices=map(_version_to_string, _PULSEQ_SUPPORTED_VERSIONS),
+        choices=[_version_to_string(v) for v in _PULSEQ_SUPPORTED_VERSIONS],
         default=_version_to_string(_PULSEQ_VERSION_1_4_2),
     )
     args = parser.parse_args()
