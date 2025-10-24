@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
   AcquisitionSystemInformationType sys;
   sys.receiver_channels = ncoils;
   for (unsigned int c = 0; c < ncoils; c++) {
-    sys.coil_label.push_back(CoilLabelType(c, "Channel " + std::to_string(c)));
+    sys.coil_label.push_back(CoilLabelType{c, "Channel " + std::to_string(c)});
   }
   h.acquisition_system_information = sys;
 
