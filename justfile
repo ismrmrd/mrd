@@ -37,7 +37,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
 @generate:
     cd model && yardl generate
 
-@converter-roundtrip-test: build
+@cpp-converter-roundtrip-test: build
     cd cpp/build; \
     rm -f roundtrip.h5; \
     rm -f roundtrip.bin; \
@@ -47,9 +47,24 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     ismrmrd_generate_cartesian_shepp_logan -o roundtrip.h5; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd > mrd_testdata.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
+    diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
+
+@python-converter-roundtrip-test: build
+    cd cpp/build; \
+    rm -f roundtrip.h5; \
+    rm -f roundtrip.bin; \
+    rm -f direct.bin; \
+    rm -f recon_direct.bin; \
+    rm -f recon_rountrip.bin; \
+    ismrmrd_generate_cartesian_shepp_logan -o roundtrip.h5; \
+    PYTHON_TOOLDIR=../../python/mrd/tools; \
+    # ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | python ${PYTHON_TOOLDIR}/ismrmrd_to_mrd.py | python ${PYTHON_TOOLDIR}/mrd_to_ismrmrd.py > roundtrip.bin; \
+    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | python ${PYTHON_TOOLDIR}/ismrmrd_to_mrd.py | ./mrd_to_ismrmrd > roundtrip.bin; \
+    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin; \
+    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
+    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | python ${PYTHON_TOOLDIR}/mrd_to_ismrmrd.py > recon_rountrip.bin; \
     diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
 
 @conda-cpp-test: build
@@ -68,7 +83,7 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build converter-roundtrip-test conda-cpp-test conda-python-test matlab-test cross-language-recon-test
+@test: build cpp-converter-roundtrip-test python-converter-roundtrip-test conda-cpp-test conda-python-test matlab-test cross-language-recon-test
 
 @validate: test
 
