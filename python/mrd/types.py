@@ -330,6 +330,37 @@ class Acquisition:
         return f"Acquisition(head={repr(self.head)}, data={repr(self.data)}, trajectory={repr(self.trajectory)})"
 
 
+class AcquisitionPrototype:
+    """Specifies header and data size of an acquisition, without the actual data."""
+
+    head: AcquisitionHeader
+    """Acquisition header template"""
+
+    data_sample_counts: npt.NDArray[np.uint32]
+    """Sample counts by coil"""
+
+
+    def __init__(self, *,
+        head: typing.Optional[AcquisitionHeader] = None,
+        data_sample_counts: typing.Optional[npt.NDArray[np.uint32]] = None,
+    ):
+        self.head = head if head is not None else AcquisitionHeader()
+        self.data_sample_counts = data_sample_counts if data_sample_counts is not None else np.zeros((0), dtype=np.dtype(np.uint32))
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, AcquisitionPrototype)
+            and self.head == other.head
+            and yardl.structural_equal(self.data_sample_counts, other.data_sample_counts)
+        )
+
+    def __str__(self) -> str:
+        return f"AcquisitionPrototype(head={self.head}, data_sample_counts={self.data_sample_counts})"
+
+    def __repr__(self) -> str:
+        return f"AcquisitionPrototype(head={repr(self.head)}, data_sample_counts={repr(self.data_sample_counts)})"
+
+
 class PatientGender(yardl.OutOfRangeEnum):
     M = 0
     F = 1
@@ -2571,6 +2602,7 @@ class Shape:
 
 class StreamItem:
     Acquisition: typing.ClassVar[type["StreamItemUnionCase[Acquisition]"]]
+    AcquisitionPrototype: typing.ClassVar[type["StreamItemUnionCase[AcquisitionPrototype]"]]
     WaveformUint32: typing.ClassVar[type["StreamItemUnionCase[WaveformUint32]"]]
     ImageUint16: typing.ClassVar[type["StreamItemUnionCase[ImageUint16]"]]
     ImageInt16: typing.ClassVar[type["StreamItemUnionCase[ImageInt16]"]]
@@ -2596,26 +2628,27 @@ class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
 
 StreamItem.Acquisition = type("StreamItem.Acquisition", (StreamItemUnionCase,), {"index": 0, "tag": "acquisition"})
-StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 1, "tag": "waveformUint32"})
-StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 2, "tag": "imageUint16"})
-StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 3, "tag": "imageInt16"})
-StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 4, "tag": "imageUint32"})
-StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 5, "tag": "imageInt32"})
-StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 6, "tag": "imageFloat"})
-StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 7, "tag": "imageDouble"})
-StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 8, "tag": "imageComplexFloat"})
-StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 9, "tag": "imageComplexDouble"})
-StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 10, "tag": "acquisitionBucket"})
-StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 11, "tag": "reconData"})
-StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 12, "tag": "arrayComplexFloat"})
-StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 13, "tag": "imageArray"})
-StreamItem.PulseqDefinitions = type("StreamItem.PulseqDefinitions", (StreamItemUnionCase,), {"index": 14, "tag": "pulseqDefinitions"})
-StreamItem.Blocks = type("StreamItem.Blocks", (StreamItemUnionCase,), {"index": 15, "tag": "blocks"})
-StreamItem.Rf = type("StreamItem.Rf", (StreamItemUnionCase,), {"index": 16, "tag": "rf"})
-StreamItem.ArbitraryGradient = type("StreamItem.ArbitraryGradient", (StreamItemUnionCase,), {"index": 17, "tag": "arbitraryGradient"})
-StreamItem.TrapezoidalGradient = type("StreamItem.TrapezoidalGradient", (StreamItemUnionCase,), {"index": 18, "tag": "trapezoidalGradient"})
-StreamItem.Adc = type("StreamItem.Adc", (StreamItemUnionCase,), {"index": 19, "tag": "adc"})
-StreamItem.Shape = type("StreamItem.Shape", (StreamItemUnionCase,), {"index": 20, "tag": "shape"})
+StreamItem.AcquisitionPrototype = type("StreamItem.AcquisitionPrototype", (StreamItemUnionCase,), {"index": 1, "tag": "acquisitionPrototype"})
+StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 2, "tag": "waveformUint32"})
+StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 3, "tag": "imageUint16"})
+StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 4, "tag": "imageInt16"})
+StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 5, "tag": "imageUint32"})
+StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 6, "tag": "imageInt32"})
+StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 7, "tag": "imageFloat"})
+StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 8, "tag": "imageDouble"})
+StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 9, "tag": "imageComplexFloat"})
+StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 10, "tag": "imageComplexDouble"})
+StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 11, "tag": "acquisitionBucket"})
+StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 12, "tag": "reconData"})
+StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 13, "tag": "arrayComplexFloat"})
+StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 14, "tag": "imageArray"})
+StreamItem.PulseqDefinitions = type("StreamItem.PulseqDefinitions", (StreamItemUnionCase,), {"index": 15, "tag": "pulseqDefinitions"})
+StreamItem.Blocks = type("StreamItem.Blocks", (StreamItemUnionCase,), {"index": 16, "tag": "blocks"})
+StreamItem.Rf = type("StreamItem.Rf", (StreamItemUnionCase,), {"index": 17, "tag": "rf"})
+StreamItem.ArbitraryGradient = type("StreamItem.ArbitraryGradient", (StreamItemUnionCase,), {"index": 18, "tag": "arbitraryGradient"})
+StreamItem.TrapezoidalGradient = type("StreamItem.TrapezoidalGradient", (StreamItemUnionCase,), {"index": 19, "tag": "trapezoidalGradient"})
+StreamItem.Adc = type("StreamItem.Adc", (StreamItemUnionCase,), {"index": 20, "tag": "adc"})
+StreamItem.Shape = type("StreamItem.Shape", (StreamItemUnionCase,), {"index": 21, "tag": "shape"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():
@@ -2626,6 +2659,7 @@ def _mk_get_dtype():
     dtype_map.setdefault(EncodingCounters, np.dtype([('kspace_encode_step_1', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('kspace_encode_step_2', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('segment', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(AcquisitionHeader, np.dtype([('flags', get_dtype(AcquisitionFlags)), ('idx', get_dtype(EncodingCounters)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('channel_order', np.dtype(np.object_)), ('discard_pre', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('discard_post', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('center_sample', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('encoding_space_ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('sample_time_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('position', np.dtype(np.float32), (3,)), ('read_dir', np.dtype(np.float32), (3,)), ('phase_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(Acquisition, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(AcquisitionPrototype, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data_sample_counts', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PatientGender, np.dtype(np.int32))
     dtype_map.setdefault(SubjectInformationType, np.dtype([('patient_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_weight_kg', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_height_m', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_birthdate', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('patient_gender', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(PatientGender))], align=True))], align=True))
     dtype_map.setdefault(StudyInformationType, np.dtype([('study_date', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('study_time', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.timedelta64))], align=True)), ('study_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('accession_number', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.int64))], align=True)), ('referring_physician_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_description', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_instance_uid', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('body_part_examined', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))

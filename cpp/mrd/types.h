@@ -198,6 +198,23 @@ struct Acquisition {
   }
 };
 
+// Specifies header and data size of an acquisition, without the actual data.
+struct AcquisitionPrototype {
+  // Acquisition header template
+  mrd::AcquisitionHeader head{};
+  // Sample counts by coil
+  yardl::NDArray<uint32_t, 1> data_sample_counts{};
+
+  bool operator==(const AcquisitionPrototype& other) const {
+    return head == other.head &&
+      data_sample_counts == other.data_sample_counts;
+  }
+
+  bool operator!=(const AcquisitionPrototype& other) const {
+    return !(*this == other);
+  }
+};
+
 enum class PatientGender {
   kM = 0,
   kF = 1,
@@ -1469,7 +1486,7 @@ struct Shape {
 };
 
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape>;
 
 } // namespace mrd
 

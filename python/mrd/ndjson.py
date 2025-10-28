@@ -374,6 +374,50 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         ) # type:ignore 
 
 
+class AcquisitionPrototypeConverter(_ndjson.JsonConverter[AcquisitionPrototype, np.void]):
+    def __init__(self) -> None:
+        self._head_converter = AcquisitionHeaderConverter()
+        self._data_sample_counts_converter = _ndjson.NDArrayConverter(_ndjson.uint32_converter, 1)
+        super().__init__(np.dtype([
+            ("head", self._head_converter.overall_dtype()),
+            ("data_sample_counts", self._data_sample_counts_converter.overall_dtype()),
+        ]))
+
+    def to_json(self, value: AcquisitionPrototype) -> object:
+        if not isinstance(value, AcquisitionPrototype): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'AcquisitionPrototype' instance")
+        json_object = {}
+
+        json_object["head"] = self._head_converter.to_json(value.head)
+        json_object["dataSampleCounts"] = self._data_sample_counts_converter.to_json(value.data_sample_counts)
+        return json_object
+
+    def numpy_to_json(self, value: np.void) -> object:
+        if not isinstance(value, np.void): # pyright: ignore [reportUnnecessaryIsInstance]
+            raise TypeError("Expected 'np.void' instance")
+        json_object = {}
+
+        json_object["head"] = self._head_converter.numpy_to_json(value["head"])
+        json_object["dataSampleCounts"] = self._data_sample_counts_converter.numpy_to_json(value["data_sample_counts"])
+        return json_object
+
+    def from_json(self, json_object: object) -> AcquisitionPrototype:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return AcquisitionPrototype(
+            head=self._head_converter.from_json(json_object["head"],),
+            data_sample_counts=self._data_sample_counts_converter.from_json(json_object["dataSampleCounts"],),
+        )
+
+    def from_json_to_numpy(self, json_object: object) -> np.void:
+        if not isinstance(json_object, dict):
+            raise TypeError("Expected 'dict' instance")
+        return (
+            self._head_converter.from_json_to_numpy(json_object["head"]),
+            self._data_sample_counts_converter.from_json_to_numpy(json_object["dataSampleCounts"]),
+        ) # type:ignore 
+
+
 patient_gender_name_to_value_map = {
     "m": PatientGender.M,
     "f": PatientGender.F,
@@ -3725,7 +3769,7 @@ class NDJsonMrdWriter(_ndjson.NDJsonProtocolWriter, MrdWriterBase):
         self._write_json_line({"header": json_value})
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict]), (StreamItem.PulseqDefinitions, PulseqDefinitionsConverter(), [dict]), (StreamItem.Blocks, _ndjson.VectorConverter(BlockConverter()), [list]), (StreamItem.Rf, RFEventConverter(), [dict]), (StreamItem.ArbitraryGradient, ArbitraryGradientConverter(), [dict]), (StreamItem.TrapezoidalGradient, TrapezoidalGradientConverter(), [dict]), (StreamItem.Adc, ADCEventConverter(), [dict]), (StreamItem.Shape, ShapeConverter(), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict]), (StreamItem.PulseqDefinitions, PulseqDefinitionsConverter(), [dict]), (StreamItem.Blocks, _ndjson.VectorConverter(BlockConverter()), [list]), (StreamItem.Rf, RFEventConverter(), [dict]), (StreamItem.ArbitraryGradient, ArbitraryGradientConverter(), [dict]), (StreamItem.TrapezoidalGradient, TrapezoidalGradientConverter(), [dict]), (StreamItem.Adc, ADCEventConverter(), [dict]), (StreamItem.Shape, ShapeConverter(), [dict])], False)
         for item in value:
             json_item = converter.to_json(item)
             self._write_json_line({"data": json_item})
@@ -3748,7 +3792,7 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
         return converter.from_json(json_object)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict]), (StreamItem.PulseqDefinitions, PulseqDefinitionsConverter(), [dict]), (StreamItem.Blocks, _ndjson.VectorConverter(BlockConverter()), [list]), (StreamItem.Rf, RFEventConverter(), [dict]), (StreamItem.ArbitraryGradient, ArbitraryGradientConverter(), [dict]), (StreamItem.TrapezoidalGradient, TrapezoidalGradientConverter(), [dict]), (StreamItem.Adc, ADCEventConverter(), [dict]), (StreamItem.Shape, ShapeConverter(), [dict])], False)
+        converter = _ndjson.UnionConverter(StreamItem, [(StreamItem.Acquisition, AcquisitionConverter(), [dict]), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeConverter(), [dict]), (StreamItem.WaveformUint32, WaveformConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageUint16, ImageConverter(_ndjson.uint16_converter), [dict]), (StreamItem.ImageInt16, ImageConverter(_ndjson.int16_converter), [dict]), (StreamItem.ImageUint32, ImageConverter(_ndjson.uint32_converter), [dict]), (StreamItem.ImageInt32, ImageConverter(_ndjson.int32_converter), [dict]), (StreamItem.ImageFloat, ImageConverter(_ndjson.float32_converter), [dict]), (StreamItem.ImageDouble, ImageConverter(_ndjson.float64_converter), [dict]), (StreamItem.ImageComplexFloat, ImageConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageComplexDouble, ImageConverter(_ndjson.complexfloat64_converter), [dict]), (StreamItem.AcquisitionBucket, AcquisitionBucketConverter(), [dict]), (StreamItem.ReconData, ReconDataConverter(), [dict]), (StreamItem.ArrayComplexFloat, _ndjson.DynamicNDArrayConverter(_ndjson.complexfloat32_converter), [dict]), (StreamItem.ImageArray, ImageArrayConverter(), [dict]), (StreamItem.PulseqDefinitions, PulseqDefinitionsConverter(), [dict]), (StreamItem.Blocks, _ndjson.VectorConverter(BlockConverter()), [list]), (StreamItem.Rf, RFEventConverter(), [dict]), (StreamItem.ArbitraryGradient, ArbitraryGradientConverter(), [dict]), (StreamItem.TrapezoidalGradient, TrapezoidalGradientConverter(), [dict]), (StreamItem.Adc, ADCEventConverter(), [dict]), (StreamItem.Shape, ShapeConverter(), [dict])], False)
         while (json_object := self._read_json_line("data", False)) is not _ndjson.MISSING_SENTINEL:
             yield converter.from_json(json_object)
 

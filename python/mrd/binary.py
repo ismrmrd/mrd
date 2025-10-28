@@ -34,7 +34,7 @@ class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
         _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(BlockSerializer())), (StreamItem.Rf, RFEventSerializer()), (StreamItem.ArbitraryGradient, ArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, TrapezoidalGradientSerializer()), (StreamItem.Adc, ADCEventSerializer()), (StreamItem.Shape, ShapeSerializer())])).write(self._stream, value)
+        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(BlockSerializer())), (StreamItem.Rf, RFEventSerializer()), (StreamItem.ArbitraryGradient, ArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, TrapezoidalGradientSerializer()), (StreamItem.Adc, ADCEventSerializer()), (StreamItem.Shape, ShapeSerializer())])).write(self._stream, value)
 
 
 class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
@@ -52,7 +52,7 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(BlockSerializer())), (StreamItem.Rf, RFEventSerializer()), (StreamItem.ArbitraryGradient, ArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, TrapezoidalGradientSerializer()), (StreamItem.Adc, ADCEventSerializer()), (StreamItem.Shape, ShapeSerializer())])).read(self._stream)
+        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(BlockSerializer())), (StreamItem.Rf, RFEventSerializer()), (StreamItem.ArbitraryGradient, ArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, TrapezoidalGradientSerializer()), (StreamItem.Adc, ADCEventSerializer()), (StreamItem.Shape, ShapeSerializer())])).read(self._stream)
 
 class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovarianceWriterBase):
     """Binary writer for the MrdNoiseCovariance protocol.
@@ -135,6 +135,24 @@ class AcquisitionSerializer(_binary.RecordSerializer[Acquisition]):
     def read(self, stream: _binary.CodedInputStream) -> Acquisition:
         field_values = self._read(stream)
         return Acquisition(head=field_values[0], data=field_values[1], trajectory=field_values[2])
+
+
+class AcquisitionPrototypeSerializer(_binary.RecordSerializer[AcquisitionPrototype]):
+    def __init__(self) -> None:
+        super().__init__([("head", AcquisitionHeaderSerializer()), ("data_sample_counts", _binary.NDArraySerializer(_binary.uint32_serializer, 1))])
+
+    def write(self, stream: _binary.CodedOutputStream, value: AcquisitionPrototype) -> None:
+        if isinstance(value, np.void):
+            self.write_numpy(stream, value)
+            return
+        self._write(stream, value.head, value.data_sample_counts)
+
+    def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
+        self._write(stream, value['head'], value['data_sample_counts'])
+
+    def read(self, stream: _binary.CodedInputStream) -> AcquisitionPrototype:
+        field_values = self._read(stream)
+        return AcquisitionPrototype(head=field_values[0], data_sample_counts=field_values[1])
 
 
 class SubjectInformationTypeSerializer(_binary.RecordSerializer[SubjectInformationType]):
