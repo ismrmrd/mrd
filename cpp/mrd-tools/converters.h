@@ -22,6 +22,7 @@ int convert(AcquisitionBucket&);
 int convert(ReconData&);
 int convert(ImageArray&);
 int convert(ArrayComplexFloat&);
+int convert(AcquisitionPrototype&);
 int convert(PulseqDefinitions&);
 int convert(std::vector<Block>&);
 int convert(RFEvent&);

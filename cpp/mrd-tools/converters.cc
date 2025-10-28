@@ -1087,6 +1087,11 @@ ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im) {
   return convert<std::complex<double>>(im);
 }
 
+// Convert mrd::AcquisitionPrototype - no equivalent in ISMRMRD::
+int convert(AcquisitionPrototype&) {
+  return 0;
+}
+
 // Convert mrd::AcquisitionBucket - no equivalent in ISMRMRD::
 int convert(AcquisitionBucket&) {
   return 0;
