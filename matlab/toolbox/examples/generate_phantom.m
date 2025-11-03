@@ -73,6 +73,15 @@ enc.trajectory = mrd.Trajectory.CARTESIAN;
 enc.encoded_space = e;
 enc.recon_space = r;
 enc.encoding_limits = limits;
+
+if kwargs.acceleration > 1
+    p = mrd.ParallelImagingType();
+    p.acceleration_factor.kspace_encoding_step_1 = kwargs.acceleration;
+    p.acceleration_factor.kspace_encoding_step_2 = 1;
+    p.calibration_mode = mrd.CalibrationMode.EMBEDDED;
+    enc.parallel_imaging = p;
+end
+
 h.encoding(end+1) = enc;
 
 phan = simulation.generate_shepp_logan_phantom(kwargs.matrix_size);
@@ -118,6 +127,8 @@ w.write_header(h);
 acq = mrd.Acquisition();
 acq.data = complex(zeros([nkx, kwargs.ncoils], 'single'));
 
+acq.head.encoding_space_ref = 0;
+acq.head.sample_time_ns = 5000;
 acq.head.channel_order = (1:kwargs.ncoils) - 1;
 acq.head.center_sample = idivide(nkx, 2, "round");
 acq.head.read_dir(1) = 1;
@@ -139,59 +150,56 @@ if kwargs.noise_calibration
     end
 end
 
-calib_radius = idivide(kwargs.calibration_width, 2);
-calib_start = idivide(nky, 2) - calib_radius + 1;
-calib_end = idivide(nky, 2) + calib_radius;
+calib_start = idivide(nky, 2) - idivide(kwargs.calibration_width, 2);
 
-for r = 1:kwargs.repetitions
-    for a = 1:kwargs.acceleration
-        noise = generate_noise(size(coil_images), kwargs.noise_level);
-        kspace = coil_images + noise;
+for r = 0:kwargs.repetitions-1
+    a = int32(mod(r, kwargs.acceleration));
+    noise = generate_noise(size(coil_images), kwargs.noise_level);
+    kspace = coil_images + noise;
 
-        for line = 1:nky
-            is_calib_readout = mod((line - a - 1), kwargs.acceleration) ~= 0;
-            in_calib_region = (line >= calib_start && line <= calib_end);
-            if is_calib_readout && ~in_calib_region
-                % Skip this line
-                continue;
-            end
-
-            acq.head.scan_counter = scan_counter;
-            scan_counter = scan_counter + 1;
-
-            acq.head.flags = 0;
-            if line == a
-                acq.head.flags = mrd.AcquisitionFlags( ...
-                        mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1, ...
-                        mrd.AcquisitionFlags.FIRST_IN_SLICE, ...
-                        mrd.AcquisitionFlags.FIRST_IN_REPETITION);
-            elseif line >= nky - kwargs.acceleration + 1
-                acq.head.flags = mrd.AcquisitionFlags(...
-                        mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1, ...
-                        mrd.AcquisitionFlags.LAST_IN_SLICE, ...
-                        mrd.AcquisitionFlags.LAST_IN_REPETITION);
-            elseif in_calib_region
-                if is_calib_readout
-                    acq.head.flags = acq.head.flags.with_flags(mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION);
-                else
-                    acq.head.flags = acq.head.flags.with_flags(mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION_AND_IMAGING);
-                end
-            end
-
-            acq.head.idx.kspace_encode_step_1 = line - 1;
-            acq.head.idx.slice = 0;
-            acq.head.idx.repetition = (r - 1) * kwargs.acceleration + (a - 1);
-            acq.data(:) = kspace(:, line, 1, :);
-
-            if kwargs.store_coordinates
-                acq.trajectory = zeros([nkx, 2], 'single');
-                ky = ((line - 1) - (nky / 2)) / nky;
-                acq.trajectory(:, 1) = ((1:nkx) - (nkx / 2)) / nkx;
-                acq.trajectory(:, 2) = ky;
-            end
-
-            w.write_data(mrd.StreamItem.Acquisition(acq));
+    for line = 0:nky-1
+        is_sampled_line = mod((int32(line) - a), int32(kwargs.acceleration)) == 0;
+        in_calib_region = (line >= calib_start && line < calib_start + kwargs.calibration_width);
+        if ~is_sampled_line && ~in_calib_region
+            % Skip this line
+            continue;
         end
+
+        acq.head.scan_counter = scan_counter;
+        scan_counter = scan_counter + 1;
+
+        acq.head.flags = 0;
+        if line == a
+            acq.head.flags = mrd.AcquisitionFlags( ...
+                    mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1, ...
+                    mrd.AcquisitionFlags.FIRST_IN_SLICE, ...
+                    mrd.AcquisitionFlags.FIRST_IN_REPETITION);
+        elseif line >= nky - kwargs.acceleration
+            acq.head.flags = mrd.AcquisitionFlags(...
+                    mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1, ...
+                    mrd.AcquisitionFlags.LAST_IN_SLICE, ...
+                    mrd.AcquisitionFlags.LAST_IN_REPETITION);
+        elseif in_calib_region
+            if ~is_sampled_line
+                acq.head.flags = mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION;
+            else
+                acq.head.flags = mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION_AND_IMAGING;
+            end
+        end
+
+        acq.head.idx.kspace_encode_step_1 = line;
+        acq.head.idx.slice = 0;
+        acq.head.idx.repetition = r;
+        acq.data(:) = kspace(:, line+1, 1, :);
+
+        if kwargs.store_coordinates
+            acq.trajectory = zeros([nkx, 2], 'single');
+            ky = (line - (nky / 2)) / nky;
+            acq.trajectory(:, 1) = ((0:nkx-1) - (nkx / 2)) / nkx;
+            acq.trajectory(:, 2) = ky;
+        end
+
+        w.write_data(mrd.StreamItem.Acquisition(acq));
     end
 end
 

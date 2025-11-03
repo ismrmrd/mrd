@@ -100,6 +100,14 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
     enc.encoded_space = e
     enc.recon_space = r
     enc.encoding_limits = limits
+
+    if acceleration > 1:
+        p = mrd.ParallelImagingType()
+        p.acceleration_factor.kspace_encoding_step_1 = acceleration
+        p.acceleration_factor.kspace_encoding_step_2 = 1
+        p.calibration_mode = mrd.CalibrationMode.EMBEDDED
+        enc.parallel_imaging = p
+
     h.encoding.append(enc)
 
     phan = simulation.generate_shepp_logan_phantom(ny)
@@ -132,6 +140,8 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
         acq = mrd.Acquisition()
 
         acq.data.resize((ncoils, nkx))
+        acq.head.encoding_space_ref = 0
+        acq.head.sample_time_ns = 5000
         acq.head.channel_order = list(range(ncoils))
         acq.head.center_sample = round(nkx / 2)
         acq.head.read_dir[0] = 1.0
@@ -151,59 +161,55 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
                 acq.data[:] = noise
                 yield mrd.StreamItem.Acquisition(acq)
 
-        calib_radius = calibration_width // 2
-        calib_start = nky // 2 - calib_radius
-        calib_end = nky // 2 + calib_radius - 1
+        calib_start = nky // 2 - calibration_width // 2
 
         # Loop over the repetitions, add noise and serialize
         # Simulating a T-SENSE type scan
         for r in range(repetitions):
-            for a in range(acceleration):
-                noise = generate_noise(coil_images.shape, noise_level)
-                # Here's where we would make the noise correlated
-                kspace = coil_images + noise
+            noise = generate_noise(coil_images.shape, noise_level)
+            # Here's where we would make the noise correlated
+            kspace = coil_images + noise
 
-                # TODO: This follows how we handle acceleration factor in ismrmrd:generate_cartesian_shepp_logan.cpp,
-                #   however, it is NOT the same as the implementation in ismrmrd-python-tools:generate_cartesian_shepp_logan_dataset.py
-                for line in range(nky):
-                    is_calib_readout = ((line - a) % acceleration) != 0
-                    in_calib_region = (line >= calib_start) and (line <= calib_end)
-                    if is_calib_readout and not in_calib_region:
-                        # Skip this line
-                        continue
+            a = r % acceleration
+            for line in range(nky):
+                is_sampled_line = ((line - a) % acceleration) == 0
+                in_calib_region = (line >= calib_start) and (line < calib_start + calibration_width)
+                if not is_sampled_line and not in_calib_region:
+                    # Skip this line
+                    continue
 
-                    acq.head.flags = mrd.AcquisitionFlags(0)
-                    acq.head.scan_counter = scan_counter
-                    scan_counter += 1
+                acq.head.flags = mrd.AcquisitionFlags(0)
+                acq.head.scan_counter = scan_counter
+                scan_counter += 1
 
-                    if line == a:
-                        acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1
-                        acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_SLICE
-                        acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_REPETITION
-                    elif line >= nky - acceleration:
-                        acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1
-                        acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_SLICE
-                        acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_REPETITION
-                    elif in_calib_region:
-                        if is_calib_readout:
-                            acq.head.flags |= mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION
-                        else:
-                            acq.head.flags |= mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION_AND_IMAGING
+                if line == a:
+                    acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1
+                    acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_SLICE
+                    acq.head.flags |= mrd.AcquisitionFlags.FIRST_IN_REPETITION
+                elif line >= nky - acceleration:
+                    acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1
+                    acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_SLICE
+                    acq.head.flags |= mrd.AcquisitionFlags.LAST_IN_REPETITION
+                elif in_calib_region:
+                    if not is_sampled_line:
+                        acq.head.flags |= mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION
+                    else:
+                        acq.head.flags |= mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION_AND_IMAGING
 
-                    acq.head.idx.kspace_encode_step_1 = line
-                    acq.head.idx.slice = 0
-                    acq.head.idx.repetition = r * acceleration + a
-                    acq.data[:] = kspace[:, 0, line, :]
+                acq.head.idx.kspace_encode_step_1 = line
+                acq.head.idx.slice = 0
+                acq.head.idx.repetition = r
+                acq.data[:] = kspace[:, 0, line, :]
 
-                    if store_coordinates:
-                        acq.trajectory.resize((2, nkx))
-                        ky = (line - (nky / 2)) / nky
-                        for x in range(nkx):
-                            kx = (x - (nkx / 2)) / nkx
-                            acq.trajectory[0, x] = kx
-                            acq.trajectory[1, x] = ky
+                if store_coordinates:
+                    acq.trajectory.resize((2, nkx))
+                    ky = (line - (nky / 2)) / nky
+                    for x in range(nkx):
+                        kx = (x - (nkx / 2)) / nkx
+                        acq.trajectory[0, x] = kx
+                        acq.trajectory[1, x] = ky
 
-                    yield mrd.StreamItem.Acquisition(acq)
+                yield mrd.StreamItem.Acquisition(acq)
 
     with mrd.BinaryMrdWriter(output) as w:
         w.write_header(h)

@@ -239,6 +239,15 @@ int main(int argc, char** argv) {
   enc.encoded_space = e;
   enc.recon_space = r;
   enc.encoding_limits = limits;
+
+  if (acc_factor > 1) {
+    ParallelImagingType p;
+    p.acceleration_factor.kspace_encoding_step_1 = acc_factor;
+    p.acceleration_factor.kspace_encoding_step_2 = 1;
+    p.calibration_mode = mrd::CalibrationMode::kEmbedded;
+    enc.parallel_imaging = p;
+  }
+
   h.encoding.push_back(enc);
 
   w->WriteHeader(h);
@@ -258,7 +267,7 @@ int main(int argc, char** argv) {
 
   acq.head.read_dir[0] = 1.0;
   acq.head.phase_dir[1] = 1.0;
-  acq.head.slice_dir[1] = 1.0;
+  acq.head.slice_dir[2] = 1.0;
 
   uint32_t scan_counter = 0;
 
@@ -322,62 +331,58 @@ int main(int argc, char** argv) {
   }
   coil_images = fftshift(coil_images);
 
-  size_t hw = calib_width / 2;
-  size_t from = nky / 2 - hw;
-  size_t till = nky / 2 + hw;
+  size_t calib_start = nky / 2 - calib_width / 2;
 
   // Write out Acquisitions
   for (unsigned int r = 0; r < repetitions; r++) {
-    for (unsigned int a = 0; a < acc_factor; a++) {
-      auto noise = generate_noise(coil_images.shape(), noise_level);
-      auto kspace = xt::xtensor<std::complex<float>, 4>(coil_images) + noise;
+    auto noise = generate_noise(coil_images.shape(), noise_level);
+    auto kspace = xt::xtensor<std::complex<float>, 4>(coil_images) + noise;
+    auto a = r % acc_factor;
+    for (size_t line = 0; line < nky; line++) {
 
-      for (size_t line = 0; line < nky; line++) {
-
-        bool is_calibration_readout = ((line - a) % acc_factor) != 0;
-        bool in_calibration_region = (line >= from && line <= till);
-        if (is_calibration_readout && !in_calibration_region) {
-          // Skip this readout
-          continue;
-        }
-
-        acq.head.flags.Clear();
-        acq.head.scan_counter = scan_counter++;
-
-        if (line == a) {
-          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
-          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
-          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
-        } else if (line >= matrix - acc_factor) {
-          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
-          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
-          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
-        } else if (in_calibration_region) {
-          if (is_calibration_readout) {
-            acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsParallelCalibration);
-          } else {
-            acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsParallelCalibrationAndImaging);
-          }
-        }
-
-        acq.head.idx.kspace_encode_step_1 = line;
-        acq.head.idx.slice = 0;
-        acq.head.idx.repetition = r * acc_factor + a;
-        acq.data = xt::view(kspace, xt::all(), 0, line, xt::all());
-
-        // Optionally store trajectory coordinates
-        if (store_coordinates) {
-          acq.trajectory.resize({2, nkx});
-          float ky = (1.0f * line - (nky / 2)) / (1.0f * nky);
-          for (size_t x = 0; x < nkx; x++) {
-            float kx = (1.0f * x - (nkx / 2)) / (1.0f * nkx);
-            acq.trajectory(0, x) = kx;
-            acq.trajectory(1, x) = ky;
-          }
-        }
-
-        w->WriteData(acq);
+      bool is_sampled_line = ((line - a) % acc_factor) == 0;
+      bool in_calibration_region = (line >= calib_start && line < (calib_start + calib_width));
+      if (!is_sampled_line && !in_calibration_region) {
+        // Skip this readout
+        continue;
       }
+
+      acq.head.flags.Clear();
+      acq.head.scan_counter = scan_counter++;
+
+      if (line == a) {
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
+      } else if (line >= matrix - acc_factor) {
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
+        acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);
+      } else if (in_calibration_region) {
+        if (!is_sampled_line) {
+          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsParallelCalibration);
+        } else {
+          acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kIsParallelCalibrationAndImaging);
+        }
+      }
+
+      acq.head.idx.kspace_encode_step_1 = line;
+      acq.head.idx.slice = 0;
+      acq.head.idx.repetition = r;
+      acq.data = xt::view(kspace, xt::all(), 0, line, xt::all());
+
+      // Optionally store trajectory coordinates
+      if (store_coordinates) {
+        acq.trajectory.resize({2, nkx});
+        float ky = (1.0f * line - (nky / 2)) / (1.0f * nky);
+        for (size_t x = 0; x < nkx; x++) {
+          float kx = (1.0f * x - (nkx / 2)) / (1.0f * nkx);
+          acq.trajectory(0, x) = kx;
+          acq.trajectory(1, x) = ky;
+        }
+      }
+
+      w->WriteData(acq);
     }
   }
   w->EndData();
