@@ -1,8 +1,6 @@
 import argparse
-import subprocess
 import numpy as np
 import numpy.typing as npt
-from typing import Any
 import mrd
 
 def verify_basic_recon(reference_file: str, testdata_file: str):
@@ -14,7 +12,7 @@ def verify_basic_recon(reference_file: str, testdata_file: str):
         eNx = header.encoding[0].encoded_space.matrix_size.x
         rNx = header.encoding[0].recon_space.matrix_size.x
 
-        coil_images: npt.NDArray[np.complex64]
+        coil_images = None
         for item in reader.read_data():
             if isinstance(item, mrd.StreamItem.ArrayComplexFloat):
                 coil_images = np.squeeze(item.value)
@@ -32,7 +30,7 @@ def verify_basic_recon(reference_file: str, testdata_file: str):
 
     images = []
     with mrd.BinaryMrdReader(testdata_file) as reader:
-        header = reader.read_header()
+        reader.read_header()
         for item in reader.read_data():
             if isinstance(item, mrd.StreamItem.ImageFloat):
                 images.append(item.value)

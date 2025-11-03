@@ -354,7 +354,7 @@ int main(int argc, char** argv) {
         acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInEncodeStep1);
         acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInSlice);
         acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kFirstInRepetition);
-      } else if (line >= matrix - acc_factor) {
+      } else if (line >= nky - acc_factor) {
         acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInEncodeStep1);
         acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInSlice);
         acq.head.flags |= static_cast<uint64_t>(AcquisitionFlags::kLastInRepetition);

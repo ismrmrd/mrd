@@ -1,8 +1,4 @@
 import argparse
-import subprocess
-import numpy as np
-import numpy.typing as npt
-from typing import Any
 import mrd
 
 def read_dataset(filename: str) -> tuple[mrd.Header, list[mrd.Acquisition]]:
