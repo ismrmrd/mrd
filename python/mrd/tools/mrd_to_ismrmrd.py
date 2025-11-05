@@ -391,7 +391,7 @@ def convert_acquisition(mrd_acq: mrd.Acquisition) -> ismrmrd.Acquisition:
 
     # Build the header first
     head = ismrmrd.AcquisitionHeader()
-    head.version = 0  # Will be set by ISMRMRD
+    head.version = 1  # ISMRMRD_VERSION_MAJOR
     head.flags = mrd_head.flags
     head.measurement_uid = mrd_head.measurement_uid
     head.scan_counter = mrd_head.scan_counter or 0
@@ -490,7 +490,7 @@ def convert_image(mrd_img) -> ismrmrd.Image:
 
     # Build the ImageHeader first
     head = ismrmrd.ImageHeader()
-    head.version = 0
+    head.version = 1 # ISMRMRD_VERSION_MAJOR
     head.flags = mrd_head.flags
     head.measurement_uid = mrd_head.measurement_uid
     head.matrix_size[:] = [x, y, z]

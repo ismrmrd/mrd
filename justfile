@@ -37,35 +37,39 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
 @generate:
     cd model && yardl generate
 
-@cpp-converter-roundtrip-test: build
-    cd cpp/build; \
-    rm -f roundtrip.h5; \
-    rm -f roundtrip.bin; \
-    rm -f direct.bin; \
-    rm -f recon_direct.bin; \
-    rm -f recon_rountrip.bin; \
-    ismrmrd_generate_cartesian_shepp_logan -o roundtrip.h5; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
-    diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
+cpp-converter-roundtrip-test: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd cpp/build
+    rm -f phantom.h5
+    rm -f direct.ismrmrd
+    rm -f roundtrip.ismrmrd
+    rm -f recon_direct.ismrmrd
+    rm -f recon_rountrip.ismrmrd
+    ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.ismrmrd
+    diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_rountrip.ismrmrd
 
-@python-converter-roundtrip-test: build
-    cd cpp/build; \
-    rm -f roundtrip.h5; \
-    rm -f roundtrip.bin; \
-    rm -f direct.bin; \
-    rm -f recon_direct.bin; \
-    rm -f recon_rountrip.bin; \
-    ismrmrd_generate_cartesian_shepp_logan -o roundtrip.h5; \
-    PYTHON_TOOLDIR=../../python/mrd/tools; \
-    # ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | python ${PYTHON_TOOLDIR}/ismrmrd_to_mrd.py | python ${PYTHON_TOOLDIR}/mrd_to_ismrmrd.py > roundtrip.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | python ${PYTHON_TOOLDIR}/ismrmrd_to_mrd.py | ./mrd_to_ismrmrd > roundtrip.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | python ${PYTHON_TOOLDIR}/mrd_to_ismrmrd.py > recon_rountrip.bin; \
-    diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
+python-converter-roundtrip-test: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd cpp/build
+    rm -f phantom.h5
+    rm -f direct.ismrmrd
+    rm -f roundtrip.ismrmrd
+    rm -f recon_direct.ismrmrd
+    rm -f recon_rountrip.ismrmrd
+    ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+    PYTHON_TOOLDIR=../../python/mrd/tools
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | python ${PYTHON_TOOLDIR}/ismrmrd_to_mrd.py | python ${PYTHON_TOOLDIR}/mrd_to_ismrmrd.py > roundtrip.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python ${PYTHON_TOOLDIR}/ismrmrd_to_mrd.py | python ${PYTHON_TOOLDIR}/mrd_to_ismrmrd.py > recon_rountrip.ismrmrd
+    python ../../test/diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
+    python ../../test/diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
 
 @conda-cpp-test: build
     cd cpp/build; \
