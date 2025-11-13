@@ -62,7 +62,7 @@ pulseq-roundtrip-test: build
     #!/usr/bin/env bash
     set -euo pipefail
 
-    for dir in test_data/pulseq/*/; do
+    for dir in test/test_data/pulseq/*/; do
       [[ -d "$dir" ]] || continue
       pulseq_version=$(basename "$dir")
       for file in "$dir"*; do
