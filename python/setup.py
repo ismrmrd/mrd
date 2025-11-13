@@ -1,7 +1,7 @@
 import os
+from datetime import date
 from setuptools import setup
 
-# Throw KeyError if MRD_VERSION_STRING is not set
-version = os.environ['MRD_VERSION_STRING']
+version = os.getenv('MRD_VERSION_STRING', date.today().strftime('%Y.%m.%d'))
 
 setup(version=version)

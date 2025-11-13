@@ -8,14 +8,12 @@ build_type := "RelWithDebInfo"
 
 matlab := "disabled"
 matlab-test-cmd := if matlab != "disabled" { "run-matlab-command buildtool" } else { "echo Skipping MATLAB tests..." }
-cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test.sh" } else { "./test.sh" }
+cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test-all.sh" } else { "./test-all.sh" }
 
 @default: test
 
-@ensure-build-dir:
-    mkdir -p cpp/build
-
-@configure: ensure-build-dir
+@configure:
+    mkdir -p cpp/build; \
     cd cpp/build; \
     cmake -GNinja \
         -D CMAKE_BUILD_TYPE={{ build_type }} \
@@ -23,7 +21,15 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
         -D CMAKE_INSTALL_PREFIX=$(conda info --json | jq -r .default_prefix) \
         ..
 
-@build: configure generate
+@autoconfigure:
+    if [ ! -f "cpp/build/build.ninja" ]; then \
+        echo "Ninja file not found. Running cmake..."; \
+        just configure; \
+    else \
+        echo "Ninja file already exists. Skipping cmake."; \
+    fi
+
+@build: autoconfigure generate
     cd cpp/build && ninja
 
 @install: test
@@ -52,6 +58,24 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
     diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
 
+pulseq-roundtrip-test: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    for dir in test_data/pulseq/*/; do
+      [[ -d "$dir" ]] || continue
+      pulseq_version=$(basename "$dir")
+      for file in "$dir"*; do
+        [[ -f "$file" ]] || continue
+        # convert to MRD stream and back, compare ignoring comments and whitespace
+        python -m mrd.tools.seq_to_mrd --input "$file" | python -m mrd.tools.mrd_to_seq --pulseq-version "$pulseq_version" | diff -I '#.*' --ignore-space-change "$file" -
+        if [[ "$pulseq_version" == "1.4.2" ]]; then
+          # Sanity check that PyPulseq can read the file
+          python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
+        fi
+      done
+    done
+
 @conda-cpp-test: build
     cd cpp/build; \
     PATH=./:$PATH ../conda/run_test.sh
@@ -64,11 +88,11 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     cd matlab; \
     {{ matlab-test-cmd }}
 
-@cross-language-recon-test: build
+@end-to-end-test: build
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build converter-roundtrip-test conda-cpp-test conda-python-test matlab-test cross-language-recon-test
+@test: build converter-roundtrip-test conda-cpp-test conda-python-test matlab-test end-to-end-test
 
 @validate: test
 

@@ -7,7 +7,14 @@ arguments
     kwargs.ncoils (1,1) uint32 {mustBePositive} = 8
     kwargs.oversampling (1,1) uint32 {mustBePositive} = 2
     kwargs.repetitions (1,1) uint32 {mustBePositive} = 1
+    kwargs.acceleration (1,1) uint32 {mustBePositive} = 1
     kwargs.noise_level (1,1) single {mustBeNonnegative} = 0.05
+    kwargs.calibration_width (1,1) uint32 {mustBeNonnegative} = 0
+    kwargs.noise_calibration (1,1) logical = false
+    kwargs.store_coordinates (1,1) logical = false
+    kwargs.output_phantom (1,1) string = ""
+    kwargs.output_csm (1,1) string = ""
+    kwargs.output_coils (1,1) string = ""
 end
 
 nx = kwargs.matrix_size;
@@ -24,13 +31,17 @@ s.patient_id = "1234BGVF";
 s.patient_name = "John Doe";
 h.subject_information = s;
 
-exp = mrd.ExperimentalConditionsType();
-exp.h1resonance_frequency_hz = 128000000;
-h.experimental_conditions = exp;
+meas = mrd.MeasurementInformationType();
+meas.patient_position = mrd.PatientPosition.H_FS;
+h.measurement_information = meas;
 
 sys_info = mrd.AcquisitionSystemInformationType();
 sys_info.receiver_channels = kwargs.ncoils;
 h.acquisition_system_information = sys_info;
+
+exp = mrd.ExperimentalConditionsType();
+exp.h1resonance_frequency_hz = 128000000;
+h.experimental_conditions = exp;
 
 e = mrd.EncodingSpaceType();
 e.matrix_size = mrd.MatrixSizeType(x=nkx, y=nky, z=1);
@@ -61,9 +72,43 @@ enc.recon_space = r;
 enc.encoding_limits = limits;
 h.encoding(end+1) = enc;
 
-phantom = generate_coil_kspace(kwargs.matrix_size, kwargs.ncoils, kwargs.oversampling);
+phan = simulation.generate_shepp_logan_phantom(kwargs.matrix_size);
+csm = simulation.generate_birdcage_sensitivities(kwargs.matrix_size, kwargs.ncoils);
+coil_images = phan .* csm;
+
+if kwargs.oversampling > 1
+    nx = single(kwargs.matrix_size * kwargs.oversampling);
+    coil_images = resize(coil_images, nx, Dimension=1, Side="both");
+end
 
 import mrd.binary.MrdWriter;
+
+if kwargs.output_phantom ~= ""
+    w = MrdWriter(kwargs.output_phantom);
+    w.write_header(h);
+    w.write_data(mrd.StreamItem.ArrayComplexFloat(phan));
+    w.end_data();
+    w.close();
+end
+
+if kwargs.output_csm ~= ""
+    w = MrdWriter(kwargs.output_csm);
+    w.write_header(h);
+    w.write_data(mrd.StreamItem.ArrayComplexFloat(csm));
+    w.end_data();
+    w.close();
+end
+
+if kwargs.output_coils ~= ""
+    w = MrdWriter(kwargs.output_coils);
+    w.write_header(h);
+    w.write_data(mrd.StreamItem.ArrayComplexFloat(coil_images));
+    w.end_data();
+    w.close();
+end
+
+coil_images = transform.image_to_kspace(coil_images, [1, 2]);
+
 w = MrdWriter(output);
 w.write_header(h);
 
@@ -78,44 +123,72 @@ acq.head.slice_dir(3) = 1;
 
 scan_counter = 0;
 
-% Write out a few noise scans
-for n = 1:32
-    noise = generate_noise([nkx, kwargs.ncoils], kwargs.noise_level);
-    % Here's where we would make the noise correlated
-    acq.head.scan_counter = scan_counter;
-    scan_counter = scan_counter + 1;
-    acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT;
-    acq.data(:) = noise;
-    w.write_data(mrd.StreamItem.Acquisition(acq));
-end
-
-for r = 1:kwargs.repetitions
-    noise = generate_noise(size(phantom), kwargs.noise_level);
-    kspace = phantom + noise;
-
-    for line = 1:nky
+if kwargs.noise_calibration
+    % Write out a few noise scans
+    for n = 1:32
+        noise = generate_noise([nkx, kwargs.ncoils], kwargs.noise_level);
+        % Here's where we would make the noise correlated
         acq.head.scan_counter = scan_counter;
         scan_counter = scan_counter + 1;
-
-        acq.head.flags = 0;
-        if line == 1
-            acq.head.flags = mrd.AcquisitionFlags( ...
-                    mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1, ...
-                    mrd.AcquisitionFlags.FIRST_IN_SLICE, ...
-                    mrd.AcquisitionFlags.FIRST_IN_REPETITION);
-        elseif line == nky
-            acq.head.flags = mrd.AcquisitionFlags(...
-                    mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1, ...
-                    mrd.AcquisitionFlags.LAST_IN_SLICE, ...
-                    mrd.AcquisitionFlags.LAST_IN_REPETITION);
-        end
-
-        acq.head.idx.kspace_encode_step_1 = line - 1;
-        acq.head.idx.kspace_encode_step_2 = 0;
-        acq.head.idx.slice = 0;
-        acq.head.idx.repetition = r - 1;
-        acq.data(:) = kspace(:, line, 1, :);
+        acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT;
+        acq.data(:) = noise;
         w.write_data(mrd.StreamItem.Acquisition(acq));
+    end
+end
+
+calib_radius = idivide(kwargs.calibration_width, 2);
+calib_start = idivide(nky, 2) - calib_radius + 1;
+calib_end = idivide(nky, 2) + calib_radius;
+
+for r = 1:kwargs.repetitions
+    for a = 1:kwargs.acceleration
+        noise = generate_noise(size(coil_images), kwargs.noise_level);
+        kspace = coil_images + noise;
+
+        for line = 1:nky
+            is_calib_readout = mod((line - a - 1), kwargs.acceleration) ~= 0;
+            in_calib_region = (line >= calib_start && line <= calib_end);
+            if is_calib_readout && ~in_calib_region
+                % Skip this line
+                continue;
+            end
+
+            acq.head.scan_counter = scan_counter;
+            scan_counter = scan_counter + 1;
+
+            acq.head.flags = 0;
+            if line == a
+                acq.head.flags = mrd.AcquisitionFlags( ...
+                        mrd.AcquisitionFlags.FIRST_IN_ENCODE_STEP_1, ...
+                        mrd.AcquisitionFlags.FIRST_IN_SLICE, ...
+                        mrd.AcquisitionFlags.FIRST_IN_REPETITION);
+            elseif line >= nky - kwargs.acceleration + 1
+                acq.head.flags = mrd.AcquisitionFlags(...
+                        mrd.AcquisitionFlags.LAST_IN_ENCODE_STEP_1, ...
+                        mrd.AcquisitionFlags.LAST_IN_SLICE, ...
+                        mrd.AcquisitionFlags.LAST_IN_REPETITION);
+            elseif in_calib_region
+                if is_calib_readout
+                    acq.head.flags = acq.head.flags.with_flags(mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION);
+                else
+                    acq.head.flags = acq.head.flags.with_flags(mrd.AcquisitionFlags.IS_PARALLEL_CALIBRATION_AND_IMAGING);
+                end
+            end
+
+            acq.head.idx.kspace_encode_step_1 = line - 1;
+            acq.head.idx.slice = 0;
+            acq.head.idx.repetition = (r - 1) * kwargs.acceleration + (a - 1);
+            acq.data(:) = kspace(:, line, 1, :);
+
+            if kwargs.store_coordinates
+                acq.trajectory = zeros([nkx, 2], 'single');
+                ky = ((line - 1) - (nky / 2)) / nky;
+                acq.trajectory(:, 1) = ((1:nkx) - (nkx / 2)) / nkx;
+                acq.trajectory(:, 2) = ky;
+            end
+
+            w.write_data(mrd.StreamItem.Acquisition(acq));
+        end
     end
 end
 
@@ -123,22 +196,10 @@ w.end_data();
 w.close();
 end
 
-function kspace = generate_coil_kspace(matrix_size, ncoils, oversampling)
-    phan = simulation.generate_shepp_logan_phantom(matrix_size);
-    coils = simulation.generate_birdcage_sensitivities(matrix_size, ncoils);
-    coils = phan .* coils;
-
-    if oversampling > 1
-        nx = single(matrix_size * oversampling);
-        coils = resize(coils, nx, Dimension=1, Side="both");
-    end
-    kspace = transform.image_to_kspace(coils, [1, 2]);
-end
-
 function noise = generate_noise(shape, noise_sigma, mean_)
     arguments
         shape {mustBeNumeric,mustBePositive}
-        noise_sigma (1,1) {mustBeNumeric,mustBePositive}
+        noise_sigma (1,1) {mustBeNumeric,mustBeNonnegative}
         mean_ (1,1) {mustBeNumeric} = 0
     end
     noise = randn(shape) + 1j * randn(shape);
