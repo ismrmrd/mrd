@@ -11,7 +11,7 @@ on:
 env:
   # Increase this to manually reset the conda environment cache
   CONDA_CACHE_NUMBER: 0
-  YARDL_VERSION: 0.6.2
+  YARDL_VERSION: 0.6.4
 
 defaults:
   run:
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Configure Build Environment
       uses: ./.github/actions/configure-mrd-build-environment
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up just command runner
       uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
     - name: Build and test Docker images
@@ -89,7 +89,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up just command runner
         uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
@@ -101,7 +101,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: 'docs/.vitepress/dist'
 
@@ -123,12 +123,12 @@ jobs:
 
     steps:
     - name: Retrieve MATLAB Toolbox
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: matlab-toolbox
 
     - name: Retrieve CMake FetchContent source archive
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: mrd-cmake-src
 
@@ -161,7 +161,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up just command runner
       uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
     - name: Push Docker images

@@ -35,7 +35,7 @@ class MrdWriter : public mrd::MrdWriterBase, public yardl::hdf5::Hdf5Writer {
 // The MRD Protocol
 class MrdReader : public mrd::MrdReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
-  MrdReader(std::string path);
+  MrdReader(std::string path, bool skip_completed_check=false);
 
   void ReadHeaderImpl(std::optional<mrd::Header>& value) override;
 
@@ -61,7 +61,7 @@ class MrdNoiseCovarianceWriter : public mrd::MrdNoiseCovarianceWriterBase, publi
 // Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReader : public mrd::MrdNoiseCovarianceReaderBase, public yardl::hdf5::Hdf5Reader {
   public:
-  MrdNoiseCovarianceReader(std::string path);
+  MrdNoiseCovarianceReader(std::string path, bool skip_completed_check=false);
 
   void ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) override;
 

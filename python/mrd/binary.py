@@ -44,8 +44,8 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str]) -> None:
-        MrdReaderBase.__init__(self)
+    def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str], skip_completed_check: bool = False) -> None:
+        MrdReaderBase.__init__(self, skip_completed_check)
         _binary.BinaryProtocolReader.__init__(self, stream, MrdReaderBase.schema)
 
     def _read_header(self) -> typing.Optional[Header]:
@@ -76,8 +76,8 @@ class BinaryMrdNoiseCovarianceReader(_binary.BinaryProtocolReader, MrdNoiseCovar
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str]) -> None:
-        MrdNoiseCovarianceReaderBase.__init__(self)
+    def __init__(self, stream: typing.Union[io.BufferedReader, io.BytesIO, typing.BinaryIO, str], skip_completed_check: bool = False) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self, skip_completed_check)
         _binary.BinaryProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
 
     def _read_noise_covariance(self) -> NoiseCovariance:

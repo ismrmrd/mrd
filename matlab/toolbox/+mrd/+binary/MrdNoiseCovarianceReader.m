@@ -8,8 +8,12 @@ classdef MrdNoiseCovarianceReader < yardl.binary.BinaryProtocolReader & mrd.MrdN
   end
 
   methods
-    function self = MrdNoiseCovarianceReader(filename)
-      self@mrd.MrdNoiseCovarianceReaderBase();
+    function self = MrdNoiseCovarianceReader(filename, options)
+      arguments
+        filename (1,1) string
+        options.skip_completed_check (1,1) logical = false
+      end
+      self@mrd.MrdNoiseCovarianceReaderBase(skip_completed_check=options.skip_completed_check);
       self@yardl.binary.BinaryProtocolReader(filename, mrd.MrdNoiseCovarianceReaderBase.schema);
       self.noise_covariance_serializer = mrd.binary.NoiseCovarianceSerializer();
     end

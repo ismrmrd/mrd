@@ -56,6 +56,8 @@ class MrdWriterBase {
 // The MRD Protocol
 class MrdReaderBase {
   public:
+  MrdReaderBase(bool skip_completed_check = false): skip_completed_check_(skip_completed_check) {}
+
   // Ordinal 0.
   void ReadHeader(std::optional<mrd::Header>& value);
 
@@ -82,6 +84,8 @@ class MrdReaderBase {
   static std::vector<std::string> previous_schemas_;
 
   static Version VersionFromSchema(const std::string& schema);
+
+  bool skip_completed_check_;
 
   private:
   uint8_t state_ = 0;
@@ -122,6 +126,8 @@ class MrdNoiseCovarianceWriterBase {
 // Protocol for serializing a noise covariance matrix
 class MrdNoiseCovarianceReaderBase {
   public:
+  MrdNoiseCovarianceReaderBase(bool skip_completed_check = false): skip_completed_check_(skip_completed_check) {}
+
   // Ordinal 0.
   void ReadNoiseCovariance(mrd::NoiseCovariance& value);
 
@@ -140,6 +146,8 @@ class MrdNoiseCovarianceReaderBase {
   static std::vector<std::string> previous_schemas_;
 
   static Version VersionFromSchema(const std::string& schema);
+
+  bool skip_completed_check_;
 
   private:
   uint8_t state_ = 0;
