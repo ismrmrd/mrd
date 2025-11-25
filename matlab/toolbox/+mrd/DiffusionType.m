@@ -19,12 +19,16 @@ classdef DiffusionType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.DiffusionType") && ...
-        isequal(self.gradient_direction, other.gradient_direction) && ...
-        isequal(self.bvalue, other.bvalue);
+        isequal({self.gradient_direction}, {other.gradient_direction}) && ...
+        isequal({self.bvalue}, {other.bvalue});
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
+    end
+
+    function res = isequal(self, other)
+      res = all(eq(self, other));
     end
   end
 

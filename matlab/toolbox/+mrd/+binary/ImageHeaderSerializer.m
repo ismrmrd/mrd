@@ -35,12 +35,12 @@ classdef ImageHeaderSerializer < yardl.binary.RecordSerializer
         outstream (1,1) yardl.binary.CodedOutputStream
         value (1,1) mrd.ImageHeader
       end
-      self.write_(outstream, value.flags, value.measurement_uid, value.measurement_freq, value.measurement_freq_label, value.field_of_view, value.position, value.col_dir, value.line_dir, value.slice_dir, value.patient_table_position, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.acquisition_time_stamp_ns, value.physiology_time_stamp_ns, value.image_type, value.image_index, value.image_series_index, value.user_int, value.user_float);
+      self.write_(outstream, value.flags, value.measurement_uid, value.measurement_frequency, value.measurement_frequency_label, value.field_of_view, value.position, value.col_dir, value.line_dir, value.slice_dir, value.patient_table_position, value.average, value.slice, value.contrast, value.phase, value.repetition, value.set, value.acquisition_time_stamp_ns, value.physiology_time_stamp_ns, value.image_type, value.image_index, value.image_series_index, value.user_int, value.user_float);
     end
 
     function value = read(self, instream)
       fields = self.read_(instream);
-      value = mrd.ImageHeader(flags=fields{1}, measurement_uid=fields{2}, measurement_freq=fields{3}, measurement_freq_label=fields{4}, field_of_view=fields{5}, position=fields{6}, col_dir=fields{7}, line_dir=fields{8}, slice_dir=fields{9}, patient_table_position=fields{10}, average=fields{11}, slice=fields{12}, contrast=fields{13}, phase=fields{14}, repetition=fields{15}, set=fields{16}, acquisition_time_stamp_ns=fields{17}, physiology_time_stamp_ns=fields{18}, image_type=fields{19}, image_index=fields{20}, image_series_index=fields{21}, user_int=fields{22}, user_float=fields{23});
+      value = mrd.ImageHeader(flags=fields{1}, measurement_uid=fields{2}, measurement_frequency=fields{3}, measurement_frequency_label=fields{4}, field_of_view=fields{5}, position=fields{6}, col_dir=fields{7}, line_dir=fields{8}, slice_dir=fields{9}, patient_table_position=fields{10}, average=fields{11}, slice=fields{12}, contrast=fields{13}, phase=fields{14}, repetition=fields{15}, set=fields{16}, acquisition_time_stamp_ns=fields{17}, physiology_time_stamp_ns=fields{18}, image_type=fields{19}, image_index=fields{20}, image_series_index=fields{21}, user_int=fields{22}, user_float=fields{23});
     end
   end
 end

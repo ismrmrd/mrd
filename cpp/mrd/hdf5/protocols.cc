@@ -743,31 +743,31 @@ namespace {
   t.insert("magnitude", &i);
   i = 2ULL;
   t.insert("phase", &i);
-  i = 4ULL;
+  i = 3ULL;
   t.insert("real", &i);
-  i = 8ULL;
+  i = 4ULL;
   t.insert("imag", &i);
-  i = 16ULL;
+  i = 5ULL;
   t.insert("complex", &i);
-  i = 32ULL;
+  i = 6ULL;
   t.insert("bitmap", &i);
-  i = 64ULL;
+  i = 7ULL;
   t.insert("spinDensityMap", &i);
-  i = 128ULL;
+  i = 8ULL;
   t.insert("t1Map", &i);
-  i = 256ULL;
+  i = 9ULL;
   t.insert("t2Map", &i);
-  i = 512ULL;
+  i = 10ULL;
   t.insert("t2starMap", &i);
-  i = 1024ULL;
+  i = 11ULL;
   t.insert("adcMap", &i);
-  i = 2048ULL;
+  i = 12ULL;
   t.insert("b0Map", &i);
-  i = 4096ULL;
+  i = 13ULL;
   t.insert("b1Map", &i);
-  i = 8192ULL;
+  i = 14ULL;
   t.insert("sensitivityMap", &i);
-  i = 16384ULL;
+  i = 15ULL;
   t.insert("userMap", &i);
   return t;
 }
@@ -1461,8 +1461,8 @@ struct _Inner_ImageHeader {
   _Inner_ImageHeader(mrd::ImageHeader const& o) 
       : flags(o.flags),
       measurement_uid(o.measurement_uid),
-      measurement_freq(o.measurement_freq),
-      measurement_freq_label(o.measurement_freq_label),
+      measurement_frequency(o.measurement_frequency),
+      measurement_frequency_label(o.measurement_frequency_label),
       field_of_view(o.field_of_view),
       position(o.position),
       col_dir(o.col_dir),
@@ -1487,8 +1487,8 @@ struct _Inner_ImageHeader {
   void ToOuter (mrd::ImageHeader& o) const {
     yardl::hdf5::ToOuter(flags, o.flags);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
-    yardl::hdf5::ToOuter(measurement_freq, o.measurement_freq);
-    yardl::hdf5::ToOuter(measurement_freq_label, o.measurement_freq_label);
+    yardl::hdf5::ToOuter(measurement_frequency, o.measurement_frequency);
+    yardl::hdf5::ToOuter(measurement_frequency_label, o.measurement_frequency_label);
     yardl::hdf5::ToOuter(field_of_view, o.field_of_view);
     yardl::hdf5::ToOuter(position, o.position);
     yardl::hdf5::ToOuter(col_dir, o.col_dir);
@@ -1512,8 +1512,8 @@ struct _Inner_ImageHeader {
 
   mrd::ImageFlags flags;
   uint32_t measurement_uid;
-  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>> measurement_freq;
-  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>> measurement_freq_label;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>> measurement_frequency;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>> measurement_frequency_label;
   yardl::FixedNDArray<float, 3> field_of_view;
   yardl::FixedNDArray<float, 3> position;
   yardl::FixedNDArray<float, 3> col_dir;
@@ -2086,8 +2086,8 @@ struct _Inner_ImageArray {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("flags", HOFFSET(RecordType, flags), H5::PredType::NATIVE_UINT64);
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
-  t.insertMember("measurementFreq", HOFFSET(RecordType, measurement_freq), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>>(yardl::hdf5::DynamicNDArrayDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32)));
-  t.insertMember("measurementFreqLabel", HOFFSET(RecordType, measurement_freq_label), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>>(yardl::hdf5::DynamicNDArrayDdl<yardl::hdf5::InnerVlenString, std::string>(yardl::hdf5::InnerVlenStringDdl())));
+  t.insertMember("measurementFrequency", HOFFSET(RecordType, measurement_frequency), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>>(yardl::hdf5::DynamicNDArrayDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32)));
+  t.insertMember("measurementFrequencyLabel", HOFFSET(RecordType, measurement_frequency_label), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>>(yardl::hdf5::DynamicNDArrayDdl<yardl::hdf5::InnerVlenString, std::string>(yardl::hdf5::InnerVlenStringDdl())));
   t.insertMember("fieldOfView", HOFFSET(RecordType, field_of_view), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("colDir", HOFFSET(RecordType, col_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));

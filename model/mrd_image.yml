@@ -15,25 +15,25 @@ ImageFlags: !flags
     firstInSet: 0x4000
     lastInSet: 0x8000
 
-# EDIT: Image Type. Used flags to allow requests for multiple types with one command. Added 'quantitative' types
+# image types to describe the data type of images or interpretation map with units
 ImageType: !enum
   base: uint64
   values:
-    magnitude: 0x1
-    phase: 0x2
-    real: 0x4
-    imag: 0x8
-    complex: 0x10
-    bitmap: 0x20           # a uint32 image in which MSB = R, G, B, LSB = alpha
-    spinDensityMap: 0x40   # in mol/m^3
-    t1Map: 0x80            # in s
-    t2Map: 0x100           # in s
-    t2starMap: 0x200       # in s
-    adcMap: 0x400          # in s/m^2
-    b0Map: 0x800           # in Hz (offset from Image.head.measurementFreq[0])
-    b1Map: 0x1000          # in rad/s/V, channel dimension is xmit channels
-    sensitivityMap: 0x2000 # in Vm^3/mol, channel dimension is rcv channels
-    userMap: 0x4000        # custom image type with description at ImageMeta
+    magnitude: 1
+    phase: 2
+    real: 3
+    imag: 4
+    complex: 5
+    bitmap: 6           # a uint32 image in which MSB = R, G, B, LSB = alpha
+    spinDensityMap: 7   # in mol/m^3
+    t1Map: 8            # in s
+    t2Map: 9            # in s
+    t2starMap: 10       # in s
+    adcMap: 11          # in s/m^2
+    b0Map: 12           # in Hz (offset from Image.head.measurementFreq[0])
+    b1Map: 13           # in rad/s/V, channel dimension is xmit channels
+    sensitivityMap: 14  # in Vm^3/mol, channel dimension is rcv channels
+    userMap: 15         # custom image type with description at ImageMeta
 
 ImageData<Y>: !array
   items: Y
