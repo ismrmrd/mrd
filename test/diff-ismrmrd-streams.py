@@ -1,12 +1,14 @@
 import argparse
 import ismrmrd
 
+from itertools import zip_longest
+
 
 def compare_streams(deserializer_a: ismrmrd.ProtocolDeserializer, deserializer_b: ismrmrd.ProtocolDeserializer):
     gen_a = deserializer_a.deserialize()
     gen_b = deserializer_b.deserialize()
 
-    for i, (item_a, item_b) in enumerate(zip(gen_a, gen_b)):
+    for i, (item_a, item_b) in enumerate(zip_longest(gen_a, gen_b)):
         assert type(item_a) == type(item_b), f"Item {i} types do not match: {type(item_a)} != {type(item_b)}"
 
         # The Image Meta is serialized differently between the C++ and Python ISMRMRD libraries,

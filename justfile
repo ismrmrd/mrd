@@ -77,6 +77,8 @@ python-converter-roundtrip-test: build
     python ../../test/diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
     python ../../test/diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
 
+converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
+
 @conda-cpp-test: build
     cd cpp/build; \
     PATH=./:$PATH ../conda/run_test.sh
@@ -93,7 +95,7 @@ python-converter-roundtrip-test: build
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build cpp-converter-roundtrip-test python-converter-roundtrip-test conda-cpp-test conda-python-test matlab-test end-to-end-test
+@test: build converter-tests conda-cpp-test conda-python-test matlab-test end-to-end-test
 
 @validate: test
 
