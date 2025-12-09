@@ -1,11 +1,20 @@
+
 #include "mrd/binary/protocols.h"
 #include "mrd/protocols.h"
 #include "mrd/types.h"
 
 #include <xtensor-fftw/basic.hpp>
 #include <xtensor-fftw/helper.hpp>
-#include <xtensor/xstrided_view.hpp>
+
+// NOTE:
+// GCC 13+ appears to emit false positive warnings for array-bounds and stringop-overflow
+// when using xt::view with xt::range (specifically in `remove_oversampling` below).
+// The assignment is correct and there's no overflow, so we can suppress the warnings.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
 #include <xtensor/xview.hpp>
+#pragma GCC diagnostic pop
 
 xt::xtensor<std::complex<float>, 4> fftshift(xt::xtensor<std::complex<float>, 4> x) {
   return xt::roll(xt::roll(x, x.shape(3) / 2, 3), x.shape(2) / 2, 2);
