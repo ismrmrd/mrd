@@ -1,4 +1,12 @@
+// NOTE:
+// GCC 13+ appears to emit false positive warnings for array-bounds
+// when using xt::views (specifically the calls to `xt::amax` below).
+// The statements are correct and there's no overflow, so we can suppress the warnings.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 #include "mrd/binary/protocols.h"
+#pragma GCC diagnostic pop
+
 #include <Magick++.h>
 #include <fmt/format.h>
 #include <iostream>
