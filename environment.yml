@@ -6,7 +6,7 @@ channels:
 dependencies:
   - bash-completion=2.11
   - boost=1.80.0
-  - cmake=3.21.3
+  - cmake=3.25.1
   - fmt=8.1.1
   - gcc_linux-64=11.2.0
   - gdb=11.2
@@ -19,7 +19,7 @@ dependencies:
   - howardhinnant_date=3.0.1
   - just=1.5.0
   - matplotlib=3.6.2
-  - ninja=1.11.0
+  - ninja=1.13.0
   - nlohmann_json=3.11.2
   - nodejs=18.12.1 # local
   - python=3.9.15
