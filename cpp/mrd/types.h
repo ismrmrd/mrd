@@ -866,22 +866,37 @@ struct ImageFlags : yardl::BaseFlags<uint64_t, ImageFlags> {
   static const ImageFlags kLastInSet;
 };
 
-enum class ImageType {
-  kMagnitude = 1,
-  kPhase = 2,
-  kReal = 3,
-  kImag = 4,
-  kComplex = 5,
+// image types to describe the data type of images or interpretation map with units
+enum class ImageType : uint64_t {
+  kMagnitude = 1ULL,
+  kPhase = 2ULL,
+  kReal = 3ULL,
+  kImag = 4ULL,
+  kComplex = 5ULL,
+  kBitmap = 6ULL,
+  kSpinDensityMap = 7ULL,
+  kT1Map = 8ULL,
+  kT2Map = 9ULL,
+  kT2starMap = 10ULL,
+  kAdcMap = 11ULL,
+  kB0Map = 12ULL,
+  kB1Map = 13ULL,
+  kSensitivityMap = 14ULL,
+  kUserMap = 15ULL,
 };
 
 template <typename Y>
-using ImageData = yardl::NDArray<Y, 4>;
+using ImageData = yardl::NDArray<Y, 5>;
 
 struct ImageHeader {
   // A bit mask of common attributes applicable to individual images
   mrd::ImageFlags flags{};
   // Unique ID corresponding to the image
   uint32_t measurement_uid{};
+  // NMR frequencies of this measurement (Hz). Same size as ImageData freq dimension
+  std::optional<yardl::DynamicNDArray<uint32_t>> measurement_frequency{};
+  // NMR label of the measurementFreqs. Same size as measurementFrequency
+  std::optional<yardl::DynamicNDArray<std::string>> measurement_frequency_label{};
   // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
   // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -906,9 +921,9 @@ struct ImageHeader {
   std::optional<uint32_t> repetition{};
   // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
-  // Clock time stamp (e.g. nanoseconds since midnight)
+  // Clock time stamp, ns since midnight
   std::optional<uint64_t> acquisition_time_stamp_ns{};
-  // Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
+  // Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
   std::vector<uint64_t> physiology_time_stamp_ns{};
   // Interpretation type of the image
   mrd::ImageType image_type{};
@@ -924,6 +939,8 @@ struct ImageHeader {
   bool operator==(const ImageHeader& other) const {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
+      measurement_frequency == other.measurement_frequency &&
+      measurement_frequency_label == other.measurement_frequency_label &&
       field_of_view == other.field_of_view &&
       position == other.position &&
       col_dir == other.col_dir &&
@@ -977,6 +994,10 @@ struct Image {
 
   yardl::Size Cols() const {
     return yardl::shape(data, 3);
+  }
+
+  yardl::Size Frequencies() const {
+    return yardl::shape(data, 4);
   }
 
   bool operator==(const Image& other) const {

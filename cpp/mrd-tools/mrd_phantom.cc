@@ -22,24 +22,24 @@ xt::xtensor<std::complex<float>, N> generate_noise(std::array<size_t, N> shape, 
 }
 
 mrd::ImageData<std::complex<float>> generate_coil_kspace(size_t matrix, size_t ncoils, uint32_t oversampling) {
-  xt::xtensor<std::complex<float>, 4> phan = shepp_logan_phantom(matrix);
-  xt::xtensor<std::complex<float>, 4> coils = generate_birdcage_sensitivities(matrix, ncoils, 1.5);
+  xt::xtensor<std::complex<float>, 5> phan = shepp_logan_phantom(matrix);
+  xt::xtensor<std::complex<float>, 5> coils = generate_birdcage_sensitivities(matrix, ncoils, 1.5);
   coils = phan * coils;
 
   if (oversampling > 1) {
-    std::array<size_t, 4> padded_shape = coils.shape();
+    std::array<size_t, 5> padded_shape = coils.shape();
     padded_shape[3] *= oversampling;
-    xt::xtensor<std::complex<float>, 4> padded = xt::zeros<std::complex<float>>(padded_shape);
+    xt::xtensor<std::complex<float>, 5> padded = xt::zeros<std::complex<float>>(padded_shape);
     auto pad = (oversampling - 1) * matrix / 2;
-    xt::view(padded, xt::all(), xt::all(), xt::all(), xt::range(pad, pad + matrix)) = coils;
+    xt::view(padded, xt::all(), xt::all(), xt::all(), xt::range(pad, pad + matrix), 0) = coils;
     coils = padded;
   }
 
   coils = fftshift(coils);
   for (unsigned int c = 0; c < ncoils; c++) {
-    auto tmp1 = xt::fftw::fft2(xt::xarray<std::complex<float>>(xt::view(coils, c, 0, xt::all(), xt::all())));
+    auto tmp1 = xt::fftw::fft2(xt::xarray<std::complex<float>>(xt::view(coils, c, 0, xt::all(), xt::all(), 0)));
     tmp1 /= std::sqrt(1.0f * tmp1.size());
-    xt::view(coils, c, 0, xt::all(), xt::all()) = tmp1;
+    xt::view(coils, c, 0, xt::all(), xt::all(), 0) = tmp1;
   }
   return fftshift(coils);
 }
@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
       acq.head.idx.kspace_encode_step_2 = 0;
       acq.head.idx.slice = 0;
       acq.head.idx.repetition = r;
-      acq.data = xt::view(kspace, xt::all(), 0, line, xt::all());
+      acq.data = xt::view(kspace, xt::all(), 0, line, xt::all(), 0);
       w->WriteData(acq);
     }
   }
