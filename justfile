@@ -8,14 +8,12 @@ build_type := "RelWithDebInfo"
 
 matlab := "disabled"
 matlab-test-cmd := if matlab != "disabled" { "run-matlab-command buildtool" } else { "echo Skipping MATLAB tests..." }
-cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test.sh" } else { "./test.sh" }
+cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test-all.sh" } else { "./test-all.sh" }
 
 @default: test
 
-@ensure-build-dir:
-    mkdir -p cpp/build
-
-@configure: ensure-build-dir
+@configure:
+    mkdir -p cpp/build; \
     cd cpp/build; \
     cmake -GNinja \
         -D CMAKE_BUILD_TYPE={{ build_type }} \
@@ -23,7 +21,15 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
         -D CMAKE_INSTALL_PREFIX=$(conda info --json | jq -r .default_prefix) \
         ..
 
-@build: configure generate
+@autoconfigure:
+    if [ ! -f "cpp/build/build.ninja" ]; then \
+        echo "Ninja file not found. Running cmake..."; \
+        just configure; \
+    else \
+        echo "Ninja file already exists. Skipping cmake."; \
+    fi
+
+@build: autoconfigure generate
     cd cpp/build && ninja
 
 @install: test
@@ -71,6 +77,8 @@ python-converter-roundtrip-test: build
     python ../../test/diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
     python ../../test/diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
 
+converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
+
 @conda-cpp-test: build
     cd cpp/build; \
     PATH=./:$PATH ../conda/run_test.sh
@@ -83,11 +91,11 @@ python-converter-roundtrip-test: build
     cd matlab; \
     {{ matlab-test-cmd }}
 
-@cross-language-recon-test: build
+@end-to-end-test: build
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build cpp-converter-roundtrip-test python-converter-roundtrip-test conda-cpp-test conda-python-test matlab-test cross-language-recon-test
+@test: build converter-tests conda-cpp-test conda-python-test matlab-test end-to-end-test
 
 @validate: test
 

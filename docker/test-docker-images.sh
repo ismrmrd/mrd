@@ -22,7 +22,7 @@ docker run --rm -i ghcr.io/ismrmrd/mrd-tools mrd_phantom \
     | docker run --rm -i -v "${WRITEDIR}":/tmp ghcr.io/ismrmrd/mrd-tools mrd_image_stream_to_png -o /tmp/image_
 
 
-if [ ! -f "${READDIR}/image_000000.png" ]; then
+if [ ! -f "${READDIR}/image_00000.png" ]; then
     echo "Failed to identify image file(s)"
     exit 1
 else
