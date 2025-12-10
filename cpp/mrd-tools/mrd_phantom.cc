@@ -18,7 +18,11 @@ xt::xtensor<std::complex<float>, 4> fftshift(xt::xtensor<std::complex<float>, 4>
 template <std::size_t N>
 xt::xtensor<std::complex<float>, N> generate_noise(std::array<size_t, N> shape, float sigma, float mean = 0.0) {
   using namespace std::complex_literals;
-  return xt::random::randn(shape, mean, sigma) + 1.0i * xt::random::randn(shape, mean, sigma);
+  if (sigma > 0.0f) {
+    return xt::random::randn(shape, mean, sigma) + 1.0i * xt::random::randn(shape, mean, sigma);
+  } else {
+    return xt::zeros<std::complex<float>>(shape);
+  }
 }
 
 int main(int argc, char** argv) {
