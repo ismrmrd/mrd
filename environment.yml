@@ -6,28 +6,28 @@ channels:
 dependencies:
   - bash-completion=2.11
   - boost=1.80.0
-  - cmake=3.21.3
-  - fmt=8.1.1
-  - gcc_linux-64=11.2.0
+  - cmake=3.25.1
+  - fmt=12.0.0
+  - gcc_linux-64=15.2.0
   - gdb=11.2
-  - gxx_linux-64=11.2.0
+  - gxx_linux-64=15.2.0
   - h5py=3.2.1
   - hdf5=1.10.6
   - imagemagick=7.0.11_13
   - ipykernel=6.23.1
   - ismrmrd>=1.14.2
-  - howardhinnant_date=3.0.1
-  - just=1.5.0
+  - howardhinnant_date=3.0.3
+  - just=1.44.1
   - matplotlib=3.6.2
-  - ninja=1.11.0
-  - nlohmann_json=3.11.2
+  - ninja=1.13.0
+  - nlohmann_json=3.12.0
   - nodejs=18.12.1 # local
   - python=3.9.15
   - pyfftw=0.13.1
   - shellcheck=0.8.0
   - valgrind=3.18.1
   - xmlschema=2.2.3
-  - xtensor=0.24.2
+  - xtensor=0.25.0
   - xtensor-fftw=0.2.5
   - pip
   - pip:
