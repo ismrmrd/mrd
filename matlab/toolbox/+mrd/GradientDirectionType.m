@@ -22,17 +22,13 @@ classdef GradientDirectionType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.GradientDirectionType") && ...
-        isequal({self.rl}, {other.rl}) && ...
-        isequal({self.ap}, {other.ap}) && ...
-        isequal({self.fh}, {other.fh});
+        isequal(self.rl, other.rl) && ...
+        isequal(self.ap, other.ap) && ...
+        isequal(self.fh, other.fh);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

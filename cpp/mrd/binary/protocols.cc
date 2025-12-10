@@ -2534,9 +2534,7 @@ bool MrdReader::ReadDataImpl(std::vector<mrd::StreamItem>& values) {
 }
 
 void MrdReader::CloseImpl() {
-  if (!skip_completed_check_) {
-    stream_.VerifyFinished();
-  }
+  stream_.VerifyFinished();
 }
 
 void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) {
@@ -2556,9 +2554,7 @@ void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& val
 }
 
 void MrdNoiseCovarianceReader::CloseImpl() {
-  if (!skip_completed_check_) {
-    stream_.VerifyFinished();
-  }
+  stream_.VerifyFinished();
 }
 
 } // namespace mrd::binary

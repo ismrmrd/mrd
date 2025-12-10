@@ -2406,6 +2406,17 @@ image_type_name_to_value_map = {
     "real": ImageType.REAL,
     "imag": ImageType.IMAG,
     "complex": ImageType.COMPLEX,
+    "rgbaMap": ImageType.RGBA_MAP,
+    "spinDensityMap": ImageType.SPIN_DENSITY_MAP,
+    "t1Map": ImageType.T1_MAP,
+    "t2Map": ImageType.T2_MAP,
+    "t2starMap": ImageType.T2STAR_MAP,
+    "adcMap": ImageType.ADC_MAP,
+    "b0Map": ImageType.B0_MAP,
+    "b1Map": ImageType.B1_MAP,
+    "sensitivityMap": ImageType.SENSITIVITY_MAP,
+    "gfactorMap": ImageType.GFACTOR_MAP,
+    "userMap": ImageType.USER_MAP,
 }
 image_type_value_to_name_map = {v: n for n, v in image_type_name_to_value_map.items()}
 
@@ -2427,7 +2438,7 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
         self._set_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._acquisition_time_stamp_ns_converter = _ndjson.OptionalConverter(_ndjson.uint64_converter)
         self._physiology_time_stamp_ns_converter = _ndjson.VectorConverter(_ndjson.uint64_converter)
-        self._image_type_converter = _ndjson.EnumConverter(ImageType, np.int32, image_type_name_to_value_map, image_type_value_to_name_map)
+        self._image_type_converter = _ndjson.EnumConverter(ImageType, np.uint64, image_type_name_to_value_map, image_type_value_to_name_map)
         self._image_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._image_series_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._user_int_converter = _ndjson.VectorConverter(_ndjson.int32_converter)
@@ -3179,8 +3190,8 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str], skip_completed_check: bool = False) -> None:
-        MrdReaderBase.__init__(self, skip_completed_check)
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
+        MrdReaderBase.__init__(self)
         _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdReaderBase.schema)
 
     def _read_header(self) -> typing.Optional[Header]:
@@ -3217,8 +3228,8 @@ class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovar
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str], skip_completed_check: bool = False) -> None:
-        MrdNoiseCovarianceReaderBase.__init__(self, skip_completed_check)
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self)
         _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
 
     def _read_noise_covariance(self) -> NoiseCovariance:

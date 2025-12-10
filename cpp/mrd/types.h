@@ -866,12 +866,23 @@ struct ImageFlags : yardl::BaseFlags<uint64_t, ImageFlags> {
   static const ImageFlags kLastInSet;
 };
 
-enum class ImageType {
-  kMagnitude = 1,
-  kPhase = 2,
-  kReal = 3,
-  kImag = 4,
-  kComplex = 5,
+enum class ImageType : uint64_t {
+  kMagnitude = 1ULL,
+  kPhase = 2ULL,
+  kReal = 3ULL,
+  kImag = 4ULL,
+  kComplex = 5ULL,
+  kRgbaMap = 6ULL,
+  kSpinDensityMap = 7ULL,
+  kT1Map = 8ULL,
+  kT2Map = 9ULL,
+  kT2starMap = 10ULL,
+  kAdcMap = 11ULL,
+  kB0Map = 12ULL,
+  kB1Map = 13ULL,
+  kSensitivityMap = 14ULL,
+  kGfactorMap = 15ULL,
+  kUserMap = 16ULL,
 };
 
 template <typename Y>
