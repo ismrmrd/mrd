@@ -11,9 +11,9 @@ classdef ImageArray < handle
   methods
     function self = ImageArray(kwargs)
       arguments
-        kwargs.data = single.empty();
-        kwargs.headers = mrd.ImageHeader.empty();
-        kwargs.meta = mrd.ImageMeta.empty();
+        kwargs.data = single.empty(0, 0, 0, 0, 0, 0, 0);
+        kwargs.headers = mrd.ImageHeader.empty(0, 0, 0);
+        kwargs.meta = mrd.ImageMeta.empty(0, 0, 0);
         kwargs.waveforms = mrd.WaveformUint32.empty();
       end
       self.data = kwargs.data;
@@ -25,18 +25,14 @@ classdef ImageArray < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.ImageArray") && ...
-        isequal({self.data}, {other.data}) && ...
-        isequal({self.headers}, {other.headers}) && ...
-        isequal({self.meta}, {other.meta}) && ...
-        isequal({self.waveforms}, {other.waveforms});
+        isequal(self.data, other.data) && ...
+        isequal(self.headers, other.headers) && ...
+        isequal(self.meta, other.meta) && ...
+        isequal(self.waveforms, other.waveforms);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 
