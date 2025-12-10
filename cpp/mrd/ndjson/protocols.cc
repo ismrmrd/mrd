@@ -18,6 +18,15 @@ void from_json(ordered_json const& j, mrd::AcquisitionHeader& value);
 void to_json(ordered_json& j, mrd::Acquisition const& value);
 void from_json(ordered_json const& j, mrd::Acquisition& value);
 
+void to_json(ordered_json& j, mrd::GradientDirection const& value);
+void from_json(ordered_json const& j, mrd::GradientDirection& value);
+
+void to_json(ordered_json& j, mrd::GradientHeader const& value);
+void from_json(ordered_json const& j, mrd::GradientHeader& value);
+
+void to_json(ordered_json& j, mrd::Gradient const& value);
+void from_json(ordered_json const& j, mrd::Gradient& value);
+
 void to_json(ordered_json& j, mrd::PatientGender const& value);
 void from_json(ordered_json const& j, mrd::PatientGender& value);
 
@@ -175,6 +184,12 @@ void from_json(ordered_json const& j, mrd::ReconData& value);
 void to_json(ordered_json& j, mrd::ImageArray const& value);
 void from_json(ordered_json const& j, mrd::ImageArray& value);
 
+void to_json(ordered_json& j, mrd::PulseHeader const& value);
+void from_json(ordered_json const& j, mrd::PulseHeader& value);
+
+void to_json(ordered_json& j, mrd::Pulse const& value);
+void from_json(ordered_json const& j, mrd::Pulse& value);
+
 } // namespace mrd
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
@@ -287,49 +302,55 @@ struct adl_serializer<std::variant<mrd::Image<uint16_t>, mrd::Image<int16_t>, mr
 };
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray> const& value) {
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::Pulse, mrd::Gradient, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Pulse, mrd::Gradient, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray> const& value) {
     switch (value.index()) {
       case 0:
         j = ordered_json{ {"Acquisition", std::get<mrd::Acquisition>(value)} };
         break;
       case 1:
-        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
+        j = ordered_json{ {"Pulse", std::get<mrd::Pulse>(value)} };
         break;
       case 2:
-        j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
+        j = ordered_json{ {"Gradient", std::get<mrd::Gradient>(value)} };
         break;
       case 3:
-        j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
+        j = ordered_json{ {"WaveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
         break;
       case 4:
-        j = ordered_json{ {"ImageUint32", std::get<mrd::Image<uint32_t>>(value)} };
+        j = ordered_json{ {"ImageUint16", std::get<mrd::Image<uint16_t>>(value)} };
         break;
       case 5:
-        j = ordered_json{ {"ImageInt32", std::get<mrd::Image<int32_t>>(value)} };
+        j = ordered_json{ {"ImageInt16", std::get<mrd::Image<int16_t>>(value)} };
         break;
       case 6:
-        j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
+        j = ordered_json{ {"ImageUint32", std::get<mrd::Image<uint32_t>>(value)} };
         break;
       case 7:
-        j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
+        j = ordered_json{ {"ImageInt32", std::get<mrd::Image<int32_t>>(value)} };
         break;
       case 8:
-        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
+        j = ordered_json{ {"ImageFloat", std::get<mrd::Image<float>>(value)} };
         break;
       case 9:
-        j = ordered_json{ {"ImageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
+        j = ordered_json{ {"ImageDouble", std::get<mrd::Image<double>>(value)} };
         break;
       case 10:
-        j = ordered_json{ {"AcquisitionBucket", std::get<mrd::AcquisitionBucket>(value)} };
+        j = ordered_json{ {"ImageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
         break;
       case 11:
-        j = ordered_json{ {"ReconData", std::get<mrd::ReconData>(value)} };
+        j = ordered_json{ {"ImageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
         break;
       case 12:
-        j = ordered_json{ {"ArrayComplexFloat", std::get<yardl::DynamicNDArray<std::complex<float>>>(value)} };
+        j = ordered_json{ {"AcquisitionBucket", std::get<mrd::AcquisitionBucket>(value)} };
         break;
       case 13:
+        j = ordered_json{ {"ReconData", std::get<mrd::ReconData>(value)} };
+        break;
+      case 14:
+        j = ordered_json{ {"ArrayComplexFloat", std::get<yardl::DynamicNDArray<std::complex<float>>>(value)} };
+        break;
+      case 15:
         j = ordered_json{ {"ImageArray", std::get<mrd::ImageArray>(value)} };
         break;
       default:
@@ -337,11 +358,19 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mr
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Pulse, mrd::Gradient, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray>& value) {
     auto it = j.begin();
     std::string tag = it.key();
     if (tag == "Acquisition") {
       value = it.value().get<mrd::Acquisition>();
+      return;
+    }
+    if (tag == "Pulse") {
+      value = it.value().get<mrd::Pulse>();
+      return;
+    }
+    if (tag == "Gradient") {
+      value = it.value().get<mrd::Gradient>();
       return;
     }
     if (tag == "WaveformUint32") {
@@ -925,6 +954,95 @@ void from_json(ordered_json const& j, mrd::Acquisition& value) {
   }
   if (auto it = j.find("trajectory"); it != j.end()) {
     it->get_to(value.trajectory);
+  }
+}
+
+namespace {
+std::unordered_map<std::string, mrd::GradientDirection> const __GradientDirection_values = {
+  {"z", mrd::GradientDirection::kZ},
+  {"y", mrd::GradientDirection::kY},
+  {"x", mrd::GradientDirection::kX},
+};
+} //namespace
+
+void to_json(ordered_json& j, mrd::GradientDirection const& value) {
+  switch (value) {
+    case mrd::GradientDirection::kZ:
+      j = "z";
+      break;
+    case mrd::GradientDirection::kY:
+      j = "y";
+      break;
+    case mrd::GradientDirection::kX:
+      j = "x";
+      break;
+    default:
+      using underlying_type = typename std::underlying_type<mrd::GradientDirection>::type;
+      j = static_cast<underlying_type>(value);
+      break;
+  }
+}
+
+void from_json(ordered_json const& j, mrd::GradientDirection& value) {
+  if (j.is_string()) {
+    auto symbol = j.get<std::string>();
+    if (auto res = __GradientDirection_values.find(symbol); res != __GradientDirection_values.end()) {
+      value = res->second;
+      return;
+    }
+    throw std::runtime_error("Invalid enum value '" + symbol + "' for enum mrd::GradientDirection");
+  }
+  using underlying_type = typename std::underlying_type<mrd::GradientDirection>::type;
+  value = static_cast<mrd::GradientDirection>(j.get<underlying_type>());
+}
+
+void to_json(ordered_json& j, mrd::GradientHeader const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gradient_time_stamp_ns)) {
+    j.push_back({"gradientTimeStampNs", value.gradient_time_stamp_ns});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gradient_sample_time_ns)) {
+    j.push_back({"gradientSampleTimeNs", value.gradient_sample_time_ns});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.pulse_calibration)) {
+    j.push_back({"pulseCalibration", value.pulse_calibration});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gradient_direction)) {
+    j.push_back({"gradientDirection", value.gradient_direction});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::GradientHeader& value) {
+  if (auto it = j.find("gradientTimeStampNs"); it != j.end()) {
+    it->get_to(value.gradient_time_stamp_ns);
+  }
+  if (auto it = j.find("gradientSampleTimeNs"); it != j.end()) {
+    it->get_to(value.gradient_sample_time_ns);
+  }
+  if (auto it = j.find("pulseCalibration"); it != j.end()) {
+    it->get_to(value.pulse_calibration);
+  }
+  if (auto it = j.find("gradientDirection"); it != j.end()) {
+    it->get_to(value.gradient_direction);
+  }
+}
+
+void to_json(ordered_json& j, mrd::Gradient const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.head)) {
+    j.push_back({"head", value.head});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.data)) {
+    j.push_back({"data", value.data});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::Gradient& value) {
+  if (auto it = j.find("head"); it != j.end()) {
+    it->get_to(value.head);
+  }
+  if (auto it = j.find("data"); it != j.end()) {
+    it->get_to(value.data);
   }
 }
 
@@ -3026,6 +3144,68 @@ void from_json(ordered_json const& j, mrd::ImageArray& value) {
   }
   if (auto it = j.find("waveforms"); it != j.end()) {
     it->get_to(value.waveforms);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseHeader const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.pulse_time_stamp_ns)) {
+    j.push_back({"pulseTimeStampNs", value.pulse_time_stamp_ns});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.channel_order)) {
+    j.push_back({"channelOrder", value.channel_order});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.sample_time_ns)) {
+    j.push_back({"sampleTimeNs", value.sample_time_ns});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.pulse_calibration)) {
+    j.push_back({"pulseCalibration", value.pulse_calibration});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseHeader& value) {
+  if (auto it = j.find("pulseTimeStampNs"); it != j.end()) {
+    it->get_to(value.pulse_time_stamp_ns);
+  }
+  if (auto it = j.find("channelOrder"); it != j.end()) {
+    it->get_to(value.channel_order);
+  }
+  if (auto it = j.find("sampleTimeNs"); it != j.end()) {
+    it->get_to(value.sample_time_ns);
+  }
+  if (auto it = j.find("pulseCalibration"); it != j.end()) {
+    it->get_to(value.pulse_calibration);
+  }
+}
+
+void to_json(ordered_json& j, mrd::Pulse const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.head)) {
+    j.push_back({"head", value.head});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.amplitude)) {
+    j.push_back({"amplitude", value.amplitude});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase)) {
+    j.push_back({"phase", value.phase});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase_offset)) {
+    j.push_back({"phaseOffset", value.phase_offset});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::Pulse& value) {
+  if (auto it = j.find("head"); it != j.end()) {
+    it->get_to(value.head);
+  }
+  if (auto it = j.find("amplitude"); it != j.end()) {
+    it->get_to(value.amplitude);
+  }
+  if (auto it = j.find("phase"); it != j.end()) {
+    it->get_to(value.phase);
+  }
+  if (auto it = j.find("phaseOffset"); it != j.end()) {
+    it->get_to(value.phase_offset);
   }
 }
 

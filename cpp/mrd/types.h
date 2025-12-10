@@ -198,6 +198,71 @@ struct Acquisition {
   }
 };
 
+// gradient of defined direction stored as 1D array samples
+using GradientData = yardl::NDArray<float, 1>;
+
+enum class GradientDirection {
+  kZ = 1,
+  kY = 2,
+  kX = 3,
+};
+
+struct GradientHeader {
+  // Clock time stamp (e.g. nanoseconds since midnight)
+  uint64_t gradient_time_stamp_ns{};
+  // Gradient sample duration in nanoseconds
+  uint32_t gradient_sample_time_ns{};
+  // Grad calibration (T/m/A). Can be here or as a calGradMap calibration image or neither
+  std::optional<std::vector<float>> pulse_calibration{};
+  // Gradient direction as enum
+  mrd::GradientDirection gradient_direction{};
+
+  bool operator==(const GradientHeader& other) const {
+    return gradient_time_stamp_ns == other.gradient_time_stamp_ns &&
+      gradient_sample_time_ns == other.gradient_sample_time_ns &&
+      pulse_calibration == other.pulse_calibration &&
+      gradient_direction == other.gradient_direction;
+  }
+
+  bool operator!=(const GradientHeader& other) const {
+    return !(*this == other);
+  }
+};
+
+struct Gradient {
+  // Grad header
+  mrd::GradientHeader head{};
+  // gradient data
+  mrd::GradientData data{};
+
+  yardl::Size Samples() const {
+    return yardl::shape(data, 0);
+  }
+
+  // timestamps in ns
+  uint64_t const& Starttime() const {
+    return head.gradient_time_stamp_ns;
+  }
+
+  // timestamps in ns
+  uint64_t& Starttime() {
+    return const_cast<uint64_t&>(std::as_const(*this).Starttime());
+  }
+
+  yardl::Size Endtime() const {
+    return head.gradient_time_stamp_ns + Samples() * static_cast<yardl::Size>(head.gradient_sample_time_ns);
+  }
+
+  bool operator==(const Gradient& other) const {
+    return head == other.head &&
+      data == other.data;
+  }
+
+  bool operator!=(const Gradient& other) const {
+    return !(*this == other);
+  }
+};
+
 enum class PatientGender {
   kM = 0,
   kF = 1,
@@ -1210,8 +1275,71 @@ using Array = yardl::DynamicNDArray<T>;
 
 using ArrayComplexFloat = mrd::Array<std::complex<float>>;
 
+struct PulseHeader {
+  // Clock time stamp (e.g. nanoseconds since midnight)
+  uint64_t pulse_time_stamp_ns{};
+  // Channel numbers
+  std::vector<uint32_t> channel_order{};
+  // Sample time in ns
+  uint32_t sample_time_ns{};
+  // Pulse calibration (rad/s/V). Can be here or as a calB1Map calibration image or neither
+  std::optional<std::vector<float>> pulse_calibration{};
+
+  bool operator==(const PulseHeader& other) const {
+    return pulse_time_stamp_ns == other.pulse_time_stamp_ns &&
+      channel_order == other.channel_order &&
+      sample_time_ns == other.sample_time_ns &&
+      pulse_calibration == other.pulse_calibration;
+  }
+
+  bool operator!=(const PulseHeader& other) const {
+    return !(*this == other);
+  }
+};
+
+using PulseData = yardl::NDArray<float, 2>;
+
+using PulsePhase = yardl::NDArray<float, 1>;
+
+using PulsePhaseOffset = yardl::NDArray<float, 1>;
+
+struct Pulse {
+  // Pulse header
+  mrd::PulseHeader head{};
+  // Raw pulse amplitude array
+  mrd::PulseData amplitude{};
+  // Full profile of pulse phase array
+  mrd::PulsePhase phase{};
+  // Pulse phase offset
+  mrd::PulsePhaseOffset phase_offset{};
+
+  // Assuming writer sets amp and phase array the same size
+  yardl::Size Coils() const {
+    return yardl::shape(amplitude, 0);
+  }
+
+  yardl::Size Samples() const {
+    return yardl::shape(amplitude, 1);
+  }
+
+  yardl::Size ActiveChannels() const {
+    return head.channel_order.size();
+  }
+
+  bool operator==(const Pulse& other) const {
+    return head == other.head &&
+      amplitude == other.amplitude &&
+      phase == other.phase &&
+      phase_offset == other.phase_offset;
+  }
+
+  bool operator!=(const Pulse& other) const {
+    return !(*this == other);
+  }
+};
+
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::Pulse, mrd::Gradient, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>;
 
 } // namespace mrd
 
