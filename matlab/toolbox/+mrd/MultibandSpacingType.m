@@ -16,15 +16,11 @@ classdef MultibandSpacingType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.MultibandSpacingType") && ...
-        isequal({self.d_z}, {other.d_z});
+        isequal(self.d_z, other.d_z);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

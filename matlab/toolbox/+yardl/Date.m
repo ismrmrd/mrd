@@ -30,15 +30,11 @@ classdef Date < handle
             end
 
             eq = isa(other, 'yardl.Date') && ...
-                all([self.days_since_epoch] == [other.days_since_epoch]);
+                all([self.value] == [other.value]);
         end
 
-        function ne = ne(self, other)
+        function ne = new(self, other)
             ne = ~self.eq(other);
-        end
-
-        function isequal = isequal(self, other)
-            isequal = all(eq(self, other));
         end
     end
 

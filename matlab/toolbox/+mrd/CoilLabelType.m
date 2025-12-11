@@ -19,16 +19,12 @@ classdef CoilLabelType < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.CoilLabelType") && ...
-        isequal({self.coil_number}, {other.coil_number}) && ...
-        isequal({self.coil_name}, {other.coil_name});
+        isequal(self.coil_number, other.coil_number) && ...
+        isequal(self.coil_name, other.coil_name);
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
-    end
-
-    function res = isequal(self, other)
-      res = all(eq(self, other));
     end
   end
 

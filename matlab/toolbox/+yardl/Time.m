@@ -35,15 +35,11 @@ classdef Time < handle
             end
 
             eq = isa(other, 'yardl.Time') && ...
-                all([self.nanoseconds_since_midnight] == [other.nanoseconds_since_midnight]);
+                all([self.value] == [other.value]);
         end
 
-        function ne = ne(self, other)
+        function ne = new(self, other)
             ne = ~self.eq(other);
-        end
-
-        function isequal = isequal(self, other)
-            isequal = all(eq(self, other));
         end
     end
 

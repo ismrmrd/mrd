@@ -738,17 +738,39 @@ namespace {
 }
 
 [[maybe_unused]] H5::EnumType GetImageTypeHdf5Ddl() {
-  H5::EnumType t(H5::PredType::NATIVE_INT32);
-  int32_t i = 1;
+  H5::EnumType t(H5::PredType::NATIVE_UINT64);
+  uint64_t i = 1ULL;
   t.insert("magnitude", &i);
-  i = 2;
+  i = 2ULL;
   t.insert("phase", &i);
-  i = 3;
+  i = 3ULL;
   t.insert("real", &i);
-  i = 4;
+  i = 4ULL;
   t.insert("imag", &i);
-  i = 5;
+  i = 5ULL;
   t.insert("complex", &i);
+  i = 6ULL;
+  t.insert("rgbaMap", &i);
+  i = 7ULL;
+  t.insert("spinDensityMap", &i);
+  i = 8ULL;
+  t.insert("t1Map", &i);
+  i = 9ULL;
+  t.insert("t2Map", &i);
+  i = 10ULL;
+  t.insert("t2starMap", &i);
+  i = 11ULL;
+  t.insert("adcMap", &i);
+  i = 12ULL;
+  t.insert("b0Map", &i);
+  i = 13ULL;
+  t.insert("b1Map", &i);
+  i = 14ULL;
+  t.insert("sensitivityMap", &i);
+  i = 15ULL;
+  t.insert("gfactorMap", &i);
+  i = 16ULL;
+  t.insert("userMap", &i);
   return t;
 }
 
@@ -2251,8 +2273,8 @@ void MrdWriter::Flush() {
   }
 }
 
-MrdReader::MrdReader(std::string path, bool skip_completed_check)
-    : mrd::MrdReaderBase(skip_completed_check), yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "Mrd", schema_) {
+MrdReader::MrdReader(std::string path)
+    : yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "Mrd", schema_) {
 }
 
 void MrdReader::ReadHeaderImpl(std::optional<mrd::Header>& value) {
@@ -2354,8 +2376,8 @@ void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance con
   yardl::hdf5::WriteScalarDataset<mrd::hdf5::_Inner_NoiseCovariance, mrd::NoiseCovariance>(group_, "noiseCovariance", mrd::hdf5::GetNoiseCovarianceHdf5Ddl(), value);
 }
 
-MrdNoiseCovarianceReader::MrdNoiseCovarianceReader(std::string path, bool skip_completed_check)
-    : mrd::MrdNoiseCovarianceReaderBase(skip_completed_check), yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "MrdNoiseCovariance", schema_) {
+MrdNoiseCovarianceReader::MrdNoiseCovarianceReader(std::string path)
+    : yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "MrdNoiseCovariance", schema_) {
 }
 
 void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) {
