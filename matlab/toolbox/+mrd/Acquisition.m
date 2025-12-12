@@ -16,9 +16,9 @@ classdef Acquisition < handle
     function self = Acquisition(kwargs)
       arguments
         kwargs.head = mrd.AcquisitionHeader();
-        kwargs.data = single.empty(0, 0);
-        kwargs.phase = single.empty(0);
-        kwargs.trajectory = single.empty(0, 0);
+        kwargs.data = single.empty();
+        kwargs.phase = single.empty();
+        kwargs.trajectory = single.empty();
       end
       self.head = kwargs.head;
       self.data = kwargs.data;
@@ -55,14 +55,18 @@ classdef Acquisition < handle
     function res = eq(self, other)
       res = ...
         isa(other, "mrd.Acquisition") && ...
-        isequal(self.head, other.head) && ...
-        isequal(self.data, other.data) && ...
-        isequal(self.phase, other.phase) && ...
-        isequal(self.trajectory, other.trajectory);
+        isequal({self.head}, {other.head}) && ...
+        isequal({self.data}, {other.data}) && ...
+        isequal({self.phase}, {other.phase}) && ...
+        isequal({self.trajectory}, {other.trajectory});
     end
 
     function res = ne(self, other)
       res = ~self.eq(other);
+    end
+
+    function res = isequal(self, other)
+      res = all(eq(self, other));
     end
   end
 

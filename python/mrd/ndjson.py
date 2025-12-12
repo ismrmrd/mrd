@@ -3193,8 +3193,8 @@ class NDJsonMrdReader(_ndjson.NDJsonProtocolReader, MrdReaderBase):
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
-        MrdReaderBase.__init__(self)
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str], skip_completed_check: bool = False) -> None:
+        MrdReaderBase.__init__(self, skip_completed_check)
         _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdReaderBase.schema)
 
     def _read_header(self) -> typing.Optional[Header]:
@@ -3231,8 +3231,8 @@ class NDJsonMrdNoiseCovarianceReader(_ndjson.NDJsonProtocolReader, MrdNoiseCovar
     """
 
 
-    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str]) -> None:
-        MrdNoiseCovarianceReaderBase.__init__(self)
+    def __init__(self, stream: typing.Union[io.BufferedReader, typing.TextIO, str], skip_completed_check: bool = False) -> None:
+        MrdNoiseCovarianceReaderBase.__init__(self, skip_completed_check)
         _ndjson.NDJsonProtocolReader.__init__(self, stream, MrdNoiseCovarianceReaderBase.schema)
 
     def _read_noise_covariance(self) -> NoiseCovariance:

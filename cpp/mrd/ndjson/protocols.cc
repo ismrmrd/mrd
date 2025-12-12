@@ -3069,7 +3069,9 @@ bool MrdReader::ReadDataImpl(mrd::StreamItem& value) {
 }
 
 void MrdReader::CloseImpl() {
-  VerifyFinished();
+  if (!skip_completed_check_) {
+    VerifyFinished();
+  }
 }
 
 void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance const& value) {
@@ -3089,7 +3091,9 @@ void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& val
 }
 
 void MrdNoiseCovarianceReader::CloseImpl() {
-  VerifyFinished();
+  if (!skip_completed_check_) {
+    VerifyFinished();
+  }
 }
 
 } // namespace mrd::ndjson
