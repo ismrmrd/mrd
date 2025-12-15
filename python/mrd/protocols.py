@@ -101,12 +101,13 @@ class MrdReaderBase(abc.ABC):
     """
 
 
-    def __init__(self) -> None:
+    def __init__(self, skip_completed_check: bool = False) -> None:
+        self._skip_completed_check = skip_completed_check
         self._state = 0
 
     def close(self) -> None:
         self._close()
-        if self._state != 4:
+        if not self._skip_completed_check and self._state != 4:
             if self._state % 2 == 1:
                 previous_method = self._state_to_method_name(self._state - 1)
                 raise ProtocolError(f"Protocol reader closed before all data was consumed. The iterable returned by '{previous_method}' was not fully consumed.")
@@ -250,12 +251,13 @@ class MrdNoiseCovarianceReaderBase(abc.ABC):
     """
 
 
-    def __init__(self) -> None:
+    def __init__(self, skip_completed_check: bool = False) -> None:
+        self._skip_completed_check = skip_completed_check
         self._state = 0
 
     def close(self) -> None:
         self._close()
-        if self._state != 2:
+        if not self._skip_completed_check and self._state != 2:
             if self._state % 2 == 1:
                 previous_method = self._state_to_method_name(self._state - 1)
                 raise ProtocolError(f"Protocol reader closed before all data was consumed. The iterable returned by '{previous_method}' was not fully consumed.")

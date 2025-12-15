@@ -2273,8 +2273,8 @@ void MrdWriter::Flush() {
   }
 }
 
-MrdReader::MrdReader(std::string path)
-    : yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "Mrd", schema_) {
+MrdReader::MrdReader(std::string path, bool skip_completed_check)
+    : mrd::MrdReaderBase(skip_completed_check), yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "Mrd", schema_) {
 }
 
 void MrdReader::ReadHeaderImpl(std::optional<mrd::Header>& value) {
@@ -2376,8 +2376,8 @@ void MrdNoiseCovarianceWriter::WriteNoiseCovarianceImpl(mrd::NoiseCovariance con
   yardl::hdf5::WriteScalarDataset<mrd::hdf5::_Inner_NoiseCovariance, mrd::NoiseCovariance>(group_, "noiseCovariance", mrd::hdf5::GetNoiseCovarianceHdf5Ddl(), value);
 }
 
-MrdNoiseCovarianceReader::MrdNoiseCovarianceReader(std::string path)
-    : yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "MrdNoiseCovariance", schema_) {
+MrdNoiseCovarianceReader::MrdNoiseCovarianceReader(std::string path, bool skip_completed_check)
+    : mrd::MrdNoiseCovarianceReaderBase(skip_completed_check), yardl::hdf5::Hdf5Reader::Hdf5Reader(path, "MrdNoiseCovariance", schema_) {
 }
 
 void MrdNoiseCovarianceReader::ReadNoiseCovarianceImpl(mrd::NoiseCovariance& value) {
