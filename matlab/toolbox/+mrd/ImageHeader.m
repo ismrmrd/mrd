@@ -6,9 +6,9 @@ classdef ImageHeader < handle
     flags
     % Unique ID corresponding to the image
     measurement_uid
-    % NMR frequencies of this measurement (Hz). Same size as ImageData freq dimension
+    % NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension
     measurement_frequency
-    % NMR label of the measurementFreqs. Same size as measurementFrequency
+    % NMR label of the measurementFrequency. Same size as measurementFrequency
     measurement_frequency_label
     % Physical size (in mm) in each of the 3 dimensions in the image
     field_of_view
@@ -34,9 +34,9 @@ classdef ImageHeader < handle
     repetition
     % Sets of different preparation, e.g. flow encoding, diffusion weighting
     set
-    % Clock time stamp, ns since midnight
+    % Clock time stamp (e.g. nanoseconds since midnight)
     acquisition_time_stamp_ns
-    % Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+    % Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
     physiology_time_stamp_ns
     % Interpretation type of the image
     image_type

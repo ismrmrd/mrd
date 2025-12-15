@@ -738,37 +738,17 @@ namespace {
 }
 
 [[maybe_unused]] H5::EnumType GetImageTypeHdf5Ddl() {
-  H5::EnumType t(H5::PredType::NATIVE_UINT64);
-  uint64_t i = 1ULL;
+  H5::EnumType t(H5::PredType::NATIVE_INT32);
+  int32_t i = 1;
   t.insert("magnitude", &i);
-  i = 2ULL;
+  i = 2;
   t.insert("phase", &i);
-  i = 3ULL;
+  i = 3;
   t.insert("real", &i);
-  i = 4ULL;
+  i = 4;
   t.insert("imag", &i);
-  i = 5ULL;
+  i = 5;
   t.insert("complex", &i);
-  i = 6ULL;
-  t.insert("bitmap", &i);
-  i = 7ULL;
-  t.insert("spinDensityMap", &i);
-  i = 8ULL;
-  t.insert("t1Map", &i);
-  i = 9ULL;
-  t.insert("t2Map", &i);
-  i = 10ULL;
-  t.insert("t2starMap", &i);
-  i = 11ULL;
-  t.insert("adcMap", &i);
-  i = 12ULL;
-  t.insert("b0Map", &i);
-  i = 13ULL;
-  t.insert("b1Map", &i);
-  i = 14ULL;
-  t.insert("sensitivityMap", &i);
-  i = 15ULL;
-  t.insert("userMap", &i);
   return t;
 }
 

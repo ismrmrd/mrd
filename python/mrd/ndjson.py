@@ -2406,16 +2406,6 @@ image_type_name_to_value_map = {
     "real": ImageType.REAL,
     "imag": ImageType.IMAG,
     "complex": ImageType.COMPLEX,
-    "bitmap": ImageType.BITMAP,
-    "spinDensityMap": ImageType.SPIN_DENSITY_MAP,
-    "t1Map": ImageType.T1_MAP,
-    "t2Map": ImageType.T2_MAP,
-    "t2starMap": ImageType.T2STAR_MAP,
-    "adcMap": ImageType.ADC_MAP,
-    "b0Map": ImageType.B0_MAP,
-    "b1Map": ImageType.B1_MAP,
-    "sensitivityMap": ImageType.SENSITIVITY_MAP,
-    "userMap": ImageType.USER_MAP,
 }
 image_type_value_to_name_map = {v: n for n, v in image_type_name_to_value_map.items()}
 
@@ -2439,7 +2429,7 @@ class ImageHeaderConverter(_ndjson.JsonConverter[ImageHeader, np.void]):
         self._set_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._acquisition_time_stamp_ns_converter = _ndjson.OptionalConverter(_ndjson.uint64_converter)
         self._physiology_time_stamp_ns_converter = _ndjson.VectorConverter(_ndjson.uint64_converter)
-        self._image_type_converter = _ndjson.EnumConverter(ImageType, np.uint64, image_type_name_to_value_map, image_type_value_to_name_map)
+        self._image_type_converter = _ndjson.EnumConverter(ImageType, np.int32, image_type_name_to_value_map, image_type_value_to_name_map)
         self._image_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._image_series_index_converter = _ndjson.OptionalConverter(_ndjson.uint32_converter)
         self._user_int_converter = _ndjson.VectorConverter(_ndjson.int32_converter)

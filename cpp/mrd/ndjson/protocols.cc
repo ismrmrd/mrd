@@ -2542,16 +2542,6 @@ std::unordered_map<std::string, mrd::ImageType> const __ImageType_values = {
   {"real", mrd::ImageType::kReal},
   {"imag", mrd::ImageType::kImag},
   {"complex", mrd::ImageType::kComplex},
-  {"bitmap", mrd::ImageType::kBitmap},
-  {"spinDensityMap", mrd::ImageType::kSpinDensityMap},
-  {"t1Map", mrd::ImageType::kT1Map},
-  {"t2Map", mrd::ImageType::kT2Map},
-  {"t2starMap", mrd::ImageType::kT2starMap},
-  {"adcMap", mrd::ImageType::kAdcMap},
-  {"b0Map", mrd::ImageType::kB0Map},
-  {"b1Map", mrd::ImageType::kB1Map},
-  {"sensitivityMap", mrd::ImageType::kSensitivityMap},
-  {"userMap", mrd::ImageType::kUserMap},
 };
 } //namespace
 
@@ -2571,36 +2561,6 @@ void to_json(ordered_json& j, mrd::ImageType const& value) {
       break;
     case mrd::ImageType::kComplex:
       j = "complex";
-      break;
-    case mrd::ImageType::kBitmap:
-      j = "bitmap";
-      break;
-    case mrd::ImageType::kSpinDensityMap:
-      j = "spinDensityMap";
-      break;
-    case mrd::ImageType::kT1Map:
-      j = "t1Map";
-      break;
-    case mrd::ImageType::kT2Map:
-      j = "t2Map";
-      break;
-    case mrd::ImageType::kT2starMap:
-      j = "t2starMap";
-      break;
-    case mrd::ImageType::kAdcMap:
-      j = "adcMap";
-      break;
-    case mrd::ImageType::kB0Map:
-      j = "b0Map";
-      break;
-    case mrd::ImageType::kB1Map:
-      j = "b1Map";
-      break;
-    case mrd::ImageType::kSensitivityMap:
-      j = "sensitivityMap";
-      break;
-    case mrd::ImageType::kUserMap:
-      j = "userMap";
       break;
     default:
       using underlying_type = typename std::underlying_type<mrd::ImageType>::type;

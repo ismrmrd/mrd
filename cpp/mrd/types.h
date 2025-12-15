@@ -866,23 +866,12 @@ struct ImageFlags : yardl::BaseFlags<uint64_t, ImageFlags> {
   static const ImageFlags kLastInSet;
 };
 
-// image types to describe the data type of images or interpretation map with units
-enum class ImageType : uint64_t {
-  kMagnitude = 1ULL,
-  kPhase = 2ULL,
-  kReal = 3ULL,
-  kImag = 4ULL,
-  kComplex = 5ULL,
-  kBitmap = 6ULL,
-  kSpinDensityMap = 7ULL,
-  kT1Map = 8ULL,
-  kT2Map = 9ULL,
-  kT2starMap = 10ULL,
-  kAdcMap = 11ULL,
-  kB0Map = 12ULL,
-  kB1Map = 13ULL,
-  kSensitivityMap = 14ULL,
-  kUserMap = 15ULL,
+enum class ImageType {
+  kMagnitude = 1,
+  kPhase = 2,
+  kReal = 3,
+  kImag = 4,
+  kComplex = 5,
 };
 
 template <typename Y>
@@ -893,9 +882,9 @@ struct ImageHeader {
   mrd::ImageFlags flags{};
   // Unique ID corresponding to the image
   uint32_t measurement_uid{};
-  // NMR frequencies of this measurement (Hz). Same size as ImageData freq dimension
+  // NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension
   std::optional<yardl::DynamicNDArray<uint32_t>> measurement_frequency{};
-  // NMR label of the measurementFreqs. Same size as measurementFrequency
+  // NMR label of the measurementFrequency. Same size as measurementFrequency
   std::optional<yardl::DynamicNDArray<std::string>> measurement_frequency_label{};
   // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
@@ -921,9 +910,9 @@ struct ImageHeader {
   std::optional<uint32_t> repetition{};
   // Sets of different preparation, e.g. flow encoding, diffusion weighting
   std::optional<uint32_t> set{};
-  // Clock time stamp, ns since midnight
+  // Clock time stamp (e.g. nanoseconds since midnight)
   std::optional<uint64_t> acquisition_time_stamp_ns{};
-  // Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+  // Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
   std::vector<uint64_t> physiology_time_stamp_ns{};
   // Interpretation type of the image
   mrd::ImageType image_type{};
@@ -996,7 +985,7 @@ struct Image {
     return yardl::shape(data, 3);
   }
 
-  yardl::Size Frequencies() const {
+  yardl::Size Freqs() const {
     return yardl::shape(data, 4);
   }
 
