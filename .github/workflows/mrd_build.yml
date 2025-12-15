@@ -123,12 +123,12 @@ jobs:
 
     steps:
     - name: Retrieve MATLAB Toolbox
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: matlab-toolbox
 
     - name: Retrieve CMake FetchContent source archive
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: mrd-cmake-src
 
