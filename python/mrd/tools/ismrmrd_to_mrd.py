@@ -386,14 +386,14 @@ def convert_acquisition(ismrmrd_acq: ismrmrd.Acquisition) -> mrd.Acquisition:
     acq.head.idx.segment = header.idx.segment
     acq.head.measurement_uid = header.measurement_uid
     acq.head.scan_counter = header.scan_counter
-    acq.head.acquisition_time_stamp_ns = int(header.acquisition_time_stamp * 1000)
-    acq.head.physiology_time_stamp_ns = [int(ts * 1000) for ts in header.physiology_time_stamp]
+    acq.head.acquisition_time_stamp_ns = int(header.acquisition_time_stamp * 1e6)   # ms to ns
+    acq.head.physiology_time_stamp_ns = [int(ts * 1e6) for ts in header.physiology_time_stamp]  # ms to ns
     acq.head.channel_order = list(range(header.active_channels))
     acq.head.discard_pre = header.discard_pre
     acq.head.discard_post = header.discard_post
     acq.head.center_sample = header.center_sample
     acq.head.encoding_space_ref = header.encoding_space_ref
-    acq.head.sample_time_ns = int(header.sample_time_us * 1000)
+    acq.head.sample_time_ns = int(header.sample_time_us * 1000) # us to ns
     acq.head.position[:] = header.position
     acq.head.read_dir[:] = header.read_dir
     acq.head.phase_dir[:] = header.phase_dir
@@ -421,7 +421,8 @@ def convert_waveform(ismrmrd_wfm: ismrmrd.Waveform) -> mrd.WaveformUint32:
         flags = ismrmrd_wfm.flags,
         measurement_uid = header.measurement_uid,
         scan_counter = header.scan_counter,
-        time_stamp_ns = header.time_stamp * 1000,
+        time_stamp_ns = int(header.time_stamp * 1e6), # ms to ns
+        sample_time_ns = int(header.sample_time_us * 1000), # us to ns
         waveform_id = header.waveform_id,
         data = ismrmrd_wfm.data.copy()
     )
@@ -447,8 +448,8 @@ def convert_image(ismrmrd_img: ismrmrd.Image) -> mrd.StreamItem:
     out_head.phase = in_head.phase
     out_head.repetition = in_head.repetition
     out_head.set = in_head.set
-    out_head.acquisition_time_stamp_ns = in_head.acquisition_time_stamp * 1000
-    out_head.physiology_time_stamp_ns = [ts * 1000 for ts in in_head.physiology_time_stamp]
+    out_head.acquisition_time_stamp_ns = int(in_head.acquisition_time_stamp * 1e6) # ms to ns
+    out_head.physiology_time_stamp_ns = [int(ts * 1e6) for ts in in_head.physiology_time_stamp]  # ms to ns
     out_head.image_index = in_head.image_index
     out_head.image_series_index = in_head.image_series_index
     out_head.user_int = [0] * ismrmrd.USER_INTS
