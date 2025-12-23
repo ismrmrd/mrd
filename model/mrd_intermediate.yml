@@ -64,8 +64,35 @@ ImageArray: !record
     meta: ImageMeta[loc, s, n]
     waveforms: WaveformUint32*
 
+# change to record and data field to array
+# Generic header
+# ndarray store all data
+# any structure call metadata
+# nadarray header with speicfied
+# string for dimension
+# high level description=array type
+# user comment as string
+# NDarray keep as field
+# meta field attachted to all arrays
+# computed fields: 
+ArrayType: !enum
+  base: uint64
+  values:
+    spinDensityMap: 1   # in mol/m^3
+    t1Map: 2            # in s
+    t2Map: 3            # in s
+    t2starMap: 4        # in s
+    adcMap: 5           # in s/m^2
+    b0Map: 6            # in Hz (offset from Image.head.measurementFreq[0])
+    b1Map: 7            # in rad/s/V, channel dimension is xmit channels
+    sensitivityMap: 8   # in Vm^3/mol, channel dimension is rcv channels
+    gfactorMap: 9       # unaccelerated SNR/(accelerated SNR * sqrt of acceleration factor)
+    userMap: 10         # custom image type with description at ImageMeta
 
-Array<T>: !array
-  items: T
+NDArray: !record
+  fields:
+    data: Array<T>
+    type: ArrayType
 
 ArrayComplexFloat: Array<complexfloat>
+

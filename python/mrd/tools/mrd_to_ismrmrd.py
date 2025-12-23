@@ -482,7 +482,7 @@ def convert_image(mrd_img) -> ismrmrd.Image:
     mrd_head = mrd_img.head
     data = mrd_img.data
 
-    # Get dimensions: data is (channels, z, y, x)
+    # Get dimensions: data is (channels, z, y, x, frequency) drop freq dimension
     channels = data.shape[0]
     z = data.shape[1]
     y = data.shape[2]
@@ -585,9 +585,9 @@ def convert_image(mrd_img) -> ismrmrd.Image:
     # Create ISMRMRD image, resize it, and set header
     img = ismrmrd.Image()
     # Note: resize signature is (nc, nz, ny, nx) - same order as MRD!
-    img.resize(channels, z, y, x)
+    img.resize(channels, z, y, x, )
     img.setHead(head)
-    img.data[:] = data
+    img.data[:] = data[:, np.newaxis]  # Drop frequency dimension
 
     # Set attribute_string if present
     if attribute_string:
