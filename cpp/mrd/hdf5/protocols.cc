@@ -1441,6 +1441,8 @@ struct _Inner_ImageHeader {
   _Inner_ImageHeader(mrd::ImageHeader const& o) 
       : flags(o.flags),
       measurement_uid(o.measurement_uid),
+      measurement_frequency(o.measurement_frequency),
+      measurement_frequency_label(o.measurement_frequency_label),
       field_of_view(o.field_of_view),
       position(o.position),
       col_dir(o.col_dir),
@@ -1465,6 +1467,8 @@ struct _Inner_ImageHeader {
   void ToOuter (mrd::ImageHeader& o) const {
     yardl::hdf5::ToOuter(flags, o.flags);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
+    yardl::hdf5::ToOuter(measurement_frequency, o.measurement_frequency);
+    yardl::hdf5::ToOuter(measurement_frequency_label, o.measurement_frequency_label);
     yardl::hdf5::ToOuter(field_of_view, o.field_of_view);
     yardl::hdf5::ToOuter(position, o.position);
     yardl::hdf5::ToOuter(col_dir, o.col_dir);
@@ -1488,6 +1492,8 @@ struct _Inner_ImageHeader {
 
   mrd::ImageFlags flags;
   uint32_t measurement_uid;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>> measurement_frequency;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>> measurement_frequency_label;
   yardl::FixedNDArray<float, 3> field_of_view;
   yardl::FixedNDArray<float, 3> position;
   yardl::FixedNDArray<float, 3> col_dir;
@@ -1525,7 +1531,7 @@ struct _Inner_Image {
   }
 
   mrd::hdf5::_Inner_ImageHeader head;
-  yardl::hdf5::InnerNdArray<_T_Inner, T, 4> data;
+  yardl::hdf5::InnerNdArray<_T_Inner, T, 5> data;
   yardl::hdf5::InnerMap<yardl::hdf5::InnerVlenString, std::string, yardl::hdf5::InnerVlen<::InnerUnion3<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>, mrd::ImageMetaValue>, std::vector<mrd::ImageMetaValue>> meta;
 };
 
@@ -2060,6 +2066,8 @@ struct _Inner_ImageArray {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("flags", HOFFSET(RecordType, flags), H5::PredType::NATIVE_UINT64);
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
+  t.insertMember("measurementFrequency", HOFFSET(RecordType, measurement_frequency), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<uint32_t, uint32_t>, yardl::DynamicNDArray<uint32_t>>(yardl::hdf5::DynamicNDArrayDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32)));
+  t.insertMember("measurementFrequencyLabel", HOFFSET(RecordType, measurement_frequency_label), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerDynamicNdArray<yardl::hdf5::InnerVlenString, std::string>, yardl::DynamicNDArray<std::string>>(yardl::hdf5::DynamicNDArrayDdl<yardl::hdf5::InnerVlenString, std::string>(yardl::hdf5::InnerVlenStringDdl())));
   t.insertMember("fieldOfView", HOFFSET(RecordType, field_of_view), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("position", HOFFSET(RecordType, position), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
   t.insertMember("colDir", HOFFSET(RecordType, col_dir), yardl::hdf5::FixedNDArrayDdl(H5::PredType::NATIVE_FLOAT, {3}));
@@ -2087,7 +2095,7 @@ template <typename _T_Inner, typename T>
   using RecordType = mrd::hdf5::_Inner_Image<_T_Inner, T>;
   H5::CompType t(sizeof(RecordType));
   t.insertMember("head", HOFFSET(RecordType, head), mrd::hdf5::GetImageHeaderHdf5Ddl());
-  t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<_T_Inner, T, 4>(T_type));
+  t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<_T_Inner, T, 5>(T_type));
   t.insertMember("meta", HOFFSET(RecordType, meta), yardl::hdf5::InnerMapDdl<yardl::hdf5::InnerVlenString, yardl::hdf5::InnerVlen<::InnerUnion3<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>, mrd::ImageMetaValue>>(yardl::hdf5::InnerVlenStringDdl(), yardl::hdf5::InnerVlenDdl(::InnerUnion3Ddl<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>(false, yardl::hdf5::InnerVlenStringDdl(), "string", H5::PredType::NATIVE_INT64, "int64", H5::PredType::NATIVE_DOUBLE, "float64"))));
   return t;
 }
