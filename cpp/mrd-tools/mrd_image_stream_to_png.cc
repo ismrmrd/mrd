@@ -13,8 +13,9 @@
 
 void print_usage(std::string program_name) {
   std::cerr << "Usage: " << program_name << std::endl;
-  std::cerr << "  -i|--input          <input MRD stream> (default: stdin)" << std::endl;
-  std::cerr << "  -o|--output-prefix  <output file prefix>   (default: image_)" << std::endl;
+  std::cerr << "  -i|--input          <input MRD stream>    (default: stdin)" << std::endl;
+  std::cerr << "  -o|--output-prefix  <output file prefix>  (default: image_)" << std::endl;
+  std::cerr << "  -v|--verbose        (print progress to stderr)" << std::endl;
   std::cerr << "  -h|--help" << std::endl;
 }
 
@@ -22,6 +23,7 @@ void print_usage(std::string program_name) {
 int main(int argc, char** argv) {
   std::string input_path;
   std::string prefix = "image_";
+  bool verbose = false;
 
   std::vector<std::string> args(argv, argv + argc);
   auto current_arg = args.begin() + 1;
@@ -47,6 +49,9 @@ int main(int argc, char** argv) {
       }
       prefix = *current_arg;
       current_arg++;
+    } else if (*current_arg == "--verbose" || *current_arg == "-v") {
+      current_arg++;
+      verbose = true;
     } else {
       std::cerr << "Unknown argument: " << *current_arg << std::endl;
       print_usage(args[0]);
@@ -80,16 +85,10 @@ int main(int argc, char** argv) {
       auto max_value = xt::amax(img.data)();
       img.data *= 1.0 / max_value;
 
-      image = Magick::Image(img.Cols(), img.Rows(), "I", Magick::ShortPixel, img.data.data());
+      image = Magick::Image(img.Cols(), img.Rows(), "I", Magick::FloatPixel, img.data.data());
     } else if (std::holds_alternative<mrd::ImageUint16>(v)) {
       auto& img = std::get<mrd::ImageUint16>(v);
-
-      // Scale image
-      auto max_value = xt::amax(img.data)();
-      img.data *= 1.0 / max_value;
-
-      image = Magick::Image(img.Cols(), img.Rows(), "I", Magick::FloatPixel, img.data.data());
-
+      image = Magick::Image(img.Cols(), img.Rows(), "I", Magick::ShortPixel, img.data.data());
     } else {
       std::cerr << "Stream must contain floating point or unsigned short images" << std::endl;
       return 1;
@@ -99,9 +98,11 @@ int main(int argc, char** argv) {
     image.type(Magick::GrayscaleType);
 
     // Use fmt to generate filename from prefix and increment with 6 digits (e.g. prefix_000001.png)
-    std::string filename = fmt::format("{}{:06d}.png", prefix, image_count++);
+    std::string filename = fmt::format("{}{:05d}.png", prefix, image_count++);
     image.write(filename);
-    std::cerr << "Generated image " << filename << std::endl;
+    if (verbose) {
+      std::cerr << "Generated image " << filename << std::endl;
+    }
   }
 
   return 0;
