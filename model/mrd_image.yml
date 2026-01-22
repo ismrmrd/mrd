@@ -16,12 +16,14 @@ ImageFlags: !flags
     lastInSet: 0x8000
 
 ImageType: !enum
+  base: uint64
   values:
     magnitude: 1
     phase: 2
     real: 3
     imag: 4
     complex: 5
+    rgbaMap: 6          # a uint32 image in which channel dimension is R, G, B, alpha
 
 ImageData<Y>: !array
   items: Y
@@ -61,7 +63,7 @@ ImageHeader: !record
     repetition: uint?
     # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
-    # Clock time stamp (e.g. nanoseconds since midnight) 
+    # Clock time stamp (e.g. nanoseconds since midnight)
     acquisitionTimeStampNs: uint64?
     # Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
     physiologyTimeStampNs: uint64*
