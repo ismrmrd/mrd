@@ -1,13 +1,12 @@
 #include "mrd/binary/protocols.h"
 #include "shepp_logan_phantom.h"
+#include "fftw_wrappers.h"
 
 #include <iostream>
 #include <random>
-#include <xtensor-fftw/basic.hpp>
-#include <xtensor-fftw/helper.hpp>
-#include <xtensor/xio.hpp>
-#include <xtensor/xrandom.hpp>
-#include <xtensor/xview.hpp>
+#include <xtensor/io/xio.hpp>
+#include <xtensor/generators/xrandom.hpp>
+#include <xtensor/views/xview.hpp>
 
 using namespace mrd;
 
@@ -329,7 +328,7 @@ int main(int argc, char** argv) {
   // Apply FFT
   coil_images = fftshift(coil_images);
   for (unsigned int c = 0; c < ncoils; c++) {
-    auto tmp1 = xt::fftw::fft2(xt::xarray<std::complex<float>>(xt::view(coil_images, c, 0, xt::all(), xt::all())));
+    auto tmp1 = fftw_wrappers::fft2(xt::xarray<std::complex<float>>(xt::view(coil_images, c, 0, xt::all(), xt::all())));
     tmp1 /= std::sqrt(1.0f * tmp1.size());
     xt::view(coil_images, c, 0, xt::all(), xt::all()) = tmp1;
   }
