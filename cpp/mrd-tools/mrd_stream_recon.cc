@@ -1,8 +1,10 @@
-
 #include "fftw_wrappers.h"
 #include "mrd/binary/protocols.h"
 #include "mrd/protocols.h"
 #include "mrd/types.h"
+
+#include <xtensor/core/xmath.hpp>
+#include <xtensor/misc/xcomplex.hpp>
 #include <xtensor/views/xview.hpp>
 
 void remove_oversampling(mrd::Acquisition& acq, const mrd::EncodingType& enc) {

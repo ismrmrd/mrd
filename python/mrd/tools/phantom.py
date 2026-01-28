@@ -138,7 +138,7 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
     def generate_data() -> Generator[mrd.StreamItem, None, None]:
 
         def new_acquisition():
-            """"Create a new, default-initialized Acquisition object"""
+            """Create a new, default-initialized Acquisition object"""
             head = mrd.AcquisitionHeader()
             head.encoding_space_ref = 0
             head.sample_time_ns = 5000

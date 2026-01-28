@@ -27,7 +27,7 @@ requirements:
   run:
     - fftw=3.3.*
     - hdf5=1.14.*
-    - imagemagick=7.1.2_8
+    - imagemagick>=7.1.2_8
     - ismrmrd>=1.15.0
 
 about:

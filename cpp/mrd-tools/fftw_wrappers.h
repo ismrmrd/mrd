@@ -3,7 +3,7 @@
 #include <complex>
 #include <cstring>
 #include <fftw3.h>
-#include <xtensor.hpp>
+#include <xtensor/containers/xarray.hpp>
 #include <xtensor/misc/xmanipulation.hpp>
 
 namespace fftw_wrappers {

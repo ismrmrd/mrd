@@ -1,10 +1,9 @@
+#include "fftw_wrappers.h"
 #include "mrd/binary/protocols.h"
 #include "shepp_logan_phantom.h"
-#include "fftw_wrappers.h"
 
 #include <iostream>
 #include <random>
-#include <xtensor/io/xio.hpp>
 #include <xtensor/generators/xrandom.hpp>
 #include <xtensor/views/xview.hpp>
 
