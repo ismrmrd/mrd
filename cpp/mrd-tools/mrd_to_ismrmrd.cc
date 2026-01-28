@@ -6,7 +6,6 @@
 #include <ismrmrd/meta.h>
 #include <ismrmrd/serialization_iostream.h>
 #include <ismrmrd/version.h>
-#include <xtensor/xview.hpp>
 
 #include <date/date.h>
 

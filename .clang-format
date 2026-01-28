@@ -1,12 +1,11 @@
 BasedOnStyle: LLVM
-UseTab: Never
+
 IndentWidth: 2
 TabWidth: 2
-AllowShortIfStatementsOnASingleLine: false
+UseTab: Never
 ColumnLimit: 0
+
 AccessModifierOffset: -4
-FixNamespaceComments: false
-PointerAlignment: Left
-BinPackParameters: false
 BreakBeforeBinaryOperators: NonAssignment
-NamespaceIndentation: None
+DerivePointerAlignment: false
+PointerAlignment: Left

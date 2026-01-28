@@ -28,7 +28,7 @@ endif ()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 if(NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
 endif()
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 

@@ -5,30 +5,27 @@ channels:
   - nodefaults
 dependencies:
   - bash-completion=2.11
-  - boost=1.80.0
-  - cmake=3.25.1
-  - fmt=12.0.0
+  - cmake=4.2.2
+  - fftw=3.3.10
   - gcc_linux-64=15.2.0
-  - gdb=11.2
+  - gdb=17.1 # local
   - gxx_linux-64=15.2.0
-  - h5py=3.2.1
-  - hdf5=1.10.6
-  - imagemagick=7.0.11_13
-  - ipykernel=6.23.1
-  - ismrmrd>=1.14.2
+  - h5py=3.15.1
+  - hdf5=1.14.6
   - howardhinnant_date=3.0.3
-  - just=1.44.1
-  - matplotlib=3.6.2
-  - ninja=1.13.0
+  - imagemagick=7.1.2_8
+  - ismrmrd>=1.15.0
+  - ipykernel=7.1.0
+  - just=1.46.0
+  - ninja=1.13.2
+  - numpy>=2.2.6
   - nlohmann_json=3.12.0
-  - nodejs=18.12.1 # local
-  - python=3.9.15
-  - pyfftw=0.13.1
-  - shellcheck=0.8.0
-  - valgrind=3.18.1
+  - nodejs=24.9.0 # local
+  - pillow>=12.1.0
+  - python=3.13.7
+  - shellcheck=0.10.0
   - xmlschema=2.2.3
-  - xtensor=0.25.0
-  - xtensor-fftw=0.2.5
+  - xtensor=0.27.1
   - pip
   - pip:
     - ismrmrd==1.14.2

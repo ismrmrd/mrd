@@ -7,7 +7,6 @@ image_base_name="ghcr.io/ismrmrd"
 push=false
 
 # parse command line arguments
-# parse command line arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in

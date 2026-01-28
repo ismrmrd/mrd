@@ -17,21 +17,18 @@ requirements:
     - cmake
     - ninja
   host:
-    - fftw=3.3.9
-    - fmt=12.0.0
+    - fftw=3.3.*
     - howardhinnant_date=3.0.3
-    - hdf5=1.10.6
-    - imagemagick=7.0.11_13
-    - ismrmrd>=1.14.2
+    - hdf5=1.14.*
+    - imagemagick>=7.1.2_8
+    - ismrmrd>=1.15.0
     - nlohmann_json=3.12.0
-    - xtensor=0.25.0
-    - xtensor-fftw=0.2.5
+    - xtensor=0.27.1
   run:
-    - fmt=12.0.0
-    - hdf5=1.10.6
-    - imagemagick=7.0.11_13
-    - ismrmrd>=1.14.2
-    - fftw=3.3.9
+    - fftw=3.3.*
+    - hdf5=1.14.*
+    - imagemagick>=7.1.2_8
+    - ismrmrd>=1.15.0
 
 about:
   home: https://ismrmrd.github.io/mrd

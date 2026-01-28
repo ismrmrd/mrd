@@ -6,10 +6,10 @@ The MRD Python library requires Python >= 3.9 and NumPy >= 1.22.0.
 
 ### Anaconda
 
-We recommend using the `mrd-python` Anaconda package, which can be installed using `conda` or `mamba`:
+We recommend using the `mrd-python` Anaconda package, which can be installed using `conda`:
 
 ```bash
-$ mamba install ismrmrd:mrd-python
+$ conda install ismrmrd:mrd-python
 ```
 
 ### PyPI
