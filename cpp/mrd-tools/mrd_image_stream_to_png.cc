@@ -1,14 +1,7 @@
-// NOTE:
-// GCC 13+ appears to emit false positive warnings for array-bounds
-// when using xt::views (specifically the calls to `xt::amax` below).
-// The statements are correct and there's no overflow, so we can suppress the warnings.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
 #include "mrd/binary/protocols.h"
-#pragma GCC diagnostic pop
 
 #include <Magick++.h>
-#include <fmt/format.h>
+#include <format>
 #include <iostream>
 
 void print_usage(std::string program_name) {
@@ -97,8 +90,8 @@ int main(int argc, char** argv) {
     image.depth(8);
     image.type(Magick::GrayscaleType);
 
-    // Use fmt to generate filename from prefix and increment with 6 digits (e.g. prefix_000001.png)
-    std::string filename = fmt::format("{}{:05d}.png", prefix, image_count++);
+    // Generate filename from prefix and increment with 5 digits (e.g. prefix_00001.png)
+    std::string filename = std::format("{}{:05d}.png", prefix, image_count++);
     image.write(filename);
     if (verbose) {
       std::cerr << "Generated image " << filename << std::endl;

@@ -136,23 +136,26 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
     coil_images = image_to_kspace(coil_images, dim=(-1, -2)).astype(np.complex64)
 
     def generate_data() -> Generator[mrd.StreamItem, None, None]:
-        # We'll reuse this Acquisition object
-        acq = mrd.Acquisition()
 
-        acq.data.resize((ncoils, nkx))
-        acq.head.encoding_space_ref = 0
-        acq.head.sample_time_ns = 5000
-        acq.head.channel_order = list(range(ncoils))
-        acq.head.center_sample = round(nkx / 2)
-        acq.head.read_dir[0] = 1.0
-        acq.head.phase_dir[1] = 1.0
-        acq.head.slice_dir[2] = 1.0
+        def new_acquisition():
+            """Create a new, default-initialized Acquisition object"""
+            head = mrd.AcquisitionHeader()
+            head.encoding_space_ref = 0
+            head.sample_time_ns = 5000
+            head.channel_order = list(range(ncoils))
+            head.center_sample = round(nkx / 2)
+            head.read_dir[0] = 1.0
+            head.phase_dir[1] = 1.0
+            head.slice_dir[2] = 1.0
+            data = np.zeros((ncoils, nkx), dtype=np.complex64)
+            return mrd.Acquisition(head=head, data=data)
 
         scan_counter = 0
 
         if noise_calibration:
             # Write out a few noise scans
             for n in range(32):
+                acq = new_acquisition()
                 noise = generate_noise(acq.data.shape, noise_level)
                 # Here's where we would make the noise correlated
                 acq.head.scan_counter = scan_counter
@@ -178,6 +181,7 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
                     # Skip this line
                     continue
 
+                acq = new_acquisition()
                 acq.head.flags = mrd.AcquisitionFlags(0)
                 acq.head.scan_counter = scan_counter
                 scan_counter += 1
