@@ -10,6 +10,8 @@ classdef AcquisitionHeader < handle
     measurement_uid
     % Zero-indexed incrementing counter for readouts
     scan_counter
+    % Acquisition center frequency in Hz
+    acquisition_center_frequency
     % Clock time stamp (e.g. nanoseconds since midnight)
     acquisition_time_stamp_ns
     % Time stamps relative to physiological triggering in nanoseconds
@@ -51,6 +53,7 @@ classdef AcquisitionHeader < handle
         kwargs.idx = mrd.EncodingCounters();
         kwargs.measurement_uid = uint32(0);
         kwargs.scan_counter = yardl.None;
+        kwargs.acquisition_center_frequency = yardl.None;
         kwargs.acquisition_time_stamp_ns = yardl.None;
         kwargs.physiology_time_stamp_ns = uint64.empty();
         kwargs.channel_order = uint32.empty();
@@ -71,6 +74,7 @@ classdef AcquisitionHeader < handle
       self.idx = kwargs.idx;
       self.measurement_uid = kwargs.measurement_uid;
       self.scan_counter = kwargs.scan_counter;
+      self.acquisition_center_frequency = kwargs.acquisition_center_frequency;
       self.acquisition_time_stamp_ns = kwargs.acquisition_time_stamp_ns;
       self.physiology_time_stamp_ns = kwargs.physiology_time_stamp_ns;
       self.channel_order = kwargs.channel_order;
@@ -95,6 +99,7 @@ classdef AcquisitionHeader < handle
         isequal({self.idx}, {other.idx}) && ...
         isequal({self.measurement_uid}, {other.measurement_uid}) && ...
         isequal({self.scan_counter}, {other.scan_counter}) && ...
+        isequal({self.acquisition_center_frequency}, {other.acquisition_center_frequency}) && ...
         isequal({self.acquisition_time_stamp_ns}, {other.acquisition_time_stamp_ns}) && ...
         isequal({self.physiology_time_stamp_ns}, {other.physiology_time_stamp_ns}) && ...
         isequal({self.channel_order}, {other.channel_order}) && ...
