@@ -1,10 +1,11 @@
-import argparse
-import sys
-import h5py
+"""Convert fastMRI HDF5 files to MRD format."""
 
-import numpy as np
+import argparse
+
+import h5py
 import ismrmrd
 import mrd
+import numpy as np
 from mrd.tools.ismrmrd_to_mrd import convert_header
 
 FASTMRI_DATASET_NAME_HEADER = "ismrmrd_header"
@@ -12,6 +13,7 @@ FASTMRI_DATASET_NAME_KSPACE = "kspace"
 FASTMRI_DATASET_NAME_MASK = "mask"
 FASTMRI_DATASET_NAME_RECON_RSS = "reconstruction_rss"
 FASTMRI_DATASET_NAME_RECON_ESC = "reconstruction_esc"
+
 
 def extract_and_convert_header(dset: h5py.Dataset) -> mrd.Header:
     """Extract ISMRMRD header from fastMRI dataset and convert to MRD header."""
@@ -21,7 +23,8 @@ def extract_and_convert_header(dset: h5py.Dataset) -> mrd.Header:
     mrd_header = convert_header(ismrmrd_header)
     return mrd_header
 
-def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filename: str):
+
+def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filename: str) -> None:
     """Extract k-space data from fastMRI dataset and write acquisitions to MRD file."""
     num_channels = 1
     if mrd_header.acquisition_system_information is not None:
@@ -58,62 +61,49 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
 
         scan_counter = 0
 
-        # Synthesize noise acquisitions
-        # We'll just use the first line of k-space, which should not have any signal
-        for slice in range(num_slices):
+        def _new_acquisition(slice: int, line: int) -> mrd.Acquisition:
+            """Create a new acquisition for the given slice and k-space line."""
+            nonlocal scan_counter
             head = mrd.AcquisitionHeader()
-            head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT
             head.scan_counter = scan_counter
             scan_counter += 1
             head.channel_order = list(range(num_channels))
-            head.center_sample = encoded_space.matrix_size.x // 2 # TODO: Is this true for all fastmri data?
+            head.center_sample = encoded_space.matrix_size.x // 2
             head.position[:] = [0.0, 0.0, 0.0]
             head.read_dir[:] = [1.0, 0.0, 0.0]
             head.phase_dir[:] = [0.0, 1.0, 0.0]
             head.slice_dir[:] = [0.0, 0.0, 1.0]
 
             head.idx.slice = slice
-            head.idx.kspace_encode_step_1 = 0
+            head.idx.kspace_encode_step_1 = line
 
-            e1 = 0 + e1_offset
+            e1 = line + e1_offset
             if dset.ndim == 4:
                 data = dset[slice, :, :, e1]
             else:
                 data = dset[slice, :, e1]
                 data = np.expand_dims(data, axis=0)  # add channel dimension
 
-            assert np.std(np.abs(data)) < 1e-5, "Expected to find noise, but data has significant variation"
             acq = mrd.Acquisition(head=head, data=data)
+            return acq
+
+        # Synthesize noise acquisitions using first line of k-space, which should not have any signal
+        for slice in range(num_slices):
+            acq = _new_acquisition(slice, 0)
+            acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT
+            assert np.std(np.abs(acq.data)) < 1e-5, "Expected to find noise, but data has significant variation"
             item = mrd.StreamItem.Acquisition(acq)
             writer.write_data([item])
 
+        # Extract and write k-space acquisitions
         for slice in range(num_slices):
             for line in range(num_kspace_lines):
-                head = mrd.AcquisitionHeader()
-                head.scan_counter = scan_counter
-                scan_counter += 1
-                head.channel_order = list(range(num_channels))
-                head.center_sample = encoded_space.matrix_size.x // 2 # TODO: Is this true for all fastmri data?
-                head.position[:] = [0.0, 0.0, 0.0]
-                head.read_dir[:] = [1.0, 0.0, 0.0]
-                head.phase_dir[:] = [0.0, 1.0, 0.0]
-                head.slice_dir[:] = [0.0, 0.0, 1.0]
-
-                head.idx.slice = slice
-                head.idx.kspace_encode_step_1 = line
-
-                e1 = line + e1_offset
-                if dset.ndim == 4:
-                    data = dset[slice, :, :, e1]
-                else:
-                    data = dset[slice, :, e1]
-                    data = np.expand_dims(data, axis=0)  # add channel dimension
-                acq = mrd.Acquisition(head=head, data=data)
+                acq = _new_acquisition(slice, line)
                 item = mrd.StreamItem.Acquisition(acq)
                 writer.write_data([item])
 
 
-def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filename: str):
+def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filename: str) -> None:
     """Extract reconstructed images from fastMRI dataset and write to MRD file."""
     assert len(mrd_header.encoding) >= 1
     encoding: mrd.EncodingType = mrd_header.encoding[0]
@@ -133,7 +123,11 @@ def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filen
 
         for slice in range(num_slices):
             head = mrd.ImageHeader(image_type=mrd.ImageType.MAGNITUDE)
-            head.field_of_view[:] = [recon_space.field_of_view_mm.x, recon_space.field_of_view_mm.y, recon_space.field_of_view_mm.z]
+            head.field_of_view[:] = [
+                recon_space.field_of_view_mm.x,
+                recon_space.field_of_view_mm.y,
+                recon_space.field_of_view_mm.z,
+            ]
             head.position[:] = [0.0, 0.0, 0.0]
             head.col_dir[:] = [1.0, 0.0, 0.0]
             head.line_dir[:] = [0.0, 1.0, 0.0]
@@ -151,10 +145,11 @@ def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filen
             writer.write_data([item])
 
 
-def validate_input_file(f: h5py.File):
+def validate_input_file(f: h5py.File) -> None:
     """Ensure the input fastMRI file contains the expected datasets."""
 
-def convert(input_filename: str, output_data_filename: str, output_images_filename: str):
+
+def convert(input_filename: str, output_data_filename: str | None, output_images_filename: str | None) -> None:
     """Convert fastMRI HDF5 file to MRD format."""
     with h5py.File(input_filename, "r") as f:
         # First validate the input file
@@ -187,9 +182,7 @@ def convert(input_filename: str, output_data_filename: str, output_images_filena
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Convert fastMRI HDF5 files to MRD format."
-    )
+    parser = argparse.ArgumentParser(description="Convert fastMRI HDF5 files to MRD format.")
 
     parser.add_argument("-i", "--input", type=str, required=True, help="Input fastMRI HDF5 file")
     parser.add_argument("-od", "--output-data", type=str, help="Output MRD file for k-space data")
