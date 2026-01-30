@@ -47,7 +47,7 @@ jobs:
         env:
           ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
         run: |
-          for p in $(find {cpp,python}/conda/build_pkg -name mrd*.tar.bz2)
+          for p in $(find {cpp,python}/conda/build_pkg -name 'mrd*.tar.bz2' -or -name 'mrd*.conda')
           do
             ./utils/conda/publish_package.sh -u ismrmrd -t "$ANACONDA_TOKEN" -p "$p"
           done
