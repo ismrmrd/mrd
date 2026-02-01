@@ -4,7 +4,7 @@ NoiseCovariance: !record
     coilLabels: CoilLabelType*
     # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
     receiverNoiseBandwidth: float
-    # Comes from Acquisition.sampleTimeNs
+    # Comes from Acquisition.sampleTimeUs
     noiseDwellTimeNs: uint64
     # Number of samples used to compute matrix
     sampleCount: size
@@ -64,35 +64,74 @@ ImageArray: !record
     meta: ImageMeta[loc, s, n]
     waveforms: WaveformUint32*
 
-# change to record and data field to array
-# Generic header
-# ndarray store all data
-# any structure call metadata
-# nadarray header with speicfied
-# string for dimension
-# high level description=array type
-# user comment as string
-# NDarray keep as field
-# meta field attachted to all arrays
-# computed fields: 
-ArrayType: !enum
-  base: uint64
-  values:
-    spinDensityMap: 1   # in mol/m^3
-    t1Map: 2            # in s
-    t2Map: 3            # in s
-    t2starMap: 4        # in s
-    adcMap: 5           # in s/m^2
-    b0Map: 6            # in Hz (offset from Image.head.measurementFreq[0])
-    b1Map: 7            # in rad/s/V, channel dimension is xmit channels
-    sensitivityMap: 8   # in Vm^3/mol, channel dimension is rcv channels
-    gfactorMap: 9       # unaccelerated SNR/(accelerated SNR * sqrt of acceleration factor)
-    userMap: 10         # custom image type with description at ImageMeta
 
-NDArray: !record
-  fields:
-    data: Array<T>
-    type: ArrayType
+Array<T>: !array
+  items: T
 
 ArrayComplexFloat: Array<complexfloat>
 
+# Added generic NDarray with header 
+
+ArrayType: !enum
+  values:
+    spinDensityMap: 1  # in mol/m^3
+    t1Map: 2           # in s
+    t2Map: 3           # in s
+    t2starMap: 4       # in s
+    adcMap: 5          # in s/m^2
+    b0Map: 6           # in Hz (offset from Image.head.measurementFreq[0])
+    b1Map: 7           # in rad/s/V, channel dimension is xmit channels
+    sensitivityMap: 8  # in Vm^3/mol, channel dimension is rcv channels
+    gfactorMap: 9      # unaccelerated SNR/(accelerated SNR * sqrt of acceleration factor)
+    userMap: 10        # custom image type with description at ImageMeta
+
+ArrayMetaValue: [string, long, double]
+
+ArrayMeta: string->ArrayMetaValue*  # string label and value as list of string, long, or double
+
+ArrayDimension: !enum
+  values:
+    channel: 0
+    z: 1
+    y: 2
+    x: 3
+    frequency: 4
+    basis: 5
+    samples: 6
+    loc: 7
+    s: 8
+    n: 9
+    e2: 10
+    e1: 11
+    e0: 12
+    time: 13
+
+NDArrayHeader: !record
+  fields:
+    dimensionLabels: ArrayDimension*  # optional ordered vector of enum labels
+    arrayType: ArrayType              # mandatory type of array
+    meta: ArrayMeta
+
+NDArray<T>: !record     # no computed fields as the dimension is not labeled in build time
+  fields:
+    head: NDArrayHeader 
+    data: Array<T>
+
+NDArrayUint16: NDArray<uint16>
+NDArrayInt16: NDArray<int16>
+NDArrayUint32: NDArray<uint>
+NDArrayInt32: NDArray<int>
+NDArrayFloat: NDArray<float>
+NDArrayDouble: NDArray<double>
+NDArrayComplexFloat: NDArray<complexfloat>
+NDArrayComplexDouble: NDArray<complexdouble>
+
+AnyNDArray:
+  - NDArrayUint16
+  - NDArrayInt16
+  - NDArrayUint32
+  - NDArrayInt32
+  - NDArrayFloat
+  - NDArrayDouble
+  - NDArrayComplexFloat
+  - NDArrayComplexDouble

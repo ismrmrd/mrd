@@ -6,7 +6,7 @@ classdef NoiseCovariance < handle
     coil_labels
     % Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
     receiver_noise_bandwidth
-    % Comes from Acquisition.sampleTimeNs
+    % Comes from Acquisition.sampleTimeUs
     noise_dwell_time_ns
     % Number of samples used to compute matrix
     sample_count
