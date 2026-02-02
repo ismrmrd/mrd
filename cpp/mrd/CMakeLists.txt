@@ -43,4 +43,3 @@ endif()
 
 add_library(mrd_generated OBJECT ${Mrd_GENERATED_SOURCES})
 target_link_libraries(mrd_generated ${Mrd_GENERATED_LINK_LIBRARIES})
-target_compile_features(mrd_generated PUBLIC cxx_std_17)

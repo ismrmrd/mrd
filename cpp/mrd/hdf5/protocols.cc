@@ -799,6 +799,7 @@ struct _Inner_AcquisitionHeader {
       idx(o.idx),
       measurement_uid(o.measurement_uid),
       scan_counter(o.scan_counter),
+      acquisition_center_frequency(o.acquisition_center_frequency),
       acquisition_time_stamp_ns(o.acquisition_time_stamp_ns),
       physiology_time_stamp_ns(o.physiology_time_stamp_ns),
       channel_order(o.channel_order),
@@ -821,6 +822,7 @@ struct _Inner_AcquisitionHeader {
     yardl::hdf5::ToOuter(idx, o.idx);
     yardl::hdf5::ToOuter(measurement_uid, o.measurement_uid);
     yardl::hdf5::ToOuter(scan_counter, o.scan_counter);
+    yardl::hdf5::ToOuter(acquisition_center_frequency, o.acquisition_center_frequency);
     yardl::hdf5::ToOuter(acquisition_time_stamp_ns, o.acquisition_time_stamp_ns);
     yardl::hdf5::ToOuter(physiology_time_stamp_ns, o.physiology_time_stamp_ns);
     yardl::hdf5::ToOuter(channel_order, o.channel_order);
@@ -842,6 +844,7 @@ struct _Inner_AcquisitionHeader {
   mrd::hdf5::_Inner_EncodingCounters idx;
   uint32_t measurement_uid;
   yardl::hdf5::InnerOptional<uint32_t, uint32_t> scan_counter;
+  yardl::hdf5::InnerOptional<uint64_t, uint64_t> acquisition_center_frequency;
   yardl::hdf5::InnerOptional<uint64_t, uint64_t> acquisition_time_stamp_ns;
   yardl::hdf5::InnerVlen<uint64_t, uint64_t> physiology_time_stamp_ns;
   yardl::hdf5::InnerVlen<uint32_t, uint32_t> channel_order;
@@ -864,17 +867,20 @@ struct _Inner_Acquisition {
   _Inner_Acquisition(mrd::Acquisition const& o) 
       : head(o.head),
       data(o.data),
+      phase(o.phase),
       trajectory(o.trajectory) {
   }
 
   void ToOuter (mrd::Acquisition& o) const {
     yardl::hdf5::ToOuter(head, o.head);
     yardl::hdf5::ToOuter(data, o.data);
+    yardl::hdf5::ToOuter(phase, o.phase);
     yardl::hdf5::ToOuter(trajectory, o.trajectory);
   }
 
   mrd::hdf5::_Inner_AcquisitionHeader head;
   yardl::hdf5::InnerNdArray<std::complex<float>, std::complex<float>, 2> data;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerVlen<float, float>, mrd::AcquisitionPhase> phase;
   yardl::hdf5::InnerNdArray<float, float, 2> trajectory;
 };
 
@@ -1710,6 +1716,7 @@ struct _Inner_ImageArray {
   t.insertMember("idx", HOFFSET(RecordType, idx), mrd::hdf5::GetEncodingCountersHdf5Ddl());
   t.insertMember("measurementUid", HOFFSET(RecordType, measurement_uid), H5::PredType::NATIVE_UINT32);
   t.insertMember("scanCounter", HOFFSET(RecordType, scan_counter), yardl::hdf5::OptionalTypeDdl<uint32_t, uint32_t>(H5::PredType::NATIVE_UINT32));
+  t.insertMember("acquisitionCenterFrequency", HOFFSET(RecordType, acquisition_center_frequency), yardl::hdf5::OptionalTypeDdl<uint64_t, uint64_t>(H5::PredType::NATIVE_UINT64));
   t.insertMember("acquisitionTimeStampNs", HOFFSET(RecordType, acquisition_time_stamp_ns), yardl::hdf5::OptionalTypeDdl<uint64_t, uint64_t>(H5::PredType::NATIVE_UINT64));
   t.insertMember("physiologyTimeStampNs", HOFFSET(RecordType, physiology_time_stamp_ns), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT64));
   t.insertMember("channelOrder", HOFFSET(RecordType, channel_order), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_UINT32));
@@ -1733,6 +1740,7 @@ struct _Inner_ImageArray {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("head", HOFFSET(RecordType, head), mrd::hdf5::GetAcquisitionHeaderHdf5Ddl());
   t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<std::complex<float>, std::complex<float>, 2>(yardl::hdf5::ComplexTypeDdl<float>()));
+  t.insertMember("phase", HOFFSET(RecordType, phase), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerVlen<float, float>, mrd::AcquisitionPhase>(yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_FLOAT)));
   t.insertMember("trajectory", HOFFSET(RecordType, trajectory), yardl::hdf5::NDArrayDdl<float, float, 2>(H5::PredType::NATIVE_FLOAT));
   return t;
 }

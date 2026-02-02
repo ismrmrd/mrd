@@ -56,7 +56,7 @@ class DateTime:
     def __init__(self, nanoseconds_from_epoch: Union[int, np.datetime64] = 0):
         if isinstance(nanoseconds_from_epoch, np.datetime64):
             if nanoseconds_from_epoch.dtype != "datetime64[ns]":
-                self._value = np.datetime64(nanoseconds_from_epoch, "ns")  # type: ignore
+                self._value = np.datetime64(nanoseconds_from_epoch, "ns")
             else:
                 self._value = nanoseconds_from_epoch
         else:
@@ -67,9 +67,7 @@ class DateTime:
         return self._value
 
     def to_datetime(self) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(
-            self._value.astype(int) / 1e9, tz=datetime.timezone.utc
-        )
+        return datetime.datetime.utcfromtimestamp(self._value.astype(int) / 1e9)
 
     @staticmethod
     def from_components(
@@ -271,7 +269,8 @@ def structural_equal(a: object, b: object) -> bool:
         if not isinstance(b, np.void):
             return b == a
         return a.dtype == b.dtype and all(
-            structural_equal(x, y) for x, y in zip(a, b)  # type: ignore
+            structural_equal(x, y)
+            for x, y in zip(a, b)  # pyright: ignore [reportGeneralTypeIssues]
         )
 
     if isinstance(b, np.void):
