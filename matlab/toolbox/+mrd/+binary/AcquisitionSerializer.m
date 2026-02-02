@@ -5,7 +5,7 @@ classdef AcquisitionSerializer < yardl.binary.RecordSerializer
     function self = AcquisitionSerializer()
       field_serializers{1} = mrd.binary.AcquisitionHeaderSerializer();
       field_serializers{2} = yardl.binary.NDArraySerializer(yardl.binary.Complexfloat32Serializer, 2);
-      field_serializers{3} = yardl.binary.NDArraySerializer(yardl.binary.Float32Serializer, 1);
+      field_serializers{3} = yardl.binary.OptionalSerializer(yardl.binary.NDArraySerializer(yardl.binary.Float32Serializer, 1));
       field_serializers{4} = yardl.binary.NDArraySerializer(yardl.binary.Float32Serializer, 2);
       self@yardl.binary.RecordSerializer('mrd.Acquisition', field_serializers);
     end

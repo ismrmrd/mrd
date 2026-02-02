@@ -880,7 +880,7 @@ struct _Inner_Acquisition {
 
   mrd::hdf5::_Inner_AcquisitionHeader head;
   yardl::hdf5::InnerNdArray<std::complex<float>, std::complex<float>, 2> data;
-  yardl::hdf5::InnerVlen<float, float> phase;
+  yardl::hdf5::InnerOptional<yardl::hdf5::InnerVlen<float, float>, mrd::AcquisitionPhase> phase;
   yardl::hdf5::InnerNdArray<float, float, 2> trajectory;
 };
 
@@ -1740,7 +1740,7 @@ struct _Inner_ImageArray {
   H5::CompType t(sizeof(RecordType));
   t.insertMember("head", HOFFSET(RecordType, head), mrd::hdf5::GetAcquisitionHeaderHdf5Ddl());
   t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::NDArrayDdl<std::complex<float>, std::complex<float>, 2>(yardl::hdf5::ComplexTypeDdl<float>()));
-  t.insertMember("phase", HOFFSET(RecordType, phase), yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_FLOAT));
+  t.insertMember("phase", HOFFSET(RecordType, phase), yardl::hdf5::OptionalTypeDdl<yardl::hdf5::InnerVlen<float, float>, mrd::AcquisitionPhase>(yardl::hdf5::InnerVlenDdl(H5::PredType::NATIVE_FLOAT)));
   t.insertMember("trajectory", HOFFSET(RecordType, trajectory), yardl::hdf5::NDArrayDdl<float, float, 2>(H5::PredType::NATIVE_FLOAT));
   return t;
 }

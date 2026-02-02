@@ -121,7 +121,7 @@ class AcquisitionHeaderSerializer(_binary.RecordSerializer[AcquisitionHeader]):
 
 class AcquisitionSerializer(_binary.RecordSerializer[Acquisition]):
     def __init__(self) -> None:
-        super().__init__([("head", AcquisitionHeaderSerializer()), ("data", _binary.NDArraySerializer(_binary.complexfloat32_serializer, 2)), ("phase", _binary.NDArraySerializer(_binary.float32_serializer, 1)), ("trajectory", _binary.NDArraySerializer(_binary.float32_serializer, 2))])
+        super().__init__([("head", AcquisitionHeaderSerializer()), ("data", _binary.NDArraySerializer(_binary.complexfloat32_serializer, 2)), ("phase", _binary.OptionalSerializer(_binary.NDArraySerializer(_binary.float32_serializer, 1))), ("trajectory", _binary.NDArraySerializer(_binary.float32_serializer, 2))])
 
     def write(self, stream: _binary.CodedOutputStream, value: Acquisition) -> None:
         if isinstance(value, np.void):

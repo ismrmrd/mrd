@@ -1128,7 +1128,7 @@ namespace {
 
   mrd::binary::WriteAcquisitionHeader(stream, value.head);
   mrd::binary::WriteAcquisitionData(stream, value.data);
-  mrd::binary::WriteAcquisitionPhase(stream, value.phase);
+  yardl::binary::WriteOptional<mrd::AcquisitionPhase, mrd::binary::WriteAcquisitionPhase>(stream, value.phase);
   mrd::binary::WriteTrajectoryData(stream, value.trajectory);
 }
 
@@ -1140,7 +1140,7 @@ namespace {
 
   mrd::binary::ReadAcquisitionHeader(stream, value.head);
   mrd::binary::ReadAcquisitionData(stream, value.data);
-  mrd::binary::ReadAcquisitionPhase(stream, value.phase);
+  yardl::binary::ReadOptional<mrd::AcquisitionPhase, mrd::binary::ReadAcquisitionPhase>(stream, value.phase);
   mrd::binary::ReadTrajectoryData(stream, value.trajectory);
 }
 

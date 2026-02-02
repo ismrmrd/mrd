@@ -11,7 +11,7 @@ on:
 env:
   # Increase this to manually reset the conda environment cache
   CONDA_CACHE_NUMBER: 0
-  YARDL_VERSION: 0.6.4
+  YARDL_VERSION: 0.6.6
 
 defaults:
   run:
@@ -39,7 +39,7 @@ jobs:
       run: just build-matlab-toolbox
 
     - name: Store MATLAB Toolbox
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: matlab-toolbox
         path: matlab/release/mrd*.mltbx
@@ -49,7 +49,7 @@ jobs:
       run: just build-cmake-fetch-src
 
     - name: Store CMake FetchContent source archive
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: mrd-cmake-src
         path: mrd-cmake-src*.tar.gz
@@ -123,12 +123,12 @@ jobs:
 
     steps:
     - name: Retrieve MATLAB Toolbox
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: matlab-toolbox
 
     - name: Retrieve CMake FetchContent source archive
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: mrd-cmake-src
 

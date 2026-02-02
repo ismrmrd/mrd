@@ -124,7 +124,7 @@ Acquisition: !record
     head: AcquisitionHeader
     # Raw k-space samples array
     data: AcquisitionData
-    # Phase offset array
+    # Phase offset array as optional field
     phase: AcquisitionPhase?
     # Trajectory array
     trajectory: TrajectoryData

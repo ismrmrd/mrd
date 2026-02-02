@@ -169,8 +169,8 @@ struct Acquisition {
   mrd::AcquisitionHeader head{};
   // Raw k-space samples array
   mrd::AcquisitionData data{};
-  // Phase offset array
-  mrd::AcquisitionPhase phase{};
+  // Phase offset array as optional field
+  std::optional<mrd::AcquisitionPhase> phase{};
   // Trajectory array
   mrd::TrajectoryData trajectory{};
 

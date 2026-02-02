@@ -336,7 +336,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
     def __init__(self) -> None:
         self._head_converter = AcquisitionHeaderConverter()
         self._data_converter = _ndjson.NDArrayConverter(_ndjson.complexfloat32_converter, 2)
-        self._phase_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 1)
+        self._phase_converter = _ndjson.OptionalConverter(_ndjson.NDArrayConverter(_ndjson.float32_converter, 1))
         self._trajectory_converter = _ndjson.NDArrayConverter(_ndjson.float32_converter, 2)
         super().__init__(np.dtype([
             ("head", self._head_converter.overall_dtype()),
@@ -352,7 +352,8 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
 
         json_object["head"] = self._head_converter.to_json(value.head)
         json_object["data"] = self._data_converter.to_json(value.data)
-        json_object["phase"] = self._phase_converter.to_json(value.phase)
+        if value.phase is not None:
+            json_object["phase"] = self._phase_converter.to_json(value.phase)
         json_object["trajectory"] = self._trajectory_converter.to_json(value.trajectory)
         return json_object
 
@@ -363,7 +364,8 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
 
         json_object["head"] = self._head_converter.numpy_to_json(value["head"])
         json_object["data"] = self._data_converter.numpy_to_json(value["data"])
-        json_object["phase"] = self._phase_converter.numpy_to_json(value["phase"])
+        if (field_val := value["phase"]) is not None:
+            json_object["phase"] = self._phase_converter.numpy_to_json(field_val)
         json_object["trajectory"] = self._trajectory_converter.numpy_to_json(value["trajectory"])
         return json_object
 
@@ -373,7 +375,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         return Acquisition(
             head=self._head_converter.from_json(json_object["head"],),
             data=self._data_converter.from_json(json_object["data"],),
-            phase=self._phase_converter.from_json(json_object["phase"],),
+            phase=self._phase_converter.from_json(json_object.get("phase")),
             trajectory=self._trajectory_converter.from_json(json_object["trajectory"],),
         )
 
@@ -383,7 +385,7 @@ class AcquisitionConverter(_ndjson.JsonConverter[Acquisition, np.void]):
         return (
             self._head_converter.from_json_to_numpy(json_object["head"]),
             self._data_converter.from_json_to_numpy(json_object["data"]),
-            self._phase_converter.from_json_to_numpy(json_object["phase"]),
+            self._phase_converter.from_json_to_numpy(json_object.get("phase")),
             self._trajectory_converter.from_json_to_numpy(json_object["trajectory"]),
         ) # type:ignore 
 
