@@ -125,7 +125,7 @@ Acquisition: !record
     # Raw k-space samples array
     data: AcquisitionData
     # Phase offset array
-    phase: AcquisitionPhase
+    phase: AcquisitionPhase?
     # Trajectory array
     trajectory: TrajectoryData
   computedFields:
