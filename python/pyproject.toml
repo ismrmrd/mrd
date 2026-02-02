@@ -8,8 +8,12 @@ packages = ["mrd", "mrd.tools"]
 [project]
 name = "mrd-python"
 dynamic = ["version"]
-dependencies = ["numpy>=1.22.0", "pillow>=9.2.0"]
-requires-python = ">=3.9"
+dependencies = [
+    "ismrmrd>=1.14.2",
+    "numpy>=1.22.0",
+    "pillow>=9.2.0"
+]
+requires-python = ">=3.12"
 description = "Library and tools for working with data in the ISMRM Raw Data (MRD) format."
 readme = "README.md"
 classifiers = [

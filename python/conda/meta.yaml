@@ -18,6 +18,7 @@ requirements:
     - pip
   run:
     - python
+    - ismrmrd-python >=1.14.2
     - numpy >=1.22.0
     - pillow >=9.2.0
 
@@ -26,6 +27,9 @@ test:
     - mrd
     - mrd.tools.phantom
     - mrd.tools.stream_recon
+    - mrd.tools.export_png_images
+    - mrd.tools.ismrmrd_to_mrd
+    - mrd.tools.mrd_to_ismrmrd
 
 about:
   home: https://ismrmrd.github.io/mrd

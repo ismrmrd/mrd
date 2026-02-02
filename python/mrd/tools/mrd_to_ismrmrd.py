@@ -395,14 +395,13 @@ def convert_acquisition(mrd_acq: mrd.Acquisition) -> ismrmrd.Acquisition:
     head.flags = mrd_head.flags
     head.measurement_uid = mrd_head.measurement_uid
     head.scan_counter = mrd_head.scan_counter or 0
-    head.acquisition_time_stamp = int(mrd_head.acquisition_time_stamp_ns or 0) // 1000  # ns to µs
+    head.acquisition_time_stamp = int(mrd_head.acquisition_time_stamp_ns or 0 // 1e6)  # ns to ms
 
-    # Physiology timestamps - initialize all to 0, then set values
     for i in range(ismrmrd.PHYS_STAMPS):
-        head.physiology_time_stamp[i] = 0
-    for i, ts in enumerate(mrd_head.physiology_time_stamp_ns):
-        if i < ismrmrd.PHYS_STAMPS:
-            head.physiology_time_stamp[i] = ts // 1000  # ns to µs
+        if i < len(mrd_head.physiology_time_stamp_ns):
+            head.physiology_time_stamp[i] = int(mrd_head.physiology_time_stamp_ns[i] // 1e6)  # ns to ms
+        else:
+            head.physiology_time_stamp[i] = 0
 
     head.number_of_samples = num_samples
     head.available_channels = num_channels
@@ -465,7 +464,7 @@ def convert_waveform(mrd_wfm: mrd.WaveformUint32) -> ismrmrd.Waveform:
     head.flags = mrd_wfm.flags
     head.measurement_uid = mrd_wfm.measurement_uid
     head.scan_counter = mrd_wfm.scan_counter
-    head.time_stamp = mrd_wfm.time_stamp_ns // 1000  # ns to µs
+    head.time_stamp = int(mrd_wfm.time_stamp_ns // 1e6)  # ns to ms
     head.sample_time_us = mrd_wfm.sample_time_ns / 1000.0  # ns to µs
     head.waveform_id = mrd_wfm.waveform_id
     head.channels = num_channels
@@ -507,14 +506,13 @@ def convert_image(mrd_img) -> ismrmrd.Image:
     head.phase = mrd_head.phase or 0
     head.repetition = mrd_head.repetition or 0
     head.set = mrd_head.set or 0
-    head.acquisition_time_stamp = int(mrd_head.acquisition_time_stamp_ns or 0) // 1000  # ns to µs
+    head.acquisition_time_stamp = int((mrd_head.acquisition_time_stamp_ns or 0) // 1e6)  # ns to ms
 
-    # Physiology timestamps - initialize all to 0, then set values
     for i in range(ismrmrd.PHYS_STAMPS):
-        head.physiology_time_stamp[i] = 0
-    for i, ts in enumerate(mrd_head.physiology_time_stamp_ns):
-        if i < ismrmrd.PHYS_STAMPS:
-            head.physiology_time_stamp[i] = ts // 1000  # ns to µs
+        if i < len(mrd_head.physiology_time_stamp_ns):
+            head.physiology_time_stamp[i] = int(mrd_head.physiology_time_stamp_ns[i] // 1e6)  # ns to ms
+        else:
+            head.physiology_time_stamp[i] = 0
 
     # Image type and indices
     head.image_type = mrd_head.image_type.value

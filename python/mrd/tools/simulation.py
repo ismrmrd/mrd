@@ -2,15 +2,16 @@
 Tools for generating coil sensitivities and phantoms
 """
 import numpy as np
+import numpy.typing as npt
 from mrd.tools.transform import kspace_to_image, image_to_kspace
 
 
-def generate_shepp_logan_phantom(matrix_size) -> np.ndarray:
+def generate_shepp_logan_phantom(matrix_size) -> npt.NDArray[np.complex64]:
     """Generates a modified Shepp Logan phantom with improved contrast"""
     return generate_phantom(matrix_size, modified_shepp_logan_ellipses())
 
 
-def generate_phantom(matrix_size, ellipses):
+def generate_phantom(matrix_size, ellipses) -> npt.NDArray[np.complex64]:
     """
     Create a Shepp-Logan or modified Shepp-Logan phantom::
 
@@ -56,7 +57,7 @@ def generate_phantom(matrix_size, ellipses):
                     out[0, 0, y, x] += e.get_amplitude() + 0.j
     return out
 
-def generate_birdcage_sensitivities(matrix_size, ncoils, relative_radius=1.5) -> np.ndarray:
+def generate_birdcage_sensitivities(matrix_size, ncoils, relative_radius=1.5) -> npt.NDArray[np.complex64]:
     """Generates birdcage coil sensitivities.
 
     This function is heavily inspired by the mri_birdcage.m Matlab script in
