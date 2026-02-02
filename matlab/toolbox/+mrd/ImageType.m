@@ -17,6 +17,9 @@ classdef ImageType < uint64
     function v = COMPLEX
       v = mrd.ImageType(5);
     end
+    function v = RGBA_MAP
+      v = mrd.ImageType(6);
+    end
 
     function z = zeros(varargin)
       elem = mrd.ImageType(0);
