@@ -6,10 +6,8 @@
 #include <ismrmrd/meta.h>
 #include <ismrmrd/serialization_iostream.h>
 #include <ismrmrd/version.h>
-#include <xtensor/xview.hpp>
 
 #include <date/date.h>
-
 
 void print_usage(std::string program_name) {
   std::cerr << "Usage: " << program_name << std::endl;

@@ -1,11 +1,11 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:24.04 AS base
 
 RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
 ARG USERNAME="mrd"
-ARG USER_UID=1000
+ARG USER_UID=10000
 ARG USER_GID=$USER_UID
 ARG CONDA_GID=900
 
@@ -14,10 +14,10 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME
 
 ARG MINIFORGE_NAME=Miniforge3
-ARG MINIFORGE_VERSION=24.3.0-0
+ARG MINIFORGE_VERSION=25.11.0-1
 ARG CONDA_DIR=/opt/conda
 
-# Install mamba (conda)
+# Install conda
 # Based on https://github.com/conda-forge/miniforge-images/blob/master/ubuntu/Dockerfile
 RUN wget --no-hsts --quiet https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/${MINIFORGE_NAME}-${MINIFORGE_VERSION}-Linux-$(uname -m).sh -O /tmp/miniforge.sh \
     && /bin/bash /tmp/miniforge.sh -b -p ${CONDA_DIR} \
@@ -35,8 +35,8 @@ RUN wget --no-hsts --quiet https://github.com/conda-forge/miniforge/releases/dow
 # Create mrd conda environment
 COPY --chown=$USER_UID:conda environment.yml /tmp/build/
 RUN umask 0002 \
-    && ${CONDA_DIR}/bin/mamba env create -f /tmp/build/environment.yml \
-    && ${CONDA_DIR}/bin/mamba clean -fy \
+    && ${CONDA_DIR}/bin/conda env create -f /tmp/build/environment.yml \
+    && ${CONDA_DIR}/bin/conda clean -fy \
     && chown -R :conda ${CONDA_DIR}/envs
 
 ARG MRD_VERSION_STRING

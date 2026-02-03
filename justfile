@@ -8,14 +8,12 @@ build_type := "RelWithDebInfo"
 
 matlab := "disabled"
 matlab-test-cmd := if matlab != "disabled" { "run-matlab-command buildtool" } else { "echo Skipping MATLAB tests..." }
-cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test.sh" } else { "./test.sh" }
+cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./test-all.sh" } else { "./test-all.sh" }
 
 @default: test
 
-@ensure-build-dir:
-    mkdir -p cpp/build
-
-@configure: ensure-build-dir
+@configure:
+    mkdir -p cpp/build; \
     cd cpp/build; \
     cmake -GNinja \
         -D CMAKE_BUILD_TYPE={{ build_type }} \
@@ -23,7 +21,15 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
         -D CMAKE_INSTALL_PREFIX=$(conda info --json | jq -r .default_prefix) \
         ..
 
-@build: configure generate
+@autoconfigure:
+    if [ ! -f "cpp/build/build.ninja" ]; then \
+        echo "Ninja file not found. Running cmake..."; \
+        just configure; \
+    else \
+        echo "Ninja file already exists. Skipping cmake."; \
+    fi
+
+@build: autoconfigure generate
     cd cpp/build && ninja
 
 @install: test
@@ -37,20 +43,59 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
 @generate:
     cd model && yardl generate
 
-@converter-roundtrip-test: build
-    cd cpp/build; \
-    rm -f roundtrip.h5; \
-    rm -f roundtrip.bin; \
-    rm -f direct.bin; \
-    rm -f recon_direct.bin; \
-    rm -f recon_rountrip.bin; \
-    ismrmrd_generate_cartesian_shepp_logan -o roundtrip.h5; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout > direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ./ismrmrd_to_mrd > mrd_testdata.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.bin; \
-    ismrmrd_hdf5_to_stream -i roundtrip.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.bin; \
-    diff direct.bin roundtrip.bin && diff recon_direct.bin recon_rountrip.bin
+cpp-converter-roundtrip-test: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd cpp/build
+    rm -f phantom.h5
+    rm -f direct.ismrmrd
+    rm -f roundtrip.ismrmrd
+    rm -f recon_direct.ismrmrd
+    rm -f recon_rountrip.ismrmrd
+    ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.ismrmrd
+    diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_rountrip.ismrmrd
+
+python-converter-roundtrip-test: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    export PYTHONPATH=$(realpath ./python)
+    cd cpp/build
+    rm -f phantom.h5
+    rm -f direct.ismrmrd
+    rm -f roundtrip.ismrmrd
+    rm -f recon_direct.ismrmrd
+    rm -f recon_rountrip.ismrmrd
+    ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > roundtrip.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_rountrip.ismrmrd
+    python ../../test/diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
+    python ../../test/diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
+
+converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
+
+pulseq-roundtrip-tests:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    for dir in test/test_data/pulseq/*/; do
+      [[ -d "$dir" ]] || continue
+      pulseq_version=$(basename "$dir")
+      for file in "$dir"*; do
+        [[ -f "$file" ]] || continue
+        # convert to MRD stream and back, compare ignoring comments and whitespace
+        python -m mrd.tools.seq_to_mrd --input "$file" | python -m mrd.tools.mrd_to_seq --pulseq-version "$pulseq_version" | diff -I '#.*' --ignore-space-change "$file" -
+        if [[ "$pulseq_version" == "1.4.2" ]]; then
+          # Sanity check that PyPulseq can read the file
+          python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
+        fi
+      done
+    done
 
 @conda-cpp-test: build
     cd cpp/build; \
@@ -64,11 +109,11 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     cd matlab; \
     {{ matlab-test-cmd }}
 
-@cross-language-recon-test: build
+@end-to-end-test: build
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build converter-roundtrip-test conda-cpp-test conda-python-test matlab-test cross-language-recon-test
+@test: build converter-tests pulseq-roundtrip-tests conda-cpp-test conda-python-test matlab-test end-to-end-test
 
 @validate: test
 

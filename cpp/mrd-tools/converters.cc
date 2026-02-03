@@ -4,7 +4,7 @@
 #include <ismrmrd/version.h>
 
 #include <date/date.h>
-#include <xtensor/xview.hpp>
+#include <xtensor/views/xview.hpp>
 
 namespace mrd::converters {
 
