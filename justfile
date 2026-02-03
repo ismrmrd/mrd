@@ -83,6 +83,8 @@ pulseq-roundtrip-tests:
     #!/usr/bin/env bash
     set -euo pipefail
 
+    export PYTHONPATH=$(realpath ./python)
+
     for dir in test/test_data/pulseq/*/; do
       [[ -d "$dir" ]] || continue
       pulseq_version=$(basename "$dir")
