@@ -90,10 +90,8 @@ pulseq-roundtrip-tests:
         [[ -f "$file" ]] || continue
         # convert to MRD stream and back, compare ignoring comments and whitespace
         python -m mrd.tools.seq_to_mrd --input "$file" | python -m mrd.tools.mrd_to_seq --pulseq-version "$pulseq_version" | diff -I '#.*' --ignore-space-change "$file" -
-        if [[ "$pulseq_version" == "1.4.2" ]]; then
-          # Sanity check that PyPulseq can read the file
-          python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
-        fi
+        # Sanity check that PyPulseq can read the file
+        python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
       done
     done
 

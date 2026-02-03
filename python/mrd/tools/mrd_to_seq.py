@@ -204,7 +204,7 @@ def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
         for rf in rf_events:
             file.write(
                 f"{rf.id:.0f} {rf.amp:12g} {rf.mag_id:.0f} {rf.phase_id:.0f} {rf.time_id:.0f} "
-                f"{rf.center:.0f} {rf.delay:g} {rf.freq_ppm:g} {rf.phase_ppm:g} "
+                f"{rf.center:g} {rf.delay:g} {rf.freq_ppm:g} {rf.phase_ppm:g} "
                 f"{rf.freq_offset:g} {rf.phase_offset:g} {_get_abbreviation_for_rf_use(rf.use)}\n"
             )
     else:

@@ -271,7 +271,7 @@ def _parse_rf_events(lines: _LinesIterator, version) -> list[mrd.RFEvent]:
                     mag_id=int(tokens[2]),
                     phase_id=int(tokens[3]),
                     time_id=int(tokens[4]),
-                    center=int(tokens[5]),
+                    center=float(tokens[5]),
                     delay=int(tokens[6]),
                     freq_ppm=float(tokens[7]),
                     phase_ppm=float(tokens[8]),
@@ -402,14 +402,14 @@ def _parse_adc_events(lines: _LinesIterator, version) -> list[mrd.ADCEvent]:
                     raise RuntimeError(
                         f"Line {line_number}: invalid ADC event `{line}`"
                     )
-            adc_event = mrd.ADCEvent(
-                id=int(tokens[0]),
-                num=int(tokens[1]),
-                dwell=float(tokens[2]),
-                delay=int(tokens[3]),
-                freq=float(tokens[4]),
-                phase=float(tokens[5]),
-            )
+                adc_event = mrd.ADCEvent(
+                    id=int(tokens[0]),
+                    num=int(tokens[1]),
+                    dwell=float(tokens[2]),
+                    delay=int(tokens[3]),
+                    freq=float(tokens[4]),
+                    phase=float(tokens[5]),
+                )
         except Exception as e:
             raise RuntimeError(
                 f"Line {line_number}: invalid ADC event `{line}`"

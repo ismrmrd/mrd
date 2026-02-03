@@ -29,4 +29,4 @@ dependencies:
   - pip
   - pip:
     - ismrmrd==1.14.2
-    - pypulseq==1.4.2.post1
+    - pypulseq==1.5.0.post1

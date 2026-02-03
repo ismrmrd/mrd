@@ -36,7 +36,7 @@ RadiofrequencyRasterTime 1e-06
 # ..   Hz      ..       ..            ..     us    us     ppm  rad/MHz   Hz   rad  ..
 # Field 'use' is the initial of: excitation refocusing inversion saturation preparation other undefined
 [RF]
-1      705.139 1 2 0 500 0 0 0 0 0 u
+1      705.139 1 2 0 499.99 0 0 0 0 0 u
 2      705.139 1 2 0 500 1000 0 0 0 0 u
 3      1107.63 1 2 0 500 0 0 0 0 0 u
 4      553.817 3 4 0 1000 0 0 0 0 1.5708 u
