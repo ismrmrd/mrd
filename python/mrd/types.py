@@ -330,6 +330,37 @@ class Acquisition:
         return f"Acquisition(head={repr(self.head)}, data={repr(self.data)}, trajectory={repr(self.trajectory)})"
 
 
+class AcquisitionPrototype:
+    """Specifies header and data size of an acquisition, without the actual data."""
+
+    head: AcquisitionHeader
+    """Acquisition header template"""
+
+    data_sample_counts: npt.NDArray[np.uint32]
+    """Sample counts by coil"""
+
+
+    def __init__(self, *,
+        head: typing.Optional[AcquisitionHeader] = None,
+        data_sample_counts: typing.Optional[npt.NDArray[np.uint32]] = None,
+    ):
+        self.head = head if head is not None else AcquisitionHeader()
+        self.data_sample_counts = data_sample_counts if data_sample_counts is not None else np.zeros((0), dtype=np.dtype(np.uint32))
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, AcquisitionPrototype)
+            and self.head == other.head
+            and yardl.structural_equal(self.data_sample_counts, other.data_sample_counts)
+        )
+
+    def __str__(self) -> str:
+        return f"AcquisitionPrototype(head={self.head}, data_sample_counts={self.data_sample_counts})"
+
+    def __repr__(self) -> str:
+        return f"AcquisitionPrototype(head={repr(self.head)}, data_sample_counts={repr(self.data_sample_counts)})"
+
+
 class PatientGender(yardl.OutOfRangeEnum):
     M = 0
     F = 1
@@ -2088,8 +2119,490 @@ Array = npt.NDArray[T_NP]
 
 ArrayComplexFloat = Array[np.complex64]
 
+class PulseqDefinitions:
+    """Pulseq definitions"""
+
+    gradient_raster_time: yardl.Float64
+    """Default raster time (dwell time) of the shaped gradient events, specified in seconds"""
+
+    radiofrequency_raster_time: yardl.Float64
+    """Default raster time (dwell time) of the radio-frequency pulse shapes, specified in seconds"""
+
+    adc_raster_time: yardl.Float64
+    """The value defining the alignment of the ADC dwell times.
+    ADC dwell time must be integer multiple of the specified adcRasterTime.
+    adcRasterTime is specified in seconds
+    """
+
+    block_duration_raster: yardl.Float64
+    """The value defining the alignment of the block durations, specified in seconds;
+    the physical block duration must be integer multiple of the specified blockDurationRaster.
+    Block duration in the blocks section are specified in the units of blockDurationRaster
+    """
+
+    name: typing.Optional[str]
+    """Human-readable name of the sequence"""
+
+    fov: typing.Optional[ThreeDimensionalFloat]
+    """Field of view specified in meters."""
+
+    total_duration: typing.Optional[yardl.Float64]
+    """Total duration of the sequence is seconds"""
+
+    custom: dict[str, str]
+
+    def __init__(self, *,
+        gradient_raster_time: yardl.Float64 = 0.0,
+        radiofrequency_raster_time: yardl.Float64 = 0.0,
+        adc_raster_time: yardl.Float64 = 0.0,
+        block_duration_raster: yardl.Float64 = 0.0,
+        name: typing.Optional[str] = None,
+        fov: typing.Optional[ThreeDimensionalFloat] = None,
+        total_duration: typing.Optional[yardl.Float64] = None,
+        custom: typing.Optional[dict[str, str]] = None,
+    ):
+        self.gradient_raster_time = gradient_raster_time
+        self.radiofrequency_raster_time = radiofrequency_raster_time
+        self.adc_raster_time = adc_raster_time
+        self.block_duration_raster = block_duration_raster
+        self.name = name
+        self.fov = fov
+        self.total_duration = total_duration
+        self.custom = custom if custom is not None else {}
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, PulseqDefinitions)
+            and self.gradient_raster_time == other.gradient_raster_time
+            and self.radiofrequency_raster_time == other.radiofrequency_raster_time
+            and self.adc_raster_time == other.adc_raster_time
+            and self.block_duration_raster == other.block_duration_raster
+            and self.name == other.name
+            and self.fov == other.fov
+            and self.total_duration == other.total_duration
+            and self.custom == other.custom
+        )
+
+    def __str__(self) -> str:
+        return f"PulseqDefinitions(gradient_raster_time={self.gradient_raster_time}, radiofrequency_raster_time={self.radiofrequency_raster_time}, adc_raster_time={self.adc_raster_time}, block_duration_raster={self.block_duration_raster}, name={self.name}, fov={self.fov}, total_duration={self.total_duration}, custom={self.custom})"
+
+    def __repr__(self) -> str:
+        return f"PulseqDefinitions(gradient_raster_time={repr(self.gradient_raster_time)}, radiofrequency_raster_time={repr(self.radiofrequency_raster_time)}, adc_raster_time={repr(self.adc_raster_time)}, block_duration_raster={repr(self.block_duration_raster)}, name={repr(self.name)}, fov={repr(self.fov)}, total_duration={repr(self.total_duration)}, custom={repr(self.custom)})"
+
+
+class Block:
+    """A sequence block that includes possible RF, gradient, and ADC events."""
+
+    id: yardl.Int32
+    """ID of the sequence block"""
+
+    duration: yardl.UInt64
+    """Duration of the block in units of Definitions.blockDurationRaster"""
+
+    rf: yardl.Int32
+    """ID of the RF event"""
+
+    gx: yardl.Int32
+    """ID of the gradient event on the X channel"""
+
+    gy: yardl.Int32
+    """ID of the gradient event on the Y channel"""
+
+    gz: yardl.Int32
+    """ID of the gradient event on the Z channel"""
+
+    adc: yardl.Int32
+    """ID of the ADC event"""
+
+    ext: yardl.Int32
+    """ID of the extension table entry"""
+
+
+    def __init__(self, *,
+        id: yardl.Int32 = 0,
+        duration: yardl.UInt64 = 0,
+        rf: yardl.Int32 = 0,
+        gx: yardl.Int32 = 0,
+        gy: yardl.Int32 = 0,
+        gz: yardl.Int32 = 0,
+        adc: yardl.Int32 = 0,
+        ext: yardl.Int32 = 0,
+    ):
+        self.id = id
+        self.duration = duration
+        self.rf = rf
+        self.gx = gx
+        self.gy = gy
+        self.gz = gz
+        self.adc = adc
+        self.ext = ext
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, Block)
+            and self.id == other.id
+            and self.duration == other.duration
+            and self.rf == other.rf
+            and self.gx == other.gx
+            and self.gy == other.gy
+            and self.gz == other.gz
+            and self.adc == other.adc
+            and self.ext == other.ext
+        )
+
+    def __str__(self) -> str:
+        return f"Block(id={self.id}, duration={self.duration}, rf={self.rf}, gx={self.gx}, gy={self.gy}, gz={self.gz}, adc={self.adc}, ext={self.ext})"
+
+    def __repr__(self) -> str:
+        return f"Block(id={repr(self.id)}, duration={repr(self.duration)}, rf={repr(self.rf)}, gx={repr(self.gx)}, gy={repr(self.gy)}, gz={repr(self.gz)}, adc={repr(self.adc)}, ext={repr(self.ext)})"
+
+
+class RFPulseUse(yardl.OutOfRangeEnum):
+    UNDEFINED = 0
+    EXCITATION = 1
+    REFOCUSING = 2
+    INVERSION = 3
+    SATURATION = 4
+    PREPARATION = 5
+    OTHER = 6
+
+class RFEvent:
+    """An RF event"""
+
+    id: yardl.Int32
+    """ID of the RF event"""
+
+    amp: yardl.Float64
+    """Peak amplitude in Hz"""
+
+    mag_id: yardl.Int32
+    """Shape ID for the magnitude profile"""
+
+    phase_id: yardl.Int32
+    """Shape ID for the phase profile"""
+
+    time_id: yardl.Int32
+    """Shape ID for the time sampling points, specified in the units of
+    RadiofrequencyRasterTime.
+    0 means default time raster
+    """
+
+    center: yardl.Float64
+    """Time point in microseconds relative to the beginning of
+    the RF shape at which the effective rotation takes place
+    """
+
+    delay: yardl.UInt64
+    """Delay before starting the RF pulse, specified in microseconds"""
+
+    freq_ppm: yardl.Float64
+    """Frequency offset relative to the main system's frequency,
+    specified in parts per million (ppm)
+    """
+
+    phase_ppm: yardl.Float64
+    """Phase offset proportional to the main system's frequency,
+    specified in rad/MHz
+    """
+
+    freq_offset: yardl.Float64
+    """Frequency offset in absolute units, specified in Hz"""
+
+    phase_offset: yardl.Float64
+    """Phase offset in absolute units, specified in radians"""
+
+    use: RFPulseUse
+
+    def __init__(self, *,
+        id: yardl.Int32 = 0,
+        amp: yardl.Float64 = 0.0,
+        mag_id: yardl.Int32 = 0,
+        phase_id: yardl.Int32 = 0,
+        time_id: yardl.Int32 = 0,
+        center: yardl.Float64 = 0.0,
+        delay: yardl.UInt64 = 0,
+        freq_ppm: yardl.Float64 = 0.0,
+        phase_ppm: yardl.Float64 = 0.0,
+        freq_offset: yardl.Float64 = 0.0,
+        phase_offset: yardl.Float64 = 0.0,
+        use: RFPulseUse = RFPulseUse.UNDEFINED,
+    ):
+        self.id = id
+        self.amp = amp
+        self.mag_id = mag_id
+        self.phase_id = phase_id
+        self.time_id = time_id
+        self.center = center
+        self.delay = delay
+        self.freq_ppm = freq_ppm
+        self.phase_ppm = phase_ppm
+        self.freq_offset = freq_offset
+        self.phase_offset = phase_offset
+        self.use = use
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, RFEvent)
+            and self.id == other.id
+            and self.amp == other.amp
+            and self.mag_id == other.mag_id
+            and self.phase_id == other.phase_id
+            and self.time_id == other.time_id
+            and self.center == other.center
+            and self.delay == other.delay
+            and self.freq_ppm == other.freq_ppm
+            and self.phase_ppm == other.phase_ppm
+            and self.freq_offset == other.freq_offset
+            and self.phase_offset == other.phase_offset
+            and self.use == other.use
+        )
+
+    def __str__(self) -> str:
+        return f"RFEvent(id={self.id}, amp={self.amp}, mag_id={self.mag_id}, phase_id={self.phase_id}, time_id={self.time_id}, center={self.center}, delay={self.delay}, freq_ppm={self.freq_ppm}, phase_ppm={self.phase_ppm}, freq_offset={self.freq_offset}, phase_offset={self.phase_offset}, use={self.use})"
+
+    def __repr__(self) -> str:
+        return f"RFEvent(id={repr(self.id)}, amp={repr(self.amp)}, mag_id={repr(self.mag_id)}, phase_id={repr(self.phase_id)}, time_id={repr(self.time_id)}, center={repr(self.center)}, delay={repr(self.delay)}, freq_ppm={repr(self.freq_ppm)}, phase_ppm={repr(self.phase_ppm)}, freq_offset={repr(self.freq_offset)}, phase_offset={repr(self.phase_offset)}, use={repr(self.use)})"
+
+
+class ArbitraryGradient:
+    """An arbitrary gradient event"""
+
+    id: yardl.Int32
+    """ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events."""
+
+    amp: yardl.Float64
+    """Peak amplitude in Hz/m"""
+
+    first: yardl.Float64
+    """The amplitude at the start of the gradient."""
+
+    last: yardl.Float64
+    """The amplitude at the end of the gradient."""
+
+    shape_id: yardl.Int32
+    """Shape ID for the gradient shape"""
+
+    time_id: yardl.Int32
+    """Shape ID for the time sampling points, specified in the units of GradientRasterTime.
+    0 means default time raster, -1 means 1/2 of the default time raster (gradient oversampling case).
+    """
+
+    delay: yardl.UInt64
+    """Delay before starting the gradient, specified in microseconds"""
+
+
+    def __init__(self, *,
+        id: yardl.Int32 = 0,
+        amp: yardl.Float64 = 0.0,
+        first: yardl.Float64 = 0.0,
+        last: yardl.Float64 = 0.0,
+        shape_id: yardl.Int32 = 0,
+        time_id: yardl.Int32 = 0,
+        delay: yardl.UInt64 = 0,
+    ):
+        self.id = id
+        self.amp = amp
+        self.first = first
+        self.last = last
+        self.shape_id = shape_id
+        self.time_id = time_id
+        self.delay = delay
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, ArbitraryGradient)
+            and self.id == other.id
+            and self.amp == other.amp
+            and self.first == other.first
+            and self.last == other.last
+            and self.shape_id == other.shape_id
+            and self.time_id == other.time_id
+            and self.delay == other.delay
+        )
+
+    def __str__(self) -> str:
+        return f"ArbitraryGradient(id={self.id}, amp={self.amp}, first={self.first}, last={self.last}, shape_id={self.shape_id}, time_id={self.time_id}, delay={self.delay})"
+
+    def __repr__(self) -> str:
+        return f"ArbitraryGradient(id={repr(self.id)}, amp={repr(self.amp)}, first={repr(self.first)}, last={repr(self.last)}, shape_id={repr(self.shape_id)}, time_id={repr(self.time_id)}, delay={repr(self.delay)})"
+
+
+class TrapezoidalGradient:
+    """A trapezoidal gradient event"""
+
+    id: yardl.Int32
+    """ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events."""
+
+    amp: yardl.Float64
+    """Peak amplitude in Hz/m"""
+
+    rise: yardl.UInt64
+    """Rise time of the trapezoid in microseconds"""
+
+    flat: yardl.UInt64
+    """Flat-top time of the trapezoid in microseconds"""
+
+    fall: yardl.UInt64
+    """Fall time of the trapezoid in microseconds"""
+
+    delay: yardl.UInt64
+    """Delay before starting the gradient, specified in microseconds"""
+
+
+    def __init__(self, *,
+        id: yardl.Int32 = 0,
+        amp: yardl.Float64 = 0.0,
+        rise: yardl.UInt64 = 0,
+        flat: yardl.UInt64 = 0,
+        fall: yardl.UInt64 = 0,
+        delay: yardl.UInt64 = 0,
+    ):
+        self.id = id
+        self.amp = amp
+        self.rise = rise
+        self.flat = flat
+        self.fall = fall
+        self.delay = delay
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, TrapezoidalGradient)
+            and self.id == other.id
+            and self.amp == other.amp
+            and self.rise == other.rise
+            and self.flat == other.flat
+            and self.fall == other.fall
+            and self.delay == other.delay
+        )
+
+    def __str__(self) -> str:
+        return f"TrapezoidalGradient(id={self.id}, amp={self.amp}, rise={self.rise}, flat={self.flat}, fall={self.fall}, delay={self.delay})"
+
+    def __repr__(self) -> str:
+        return f"TrapezoidalGradient(id={repr(self.id)}, amp={repr(self.amp)}, rise={repr(self.rise)}, flat={repr(self.flat)}, fall={repr(self.fall)}, delay={repr(self.delay)})"
+
+
+class ADCEvent:
+    """An ADC event"""
+
+    id: yardl.Int32
+    """ID of the ADC event"""
+
+    num: yardl.UInt64
+    """Number of samples"""
+
+    dwell: yardl.Float32
+    """The ADC dwell time, specified in nanoseconds"""
+
+    delay: yardl.UInt64
+    """Delay between start of block and first sample, specified in microseconds"""
+
+    freq_ppm: yardl.Float64
+    """Frequency offset of the ADC receiver relative to the system frequency,
+    specified in parts per million (ppm)
+    """
+
+    phase_ppm: yardl.Float64
+    """Phase offset of the ADC receiver proportional to the system frequency,
+    specified in rad/MHz
+    """
+
+    freq: yardl.Float64
+    """Frequency offset of the ADC receiver in absolute units, specified in Hz"""
+
+    phase: yardl.Float64
+    """Phase offset in absolute units, specified in radians"""
+
+    phase_shape_id: yardl.Int32
+    """The shape ID"""
+
+
+    def __init__(self, *,
+        id: yardl.Int32 = 0,
+        num: yardl.UInt64 = 0,
+        dwell: yardl.Float32 = 0.0,
+        delay: yardl.UInt64 = 0,
+        freq_ppm: yardl.Float64 = 0.0,
+        phase_ppm: yardl.Float64 = 0.0,
+        freq: yardl.Float64 = 0.0,
+        phase: yardl.Float64 = 0.0,
+        phase_shape_id: yardl.Int32 = 0,
+    ):
+        self.id = id
+        self.num = num
+        self.dwell = dwell
+        self.delay = delay
+        self.freq_ppm = freq_ppm
+        self.phase_ppm = phase_ppm
+        self.freq = freq
+        self.phase = phase
+        self.phase_shape_id = phase_shape_id
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, ADCEvent)
+            and self.id == other.id
+            and self.num == other.num
+            and self.dwell == other.dwell
+            and self.delay == other.delay
+            and self.freq_ppm == other.freq_ppm
+            and self.phase_ppm == other.phase_ppm
+            and self.freq == other.freq
+            and self.phase == other.phase
+            and self.phase_shape_id == other.phase_shape_id
+        )
+
+    def __str__(self) -> str:
+        return f"ADCEvent(id={self.id}, num={self.num}, dwell={self.dwell}, delay={self.delay}, freq_ppm={self.freq_ppm}, phase_ppm={self.phase_ppm}, freq={self.freq}, phase={self.phase}, phase_shape_id={self.phase_shape_id})"
+
+    def __repr__(self) -> str:
+        return f"ADCEvent(id={repr(self.id)}, num={repr(self.num)}, dwell={repr(self.dwell)}, delay={repr(self.delay)}, freq_ppm={repr(self.freq_ppm)}, phase_ppm={repr(self.phase_ppm)}, freq={repr(self.freq)}, phase={repr(self.phase)}, phase_shape_id={repr(self.phase_shape_id)})"
+
+
+class Shape:
+    """A list of samples that is potentially compressed.
+    If numSamples == size(data) then the shape is uncompressed.
+    """
+
+    id: yardl.Int32
+    """ID of the shape"""
+
+    num_samples: yardl.UInt64
+    """Number of samples of the uncompressed shape"""
+
+    data: npt.NDArray[np.float64]
+    """Samples of the (potentially) compressed shape. See the Pulseq specification for compression details.
+    In the spec, this should be float32, but PyPulseq uses float64.
+    """
+
+
+    def __init__(self, *,
+        id: yardl.Int32 = 0,
+        num_samples: yardl.UInt64 = 0,
+        data: typing.Optional[npt.NDArray[np.float64]] = None,
+    ):
+        self.id = id
+        self.num_samples = num_samples
+        self.data = data if data is not None else np.zeros((0), dtype=np.dtype(np.float64))
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, Shape)
+            and self.id == other.id
+            and self.num_samples == other.num_samples
+            and yardl.structural_equal(self.data, other.data)
+        )
+
+    def __str__(self) -> str:
+        return f"Shape(id={self.id}, num_samples={self.num_samples}, data={self.data})"
+
+    def __repr__(self) -> str:
+        return f"Shape(id={repr(self.id)}, num_samples={repr(self.num_samples)}, data={repr(self.data)})"
+
+
 class StreamItem:
     Acquisition: typing.ClassVar[type["StreamItemUnionCase[Acquisition]"]]
+    AcquisitionPrototype: typing.ClassVar[type["StreamItemUnionCase[AcquisitionPrototype]"]]
     WaveformUint32: typing.ClassVar[type["StreamItemUnionCase[WaveformUint32]"]]
     ImageUint16: typing.ClassVar[type["StreamItemUnionCase[ImageUint16]"]]
     ImageInt16: typing.ClassVar[type["StreamItemUnionCase[ImageInt16]"]]
@@ -2103,24 +2616,39 @@ class StreamItem:
     ReconData: typing.ClassVar[type["StreamItemUnionCase[ReconData]"]]
     ArrayComplexFloat: typing.ClassVar[type["StreamItemUnionCase[ArrayComplexFloat]"]]
     ImageArray: typing.ClassVar[type["StreamItemUnionCase[ImageArray]"]]
+    PulseqDefinitions: typing.ClassVar[type["StreamItemUnionCase[PulseqDefinitions]"]]
+    Blocks: typing.ClassVar[type["StreamItemUnionCase[list[Block]]"]]
+    Rf: typing.ClassVar[type["StreamItemUnionCase[RFEvent]"]]
+    ArbitraryGradient: typing.ClassVar[type["StreamItemUnionCase[ArbitraryGradient]"]]
+    TrapezoidalGradient: typing.ClassVar[type["StreamItemUnionCase[TrapezoidalGradient]"]]
+    Adc: typing.ClassVar[type["StreamItemUnionCase[ADCEvent]"]]
+    Shape: typing.ClassVar[type["StreamItemUnionCase[Shape]"]]
 
 class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
 
-StreamItem.Acquisition = type("StreamItem.Acquisition", (StreamItemUnionCase,), {"index": 0, "tag": "Acquisition"})
-StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 1, "tag": "WaveformUint32"})
-StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 2, "tag": "ImageUint16"})
-StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 3, "tag": "ImageInt16"})
-StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 4, "tag": "ImageUint32"})
-StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 5, "tag": "ImageInt32"})
-StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 6, "tag": "ImageFloat"})
-StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 7, "tag": "ImageDouble"})
-StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 8, "tag": "ImageComplexFloat"})
-StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 9, "tag": "ImageComplexDouble"})
-StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 10, "tag": "AcquisitionBucket"})
-StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 11, "tag": "ReconData"})
-StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 12, "tag": "ArrayComplexFloat"})
-StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 13, "tag": "ImageArray"})
+StreamItem.Acquisition = type("StreamItem.Acquisition", (StreamItemUnionCase,), {"index": 0, "tag": "acquisition"})
+StreamItem.AcquisitionPrototype = type("StreamItem.AcquisitionPrototype", (StreamItemUnionCase,), {"index": 1, "tag": "acquisitionPrototype"})
+StreamItem.WaveformUint32 = type("StreamItem.WaveformUint32", (StreamItemUnionCase,), {"index": 2, "tag": "waveformUint32"})
+StreamItem.ImageUint16 = type("StreamItem.ImageUint16", (StreamItemUnionCase,), {"index": 3, "tag": "imageUint16"})
+StreamItem.ImageInt16 = type("StreamItem.ImageInt16", (StreamItemUnionCase,), {"index": 4, "tag": "imageInt16"})
+StreamItem.ImageUint32 = type("StreamItem.ImageUint32", (StreamItemUnionCase,), {"index": 5, "tag": "imageUint32"})
+StreamItem.ImageInt32 = type("StreamItem.ImageInt32", (StreamItemUnionCase,), {"index": 6, "tag": "imageInt32"})
+StreamItem.ImageFloat = type("StreamItem.ImageFloat", (StreamItemUnionCase,), {"index": 7, "tag": "imageFloat"})
+StreamItem.ImageDouble = type("StreamItem.ImageDouble", (StreamItemUnionCase,), {"index": 8, "tag": "imageDouble"})
+StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemUnionCase,), {"index": 9, "tag": "imageComplexFloat"})
+StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 10, "tag": "imageComplexDouble"})
+StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 11, "tag": "acquisitionBucket"})
+StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 12, "tag": "reconData"})
+StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 13, "tag": "arrayComplexFloat"})
+StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 14, "tag": "imageArray"})
+StreamItem.PulseqDefinitions = type("StreamItem.PulseqDefinitions", (StreamItemUnionCase,), {"index": 15, "tag": "pulseqDefinitions"})
+StreamItem.Blocks = type("StreamItem.Blocks", (StreamItemUnionCase,), {"index": 16, "tag": "blocks"})
+StreamItem.Rf = type("StreamItem.Rf", (StreamItemUnionCase,), {"index": 17, "tag": "rf"})
+StreamItem.ArbitraryGradient = type("StreamItem.ArbitraryGradient", (StreamItemUnionCase,), {"index": 18, "tag": "arbitraryGradient"})
+StreamItem.TrapezoidalGradient = type("StreamItem.TrapezoidalGradient", (StreamItemUnionCase,), {"index": 19, "tag": "trapezoidalGradient"})
+StreamItem.Adc = type("StreamItem.Adc", (StreamItemUnionCase,), {"index": 20, "tag": "adc"})
+StreamItem.Shape = type("StreamItem.Shape", (StreamItemUnionCase,), {"index": 21, "tag": "shape"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():
@@ -2131,6 +2659,7 @@ def _mk_get_dtype():
     dtype_map.setdefault(EncodingCounters, np.dtype([('kspace_encode_step_1', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('kspace_encode_step_2', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('segment', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(AcquisitionHeader, np.dtype([('flags', get_dtype(AcquisitionFlags)), ('idx', get_dtype(EncodingCounters)), ('measurement_uid', np.dtype(np.uint32)), ('scan_counter', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('channel_order', np.dtype(np.object_)), ('discard_pre', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('discard_post', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('center_sample', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('encoding_space_ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('sample_time_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('position', np.dtype(np.float32), (3,)), ('read_dir', np.dtype(np.float32), (3,)), ('phase_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(Acquisition, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data', np.dtype(np.object_)), ('trajectory', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(AcquisitionPrototype, np.dtype([('head', get_dtype(AcquisitionHeader)), ('data_sample_counts', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PatientGender, np.dtype(np.int32))
     dtype_map.setdefault(SubjectInformationType, np.dtype([('patient_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_weight_kg', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_height_m', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float32))], align=True)), ('patient_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('patient_birthdate', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('patient_gender', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(PatientGender))], align=True))], align=True))
     dtype_map.setdefault(StudyInformationType, np.dtype([('study_date', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.datetime64))], align=True)), ('study_time', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.timedelta64))], align=True)), ('study_id', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('accession_number', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.int64))], align=True)), ('referring_physician_name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_description', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('study_instance_uid', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('body_part_examined', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True))], align=True))
@@ -2193,6 +2722,14 @@ def _mk_get_dtype():
     dtype_map.setdefault(ReconAssembly, np.dtype([('data', get_dtype(ReconBuffer)), ('ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ReconBuffer))], align=True))], align=True))
     dtype_map.setdefault(ReconData, np.dtype([('buffers', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageArray, np.dtype([('data', np.dtype(np.object_)), ('headers', np.dtype(np.object_)), ('meta', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(PulseqDefinitions, np.dtype([('gradient_raster_time', np.dtype(np.float64)), ('radiofrequency_raster_time', np.dtype(np.float64)), ('adc_raster_time', np.dtype(np.float64)), ('block_duration_raster', np.dtype(np.float64)), ('name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('fov', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ThreeDimensionalFloat))], align=True)), ('total_duration', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float64))], align=True)), ('custom', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(Block, np.dtype([('id', np.dtype(np.int32)), ('duration', np.dtype(np.uint64)), ('rf', np.dtype(np.int32)), ('gx', np.dtype(np.int32)), ('gy', np.dtype(np.int32)), ('gz', np.dtype(np.int32)), ('adc', np.dtype(np.int32)), ('ext', np.dtype(np.int32))], align=True))
+    dtype_map.setdefault(RFPulseUse, np.dtype(np.int32))
+    dtype_map.setdefault(RFEvent, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('mag_id', np.dtype(np.int32)), ('phase_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('center', np.dtype(np.float64)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq_offset', np.dtype(np.float64)), ('phase_offset', np.dtype(np.float64)), ('use', get_dtype(RFPulseUse))], align=True))
+    dtype_map.setdefault(ArbitraryGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('first', np.dtype(np.float64)), ('last', np.dtype(np.float64)), ('shape_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('delay', np.dtype(np.uint64))], align=True))
+    dtype_map.setdefault(TrapezoidalGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('rise', np.dtype(np.uint64)), ('flat', np.dtype(np.uint64)), ('fall', np.dtype(np.uint64)), ('delay', np.dtype(np.uint64))], align=True))
+    dtype_map.setdefault(ADCEvent, np.dtype([('id', np.dtype(np.int32)), ('num', np.dtype(np.uint64)), ('dwell', np.dtype(np.float32)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq', np.dtype(np.float64)), ('phase', np.dtype(np.float64)), ('phase_shape_id', np.dtype(np.int32))], align=True))
+    dtype_map.setdefault(Shape, np.dtype([('id', np.dtype(np.int32)), ('num_samples', np.dtype(np.uint64)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(StreamItem, np.dtype(np.object_))
 
     return get_dtype
