@@ -125,3 +125,11 @@ Acquisition: !record
     activeChannels: size(head.channelOrder)
     trajectoryDimensions: size(trajectory, "basis")
     trajectorySamples: size(trajectory, "samples")
+
+# Specifies header and data size of an acquisition, without the actual data.
+AcquisitionPrototype: !record
+  fields:
+    # Acquisition header template
+    head: AcquisitionHeader
+    # Sample counts by coil
+    dataSampleCounts: uint[()]
