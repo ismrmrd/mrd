@@ -4,10 +4,10 @@
 
 ### Anaconda
 
-We recommend using the `mrd` Anaconda package, which can be installed using `conda` or `mamba`:
+We recommend using the `mrd` Anaconda package, which can be installed using `conda`:
 
 ```bash
-$ mamba install ismrmrd:mrd
+$ conda install ismrmrd:mrd
 ```
 
 ### CMake

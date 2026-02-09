@@ -1,15 +1,11 @@
+#include "fftw_wrappers.h"
 #include "mrd/binary/protocols.h"
 #include "mrd/protocols.h"
 #include "mrd/types.h"
 
-#include <xtensor-fftw/basic.hpp>
-#include <xtensor-fftw/helper.hpp>
-#include <xtensor/xstrided_view.hpp>
-#include <xtensor/xview.hpp>
-
-xt::xtensor<std::complex<float>, 4> fftshift(xt::xtensor<std::complex<float>, 4> x) {
-  return xt::roll(xt::roll(x, x.shape(3) / 2, 3), x.shape(2) / 2, 2);
-}
+#include <xtensor/core/xmath.hpp>
+#include <xtensor/misc/xcomplex.hpp>
+#include <xtensor/views/xview.hpp>
 
 void remove_oversampling(mrd::Acquisition& acq, const mrd::EncodingType& enc) {
   auto new_shape = acq.data.shape();
@@ -21,14 +17,18 @@ void remove_oversampling(mrd::Acquisition& acq, const mrd::EncodingType& enc) {
   xt::xtensor<std::complex<float>, 2> new_data = xt::zeros<std::complex<float>>(new_shape);
   for (size_t c = 0; c < acq.Coils(); c++) {
     auto ft_line = xt::xarray<std::complex<float>>(xt::view(acq.data, c, xt::all()));
-    ft_line = xt::fftw::fftshift(xt::fftw::ifft(xt::fftw::ifftshift(ft_line)));
+    ft_line = fftw_wrappers::fftshift(fftw_wrappers::ifft(fftw_wrappers::ifftshift(ft_line)));
     ft_line *= std::sqrt(1.0f * ft_line.size());
     ft_line = xt::view(ft_line, xt::range(x_pad, rNx + x_pad));
-    ft_line = xt::fftw::fftshift(xt::fftw::fft(xt::fftw::ifftshift(ft_line)));
+    ft_line = fftw_wrappers::fftshift(fftw_wrappers::fft(fftw_wrappers::ifftshift(ft_line)));
     ft_line /= std::sqrt(1.0f * ft_line.size());
     xt::view(new_data, c, xt::all()) = ft_line;
   }
   acq.data = new_data;
+}
+
+xt::xtensor<std::complex<float>, 4> fftshift(xt::xtensor<std::complex<float>, 4> x) {
+  return xt::roll(xt::roll(x, x.shape(3) / 2, 3), x.shape(2) / 2, 2);
 }
 
 void print_usage(std::string program_name) {
@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
           auto slice = xt::view(buffer, c, s, xt::all(), xt::all(), xt::all(), xt::all());
           slice = fftshift(slice);
           for (unsigned int coil = 0; coil < slice.shape(0); coil++) {
-            auto tmp1 = xt::fftw::ifft2(xt::xarray<std::complex<float>>(xt::view(slice, coil, 0, xt::all(), xt::all())));
+            auto tmp1 = fftw_wrappers::ifft2(xt::xarray<std::complex<float>>(xt::view(slice, coil, 0, xt::all(), xt::all())));
             tmp1 *= std::sqrt(1.0f * tmp1.size());
             xt::view(slice, coil, 0, xt::all(), xt::all()) = tmp1;
           }
