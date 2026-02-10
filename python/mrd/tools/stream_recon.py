@@ -107,10 +107,12 @@ def accumulate_fft(head: mrd.Header, input: Iterable[mrd.Acquisition]) -> Iterab
                 if len(combined.shape) == 3:
                     zoffset = (combined.shape[-3] + 1) // 2 - (rNz+1) // 2
                     combined = combined[zoffset:(zoffset+rNz), yoffset:(yoffset+rNy), xoffset:(xoffset+rNx)]
-                    combined = np.reshape(combined, (1, combined.shape[-3], combined.shape[-2], combined.shape[-1]))
+                    # reshape to (channel=1, z, y, x, frequency=1)
+                    combined = np.reshape(combined, (1, combined.shape[-3], combined.shape[-2], combined.shape[-1], 1))
                 elif len(combined.shape) == 2:
                     combined = combined[yoffset:(yoffset+rNy), xoffset:(xoffset+rNx)]
-                    combined = np.reshape(combined, (1, 1, combined.shape[-2], combined.shape[-1]))
+                    # reshape to (channel=1, z=1, y, x, frequency=1)
+                    combined = np.reshape(combined, (1, 1, combined.shape[-2], combined.shape[-1], 1))
                 else:
                     raise Exception('Array img_combined should have 2 or 3 dimensions')
 

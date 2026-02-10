@@ -204,6 +204,9 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
                 acq.head.idx.slice = 0
                 acq.head.idx.repetition = r
                 acq.data[:] = kspace[:, 0, line, :]
+                print('acq.trajectory: ', acq.trajectory)
+                print('acq.data.shape: ', acq.data.shape)
+                print('acq.traj.reshape: ', acq.trajectory.reshape((2, nkx)))
 
                 if store_coordinates:
                     acq.trajectory.resize((2, nkx))

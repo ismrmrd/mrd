@@ -1498,6 +1498,12 @@ class ImageHeader:
     measurement_uid: yardl.UInt32
     """Unique ID corresponding to the image"""
 
+    measurement_frequency: typing.Optional[npt.NDArray[np.uint32]]
+    """NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension"""
+
+    measurement_frequency_label: typing.Optional[npt.NDArray[np.object_]]
+    """NMR label of the measurementFrequency. Same size as measurementFrequency"""
+
     field_of_view: npt.NDArray[np.float32]
     """Physical size (in mm) in each of the 3 dimensions in the image"""
 
@@ -1559,6 +1565,8 @@ class ImageHeader:
     def __init__(self, *,
         flags: ImageFlags = ImageFlags(0),
         measurement_uid: yardl.UInt32 = 0,
+        measurement_frequency: typing.Optional[npt.NDArray[np.uint32]] = None,
+        measurement_frequency_label: typing.Optional[npt.NDArray[np.object_]] = None,
         field_of_view: typing.Optional[npt.NDArray[np.float32]] = None,
         position: typing.Optional[npt.NDArray[np.float32]] = None,
         col_dir: typing.Optional[npt.NDArray[np.float32]] = None,
@@ -1581,6 +1589,8 @@ class ImageHeader:
     ):
         self.flags = flags
         self.measurement_uid = measurement_uid
+        self.measurement_frequency = measurement_frequency
+        self.measurement_frequency_label = measurement_frequency_label
         self.field_of_view = field_of_view if field_of_view is not None else np.zeros((3,), dtype=np.dtype(np.float32))
         self.position = position if position is not None else np.zeros((3,), dtype=np.dtype(np.float32))
         self.col_dir = col_dir if col_dir is not None else np.zeros((3,), dtype=np.dtype(np.float32))
@@ -1606,6 +1616,8 @@ class ImageHeader:
             isinstance(other, ImageHeader)
             and self.flags == other.flags
             and self.measurement_uid == other.measurement_uid
+            and (other.measurement_frequency is None if self.measurement_frequency is None else (other.measurement_frequency is not None and yardl.structural_equal(self.measurement_frequency, other.measurement_frequency)))
+            and (other.measurement_frequency_label is None if self.measurement_frequency_label is None else (other.measurement_frequency_label is not None and yardl.structural_equal(self.measurement_frequency_label, other.measurement_frequency_label)))
             and yardl.structural_equal(self.field_of_view, other.field_of_view)
             and yardl.structural_equal(self.position, other.position)
             and yardl.structural_equal(self.col_dir, other.col_dir)
@@ -1628,10 +1640,10 @@ class ImageHeader:
         )
 
     def __str__(self) -> str:
-        return f"ImageHeader(flags={self.flags}, measurement_uid={self.measurement_uid}, field_of_view={self.field_of_view}, position={self.position}, col_dir={self.col_dir}, line_dir={self.line_dir}, slice_dir={self.slice_dir}, patient_table_position={self.patient_table_position}, average={self.average}, slice={self.slice}, contrast={self.contrast}, phase={self.phase}, repetition={self.repetition}, set={self.set}, acquisition_time_stamp_ns={self.acquisition_time_stamp_ns}, physiology_time_stamp_ns={self.physiology_time_stamp_ns}, image_type={self.image_type}, image_index={self.image_index}, image_series_index={self.image_series_index}, user_int={self.user_int}, user_float={self.user_float})"
+        return f"ImageHeader(flags={self.flags}, measurement_uid={self.measurement_uid}, measurement_frequency={self.measurement_frequency}, measurement_frequency_label={self.measurement_frequency_label}, field_of_view={self.field_of_view}, position={self.position}, col_dir={self.col_dir}, line_dir={self.line_dir}, slice_dir={self.slice_dir}, patient_table_position={self.patient_table_position}, average={self.average}, slice={self.slice}, contrast={self.contrast}, phase={self.phase}, repetition={self.repetition}, set={self.set}, acquisition_time_stamp_ns={self.acquisition_time_stamp_ns}, physiology_time_stamp_ns={self.physiology_time_stamp_ns}, image_type={self.image_type}, image_index={self.image_index}, image_series_index={self.image_series_index}, user_int={self.user_int}, user_float={self.user_float})"
 
     def __repr__(self) -> str:
-        return f"ImageHeader(flags={repr(self.flags)}, measurement_uid={repr(self.measurement_uid)}, field_of_view={repr(self.field_of_view)}, position={repr(self.position)}, col_dir={repr(self.col_dir)}, line_dir={repr(self.line_dir)}, slice_dir={repr(self.slice_dir)}, patient_table_position={repr(self.patient_table_position)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, acquisition_time_stamp_ns={repr(self.acquisition_time_stamp_ns)}, physiology_time_stamp_ns={repr(self.physiology_time_stamp_ns)}, image_type={repr(self.image_type)}, image_index={repr(self.image_index)}, image_series_index={repr(self.image_series_index)}, user_int={repr(self.user_int)}, user_float={repr(self.user_float)})"
+        return f"ImageHeader(flags={repr(self.flags)}, measurement_uid={repr(self.measurement_uid)}, measurement_frequency={repr(self.measurement_frequency)}, measurement_frequency_label={repr(self.measurement_frequency_label)}, field_of_view={repr(self.field_of_view)}, position={repr(self.position)}, col_dir={repr(self.col_dir)}, line_dir={repr(self.line_dir)}, slice_dir={repr(self.slice_dir)}, patient_table_position={repr(self.patient_table_position)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, acquisition_time_stamp_ns={repr(self.acquisition_time_stamp_ns)}, physiology_time_stamp_ns={repr(self.physiology_time_stamp_ns)}, image_type={repr(self.image_type)}, image_index={repr(self.image_index)}, image_series_index={repr(self.image_series_index)}, user_int={repr(self.user_int)}, user_float={repr(self.user_float)})"
 
 
 _T = typing.TypeVar('_T')
@@ -1682,6 +1694,9 @@ class Image(typing.Generic[T_NP]):
 
     def cols(self) -> yardl.Size:
         return self.data.shape[3]
+
+    def frequencies(self) -> yardl.Size:
+        return self.data.shape[4]
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -2171,7 +2186,7 @@ def _mk_get_dtype():
     dtype_map.setdefault(Header, np.dtype([('version', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.int64))], align=True)), ('subject_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(SubjectInformationType))], align=True)), ('study_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(StudyInformationType))], align=True)), ('measurement_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(MeasurementInformationType))], align=True)), ('acquisition_system_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(AcquisitionSystemInformationType))], align=True)), ('experimental_conditions', get_dtype(ExperimentalConditionsType)), ('encoding', np.dtype(np.object_)), ('sequence_parameters', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(SequenceParametersType))], align=True)), ('user_parameters', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(UserParametersType))], align=True)), ('waveform_information', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageFlags, np.dtype(np.uint64))
     dtype_map.setdefault(ImageType, np.dtype(np.int32))
-    dtype_map.setdefault(ImageHeader, np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(ImageHeader, np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('measurement_frequency', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('measurement_frequency_label', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageMetaValue, np.dtype(np.object_))
     dtype_map.setdefault(Image, lambda type_args: np.dtype([('head', get_dtype(ImageHeader)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageUint16, get_dtype(types.GenericAlias(Image, (yardl.UInt16,))))

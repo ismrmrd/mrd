@@ -514,7 +514,7 @@ def convert_image(ismrmrd_img: ismrmrd.Image) -> mrd.StreamItem:
             # If parsing fails, skip meta
             pass
 
-    data = ismrmrd_img.data
+    data = np.expand_dims(ismrmrd_img.data, axis=-1)    # add frequency dimension on the last dimension
     dtype = data.dtype
     if dtype == np.uint16:
         img = mrd.Image[np.uint16](head=out_head, data=data.astype(np.uint16), meta=meta)

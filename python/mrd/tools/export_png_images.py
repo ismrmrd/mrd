@@ -20,7 +20,7 @@ def export(input, output, verbose=False):
 
             for c in range(image.channels()):
                 for s in range(image.slices()):
-                    im = Image.fromarray(pixels[c, s, :, :], 'L')
+                    im = Image.fromarray(pixels[c, s, :, :, 0], 'L')    # last dimension on index0 to ignore frequency dimension
                     filename = f"{output}{image_count:05d}.png"
                     im.save(filename, format='PNG')
                     if verbose:
