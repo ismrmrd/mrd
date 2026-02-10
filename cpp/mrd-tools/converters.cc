@@ -1054,8 +1054,8 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
     for (int z = 0; z < im.getMatrixSizeZ(); z++) {
       for (int y = 0; y < im.getMatrixSizeY(); y++) {
         for (int x = 0; x < im.getMatrixSizeX(); x++) {
-          // ISMRMRD does not support frequency dimension from MRD image
-          // Take 0th image on frequency dimension from MRD to ISMRMRD
+          // MRD supports frequency as extra dimension, which does not exist in ISMRMRD format
+          // Take 0th image on frequency dimension from MRD to convert to ISMRMRD
           im(x, y, z, c) = image.data(c, z, y, x, 0);
         }
       }
@@ -2063,8 +2063,8 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
     image.head.user_float.push_back(im.getUserFloat(i));
   }
 
-  // Add an extra singleton dimension from ISMRMRD to represent (channel, z, y, x, frequency) dimensions for MRD image
-  mrd::ImageData<T> data({im.getNumberOfChannels(), im.getMatrixSizeZ(), im.getMatrixSizeY(), im.getMatrixSizeX(), 0});
+  // Add an extra singleton dimension to represent (channel, z, y, x, frequency) dimensions for MRD image
+  mrd::ImageData<T> data({im.getNumberOfChannels(), im.getMatrixSizeZ(), im.getMatrixSizeY(), im.getMatrixSizeX(), 1});
   for (int c = 0; c < im.getNumberOfChannels(); c++) {
     for (int z = 0; z < im.getMatrixSizeZ(); z++) {
       for (int y = 0; y < im.getMatrixSizeY(); y++) {

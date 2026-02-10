@@ -1695,7 +1695,7 @@ class Image(typing.Generic[T_NP]):
     def cols(self) -> yardl.Size:
         return self.data.shape[3]
 
-    def freqs(self) -> yardl.Size:
+    def frequencies(self) -> yardl.Size:
         return self.data.shape[4]
 
     def __eq__(self, other: object) -> bool:

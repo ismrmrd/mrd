@@ -985,7 +985,7 @@ struct Image {
     return yardl::shape(data, 3);
   }
 
-  yardl::Size Freqs() const {
+  yardl::Size Frequencies() const {
     return yardl::shape(data, 4);
   }
 

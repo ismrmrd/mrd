@@ -98,7 +98,7 @@ Image<T>: !record
     slices: size(data, "z")
     rows: size(data, "y")
     cols: size(data, "x")
-    freqs: size(data, "frequency")
+    frequencies: size(data, "frequency")
 
 ImageUint16: Image<uint16>
 ImageInt16: Image<int16>
