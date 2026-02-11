@@ -1,6 +1,7 @@
 """Convert fastMRI HDF5 files to MRD format."""
 
 import argparse
+import logging
 
 import h5py
 import ismrmrd
@@ -14,12 +15,13 @@ FASTMRI_DATASET_NAME_MASK = "mask"
 FASTMRI_DATASET_NAME_RECON_RSS = "reconstruction_rss"
 FASTMRI_DATASET_NAME_RECON_ESC = "reconstruction_esc"
 
+logger = logging.getLogger(__name__)
+
 
 def extract_and_convert_header(dset: h5py.Dataset) -> mrd.Header:
     """Extract ISMRMRD header from fastMRI dataset and convert to MRD header."""
     header_bytes = dset[()]
     ismrmrd_header = ismrmrd.xsd.CreateFromDocument(header_bytes)
-    # print(ismrmrd_header)
     mrd_header = convert_header(ismrmrd_header)
     return mrd_header
 
@@ -87,11 +89,20 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
             acq = mrd.Acquisition(head=head, data=data)
             return acq
 
-        # Synthesize noise acquisitions using first line of k-space, which should not have any signal
+        # Synthesize noise acquisitions using first or last line of k-space, which should not have any signal
         for slice in range(num_slices):
-            acq = _new_acquisition(slice, 0)
+            first_line = _new_acquisition(slice, 0)
+            last_line = _new_acquisition(slice, num_kspace_lines - 1)
+
+            # Choose the line with lower std as the noise acquisition, since some datasets have interference in k-space
+            if np.std(np.abs(last_line.data)) < np.std(np.abs(first_line.data)):
+                acq = last_line
+            else:
+                acq = first_line
+
             acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT
-            assert np.std(np.abs(acq.data)) < 1e-5, "Expected to find noise, but data has significant variation"
+            if np.std(np.abs(acq.data)) >= 1e-5:
+                logger.warning(f"Expected to find noise in slice {slice}, but data has significant variation with std {np.std(np.abs(acq.data))}.")
             item = mrd.StreamItem.Acquisition(acq)
             writer.write_data([item])
 
