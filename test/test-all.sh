@@ -14,7 +14,7 @@ function ifmatlab() {
 }
 
 function cleanup() {
-  rm -f ./*.mrd ./*.png ./*.pipe
+  rm -f ./*.h5 ./*.ismrmrd ./*.mrd ./*.png ./*.pipe
   popd >/dev/null
 }
 
@@ -132,5 +132,28 @@ python -m mrd.tools.export_png_images --input recon_out.pipe
 # ifmatlab && run-matlab-command 'generate_phantom("recon_in.pipe")' &
 # ifmatlab && run-matlab-command 'stream_recon("recon_in.pipe", "recon_out.pipe")' &
 # ifmatlab && run-matlab-command 'export_png_images("recon_out.pipe")' &
+
+
+#### Test conversion between ISMRMRD and MRD formats
+
+## Test C++ converter
+ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > roundtrip.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > recon_rountrip.ismrmrd
+diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_rountrip.ismrmrd
+
+## Test Python converter
+ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > roundtrip.ismrmrd
+python diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
+python -m mrd.tools.ismrmrd_to_mrd --dataset phantom.h5 | python -m mrd.tools.mrd_to_ismrmrd > dataset_roundtrip.ismrmrd
+python diff-ismrmrd-streams.py direct.ismrmrd dataset_roundtrip.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_rountrip.ismrmrd
+python diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
+
 
 echo Finished end-to-end tests
