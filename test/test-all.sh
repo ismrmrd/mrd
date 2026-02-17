@@ -52,15 +52,15 @@ ifmatlab && run-matlab-command 'stream_recon("phantom.cpp.mrd", "reconstructed.c
 ifmatlab && run-matlab-command 'stream_recon("phantom.py.mrd", "reconstructed.py.mat.mrd")'
 
 ## Compare reconstructions to reference coil images
-python "$TESTDIR"/validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.cpp.mrd
-python "$TESTDIR"/validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.py.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.mat.mrd
-python "$TESTDIR"/validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.cpp.mrd
-python "$TESTDIR"/validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.py.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.mat.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.cpp.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.py.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.mat.mrd
+python validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.cpp.mrd
+python validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.py.mrd
+ifmatlab && python validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.mat.mrd
+python validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.cpp.mrd
+python validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.py.mrd
+ifmatlab && python validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.mat.mrd
+ifmatlab && python validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.cpp.mrd
+ifmatlab && python validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.py.mrd
+ifmatlab && python validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.mat.mrd
 
 ####
 # Test that phantom generation (with parallel imaging) is consistent across implementations
@@ -79,8 +79,8 @@ mrd_phantom "${generate_args[@]}" --output phantom.cpp.mrd
 python -m mrd.tools.phantom "${generate_args[@]}" --output phantom.py.mrd
 ifmatlab && run-matlab-command 'generate_phantom("phantom.mat.mrd", "ncoils", 14, "matrix_size", 72, "repetitions", 2, "acceleration", 2, "calibration_width", 10, "noise_level", 0, "noise_calibration", true)'
 
-python "$TESTDIR"/compare_dataset.py phantom.cpp.mrd phantom.py.mrd
-ifmatlab && python "$TESTDIR"/compare_dataset.py phantom.cpp.mrd phantom.mat.mrd
+python compare_dataset.py phantom.cpp.mrd phantom.py.mrd
+ifmatlab && python compare_dataset.py phantom.cpp.mrd phantom.mat.mrd
 
 ####
 # Test cross-language compatibility using anonymous pipes
