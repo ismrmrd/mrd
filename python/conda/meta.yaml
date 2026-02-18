@@ -16,6 +16,7 @@ requirements:
   build:
     - python
     - pip
+    - setuptools >=65.5.0
   run:
     - python
     - ismrmrd-python >=1.14.2
