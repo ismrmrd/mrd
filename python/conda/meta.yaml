@@ -13,9 +13,10 @@ build:
     - MRD_VERSION_STRING
 
 requirements:
-  build:
+  host:
     - python
     - pip
+    - setuptools
   run:
     - python
     - ismrmrd-python >=1.14.2
