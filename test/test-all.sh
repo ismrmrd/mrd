@@ -14,7 +14,7 @@ function ifmatlab() {
 }
 
 function cleanup() {
-  rm -f ./*.mrd ./*.png ./*.pipe
+  rm -f ./*.h5 ./*.ismrmrd ./*.mrd ./*.png ./*.pipe
   popd >/dev/null
 }
 
@@ -52,15 +52,15 @@ ifmatlab && run-matlab-command 'stream_recon("phantom.cpp.mrd", "reconstructed.c
 ifmatlab && run-matlab-command 'stream_recon("phantom.py.mrd", "reconstructed.py.mat.mrd")'
 
 ## Compare reconstructions to reference coil images
-python "$TESTDIR"/validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.cpp.mrd
-python "$TESTDIR"/validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.py.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.mat.mrd
-python "$TESTDIR"/validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.cpp.mrd
-python "$TESTDIR"/validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.py.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.mat.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.cpp.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.py.mrd
-ifmatlab && python "$TESTDIR"/validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.mat.mrd
+python validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.cpp.mrd
+python validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.py.mrd
+ifmatlab && python validate_recon.py --reference coil_images.cpp.mrd --testdata reconstructed.cpp.mat.mrd
+python validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.cpp.mrd
+python validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.py.mrd
+ifmatlab && python validate_recon.py --reference coil_images.py.mrd --testdata reconstructed.py.mat.mrd
+ifmatlab && python validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.cpp.mrd
+ifmatlab && python validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.py.mrd
+ifmatlab && python validate_recon.py --reference coil_images.mat.mrd --testdata reconstructed.mat.mat.mrd
 
 ####
 # Test that phantom generation (with parallel imaging) is consistent across implementations
@@ -79,8 +79,8 @@ mrd_phantom "${generate_args[@]}" --output phantom.cpp.mrd
 python -m mrd.tools.phantom "${generate_args[@]}" --output phantom.py.mrd
 ifmatlab && run-matlab-command 'generate_phantom("phantom.mat.mrd", "ncoils", 14, "matrix_size", 72, "repetitions", 2, "acceleration", 2, "calibration_width", 10, "noise_level", 0, "noise_calibration", true)'
 
-python "$TESTDIR"/compare_dataset.py phantom.cpp.mrd phantom.py.mrd
-ifmatlab && python "$TESTDIR"/compare_dataset.py phantom.cpp.mrd phantom.mat.mrd
+python compare_dataset.py phantom.cpp.mrd phantom.py.mrd
+ifmatlab && python compare_dataset.py phantom.cpp.mrd phantom.mat.mrd
 
 ####
 # Test cross-language compatibility using anonymous pipes
@@ -132,5 +132,28 @@ python -m mrd.tools.export_png_images --input recon_out.pipe
 # ifmatlab && run-matlab-command 'generate_phantom("recon_in.pipe")' &
 # ifmatlab && run-matlab-command 'stream_recon("recon_in.pipe", "recon_out.pipe")' &
 # ifmatlab && run-matlab-command 'export_png_images("recon_out.pipe")' &
+
+
+#### Test conversion between ISMRMRD and MRD formats
+
+## Test C++ converter
+ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > roundtrip.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > recon_roundtrip.ismrmrd
+diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_roundtrip.ismrmrd
+
+## Test Python converter
+ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > roundtrip.ismrmrd
+python diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
+python -m mrd.tools.ismrmrd_to_mrd --dataset phantom.h5 | python -m mrd.tools.mrd_to_ismrmrd > dataset_roundtrip.ismrmrd
+python diff-ismrmrd-streams.py direct.ismrmrd dataset_roundtrip.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_roundtrip.ismrmrd
+python diff-ismrmrd-streams.py recon_direct.ismrmrd recon_roundtrip.ismrmrd
+
 
 echo Finished end-to-end tests
