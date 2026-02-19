@@ -33,11 +33,14 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
         if mrd_header.acquisition_system_information.receiver_channels is not None:
             num_channels = mrd_header.acquisition_system_information.receiver_channels
 
-    assert len(mrd_header.encoding) >= 1
+    if len(mrd_header.encoding) < 1:
+        raise RuntimeError("MRD header must contain at least one encoding to convert k-space data")
     encoding: mrd.EncodingType = mrd_header.encoding[0]
-    assert encoding.encoded_space is not None
+    if encoding.encoded_space is None:
+        raise RuntimeError("MRD header encoding must contain encoded_space to convert k-space data")
     encoded_space = encoding.encoded_space
-    assert encoding.encoding_limits is not None
+    if encoding.encoding_limits is None:
+        raise RuntimeError("MRD header encoding must contain encoding_limits to convert k-space data")
     encoding_limits = encoding.encoding_limits
 
     num_slices = 1
@@ -53,10 +56,12 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
             num_kspace_lines = e1_count
 
     if dset.ndim == 4:
-        assert dset.shape == (num_slices, num_channels, encoded_space.matrix_size.x, encoded_space.matrix_size.y)
+        if dset.shape != (num_slices, num_channels, encoded_space.matrix_size.x, encoded_space.matrix_size.y):
+            raise RuntimeError(f"Expected k-space dataset shape {(num_slices, num_channels, encoded_space.matrix_size.x, encoded_space.matrix_size.y)}, but got {dset.shape}")
     else:
         num_channels = 1
-        assert dset.shape == (num_slices, encoded_space.matrix_size.x, encoded_space.matrix_size.y)
+        if dset.shape != (num_slices, encoded_space.matrix_size.x, encoded_space.matrix_size.y):
+            raise RuntimeError(f"Expected k-space dataset shape {(num_slices, encoded_space.matrix_size.x, encoded_space.matrix_size.y)}, but got {dset.shape}")
 
     with mrd.BinaryMrdWriter(output_data_filename) as writer:
         writer.write_header(mrd_header)
@@ -71,6 +76,7 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
             scan_counter += 1
             head.channel_order = list(range(num_channels))
             head.center_sample = encoded_space.matrix_size.x // 2
+            head.encoding_space_ref = 0
             head.position[:] = [0.0, 0.0, 0.0]
             head.read_dir[:] = [1.0, 0.0, 0.0]
             head.phase_dir[:] = [0.0, 1.0, 0.0]
@@ -95,14 +101,18 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
             last_line = _new_acquisition(slice, num_kspace_lines - 1)
 
             # Choose the line with lower std as the noise acquisition, since some datasets have interference in k-space
-            if np.std(np.abs(last_line.data)) < np.std(np.abs(first_line.data)):
+            first_line_std = np.std(np.abs(first_line.data))
+            last_line_std = np.std(np.abs(last_line.data))
+            if last_line_std < first_line_std:
                 acq = last_line
+                acq_std = last_line_std
             else:
                 acq = first_line
+                acq_std = first_line_std
 
             acq.head.flags = mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT
-            if np.std(np.abs(acq.data)) >= 1e-5:
-                logger.warning(f"Expected to find noise in slice {slice}, but data has significant variation with std {np.std(np.abs(acq.data))}.")
+            if acq_std >= 1e-5:
+                logger.warning(f"Expected to find noise in slice {slice}, but data has significant variation with std {acq_std}.")
             item = mrd.StreamItem.Acquisition(acq)
             writer.write_data([item])
 
@@ -116,18 +126,22 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
 
 def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filename: str) -> None:
     """Extract reconstructed images from fastMRI dataset and write to MRD file."""
-    assert len(mrd_header.encoding) >= 1
+    if len(mrd_header.encoding) < 1:
+        raise RuntimeError("MRD header must contain at least one encoding to convert images")
     encoding: mrd.EncodingType = mrd_header.encoding[0]
-    assert encoding.recon_space is not None
+    if encoding.recon_space is None:
+        raise RuntimeError("MRD header encoding must contain recon_space to convert images")
     recon_space = encoding.recon_space
-    assert encoding.encoding_limits is not None
+    if encoding.encoding_limits is None:
+        raise RuntimeError("MRD header encoding must contain encoding_limits to convert images")
     encoding_limits = encoding.encoding_limits
 
     num_slices = 1
     if encoding_limits.slice is not None:
         num_slices = encoding_limits.slice.maximum - encoding_limits.slice.minimum + 1
 
-    assert dset.shape == (num_slices, recon_space.matrix_size.x, recon_space.matrix_size.y)
+    if dset.shape != (num_slices, recon_space.matrix_size.x, recon_space.matrix_size.y):
+        raise RuntimeError(f"Expected image dataset shape {(num_slices, recon_space.matrix_size.x, recon_space.matrix_size.y)}, but got {dset.shape}")
 
     with mrd.BinaryMrdWriter(output_images_filename) as writer:
         writer.write_header(mrd_header)
@@ -148,16 +162,13 @@ def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filen
             head.image_series_index = 1
 
             # MRD images are of shape (channels, slices, rows, cols)
-            # So we need to tranpose X/Y, and add empty channel and slice dimensions
+            # So we need to transpose X/Y, and add empty channel and slice dimensions
             data = np.transpose(dset[slice, :, :], (1, 0))
             data = np.expand_dims(data, axis=(0, 1))
+            data = np.ascontiguousarray(data)
             img = mrd.Image(head=head, data=data)
             item = mrd.StreamItem.ImageFloat(img)
             writer.write_data([item])
-
-
-def validate_input_file(f: h5py.File) -> None:
-    """Ensure the input fastMRI file contains the expected datasets."""
 
 
 def convert(input_filename: str, output_data_filename: str | None, output_images_filename: str | None) -> None:
@@ -176,19 +187,22 @@ def convert(input_filename: str, output_data_filename: str | None, output_images
 
         # Convert ISMRMRD header to MRD header
         dset = f[FASTMRI_DATASET_NAME_HEADER]
-        assert isinstance(dset, h5py.Dataset)
+        if not isinstance(dset, h5py.Dataset):
+            raise RuntimeError(f"Expected dataset '{FASTMRI_DATASET_NAME_HEADER}' to be a h5py.Dataset, but got {type(dset)}")
         mrd_header = extract_and_convert_header(dset)
 
         # Convert and write k-space data if requested
         if output_data_filename is not None:
             dset = f[FASTMRI_DATASET_NAME_KSPACE]
-            assert isinstance(dset, h5py.Dataset)
+            if not isinstance(dset, h5py.Dataset):
+                raise RuntimeError(f"Expected dataset '{FASTMRI_DATASET_NAME_KSPACE}' to be a h5py.Dataset, but got {type(dset)}")
             convert_kspace(dset, mrd_header, output_data_filename)
 
         # Convert and write images if requested
         if output_images_filename is not None:
             dset = f[FASTMRI_DATASET_NAME_RECON_RSS]
-            assert isinstance(dset, h5py.Dataset)
+            if not isinstance(dset, h5py.Dataset):
+                raise RuntimeError(f"Expected dataset '{FASTMRI_DATASET_NAME_RECON_RSS}' to be a h5py.Dataset, but got {type(dset)}")
             write_images(dset, mrd_header, output_images_filename)
 
 

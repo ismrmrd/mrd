@@ -9,6 +9,7 @@ packages = ["mrd", "mrd.tools"]
 name = "mrd-python"
 dynamic = ["version"]
 dependencies = [
+    "h5py>=3.15.1",
     "ismrmrd>=1.14.2",
     "numpy>=1.22.0",
     "pillow>=9.2.0"
