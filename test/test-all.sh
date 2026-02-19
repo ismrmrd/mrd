@@ -141,8 +141,8 @@ ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
 ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
 ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > roundtrip.ismrmrd
 ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
-ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > recon_rountrip.ismrmrd
-diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_rountrip.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ismrmrd_to_mrd | mrd_to_ismrmrd > recon_roundtrip.ismrmrd
+diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_roundtrip.ismrmrd
 
 ## Test Python converter
 ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
@@ -152,8 +152,8 @@ python diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
 python -m mrd.tools.ismrmrd_to_mrd --dataset phantom.h5 | python -m mrd.tools.mrd_to_ismrmrd > dataset_roundtrip.ismrmrd
 python diff-ismrmrd-streams.py direct.ismrmrd dataset_roundtrip.ismrmrd
 ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
-ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_rountrip.ismrmrd
-python diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
+ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_roundtrip.ismrmrd
+python diff-ismrmrd-streams.py recon_direct.ismrmrd recon_roundtrip.ismrmrd
 
 
 echo Finished end-to-end tests

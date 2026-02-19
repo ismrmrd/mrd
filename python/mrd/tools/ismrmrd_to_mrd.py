@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert ISMRMRD stream to MRD stream."""
+"""Convert ISMRMRD stream (or HDF5 dataset) to MRD stream."""
 
 import sys
 import heapq
@@ -490,13 +490,14 @@ def convert_image(ismrmrd_img: ismrmrd.Image) -> mrd.StreamItem:
                         str_val = v.strip()
 
                         # Try integer first
-                        if str_val.isdigit():
-                            try:
-                                int_val = int(str_val)
+                        try:
+                            int_val = int(str_val)
+                            # Ensure it's not actually a float ("3.0") or a string ID ("6651_5764")
+                            if '_' not in str_val and '.' not in str_val and 'e' not in str_val.lower():
                                 meta_values.append(mrd.ImageMetaValue.Int64(int_val))
                                 continue
-                            except (ValueError, TypeError):
-                                pass
+                        except (ValueError, TypeError):
+                            pass
 
                         # Try float
                         try:
