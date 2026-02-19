@@ -18,6 +18,7 @@ requirements:
     - pip
   run:
     - python
+    - h5py >=3.15.1
     - ismrmrd-python >=1.14.2
     - numpy >=1.22.0
     - pillow >=9.2.0
@@ -30,6 +31,7 @@ test:
     - mrd.tools.export_png_images
     - mrd.tools.ismrmrd_to_mrd
     - mrd.tools.mrd_to_ismrmrd
+    - mrd.tools.fastmri_to_mrd
 
 about:
   home: https://ismrmrd.github.io/mrd
