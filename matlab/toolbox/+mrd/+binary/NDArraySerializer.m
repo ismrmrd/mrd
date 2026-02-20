@@ -3,7 +3,7 @@
 classdef NDArraySerializer < yardl.binary.RecordSerializer
   methods
     function self = NDArraySerializer(t_serializer)
-      field_serializers{1} = mrd.binary.NDArrayHeaderSerializer();
+      field_serializers{1} = mrd.binary.ArrayHeaderSerializer();
       field_serializers{2} = yardl.binary.DynamicNDArraySerializer(t_serializer);
       self@yardl.binary.RecordSerializer('mrd.NDArray', field_serializers);
     end

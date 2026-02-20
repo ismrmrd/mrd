@@ -70,8 +70,7 @@ Array<T>: !array
 
 ArrayComplexFloat: Array<complexfloat>
 
-# Added generic NDarray with header 
-
+# array type to describe maps
 ArrayType: !enum
   values:
     spinDensityMap: 1  # in mol/m^3
@@ -80,41 +79,43 @@ ArrayType: !enum
     t2starMap: 4       # in s
     adcMap: 5          # in s/m^2
     b0Map: 6           # in Hz (offset from Image.head.measurementFreq[0])
-    b1Map: 7           # in rad/s/V, channel dimension is xmit channels
-    sensitivityMap: 8  # in Vm^3/mol, channel dimension is rcv channels
+    b1Map: 7           # in rad/s/V, channel dimension is transmit channels
+    sensitivityMap: 8  # in Vm^3/mol, channel dimension is receive channels
     gfactorMap: 9      # unaccelerated SNR/(accelerated SNR * sqrt of acceleration factor)
-    userMap: 10        # custom image type with description at ImageMeta
+    rgbaMap: 10        # rgba image with rgba dimension label
+    userMap: 11        # custom image type with description at ImageMeta
 
 ArrayMetaValue: [string, long, double]
 
-ArrayMeta: string->ArrayMetaValue*  # string label and value as list of string, long, or double
+ArrayMeta: string->ArrayMetaValue*
 
-ArrayDimension: !enum
+ArrayDimension: !enum   # labels for each dimension of NDArray in the order
   values:
-    channel: 0
-    z: 1
-    y: 2
-    x: 3
-    frequency: 4
-    basis: 5
-    samples: 6
-    loc: 7
-    s: 8
-    n: 9
-    e2: 10
-    e1: 11
-    e0: 12
-    time: 13
+    channel: 1
+    z: 2
+    y: 3
+    x: 4
+    frequency: 5
+    basis: 6
+    samples: 7
+    loc: 8
+    s: 9
+    n: 10
+    e2: 11
+    e1: 12
+    e0: 13
+    rgba: 14
+    timeNs: 15
 
-NDArrayHeader: !record
+ArrayHeader: !record
   fields:
-    dimensionLabels: ArrayDimension*  # optional ordered vector of enum labels
-    arrayType: ArrayType              # mandatory type of array
+    dimensionLabels: ArrayDimension*  # optional ordered vector of dimension labels
+    arrayType: ArrayType?             # optional type of the array
     meta: ArrayMeta
 
-NDArray<T>: !record     # no computed fields as the dimension is not labeled in build time
+NDArray<T>: !record                   # custom NDarray field with header
   fields:
-    head: NDArrayHeader 
+    head: ArrayHeader
     data: Array<T>
 
 NDArrayUint16: NDArray<uint16>
@@ -126,6 +127,7 @@ NDArrayDouble: NDArray<double>
 NDArrayComplexFloat: NDArray<complexfloat>
 NDArrayComplexDouble: NDArray<complexdouble>
 
+# Union of all MRD NDArray types
 AnyNDArray:
   - NDArrayUint16
   - NDArrayInt16

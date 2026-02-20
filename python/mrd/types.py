@@ -1488,7 +1488,6 @@ class ImageType(yardl.OutOfRangeEnum):
     REAL = 3
     IMAG = 4
     COMPLEX = 5
-    RGBA_MAP = 6
 
 ImageData = npt.NDArray[Y_NP]
 
@@ -2090,6 +2089,8 @@ Array = npt.NDArray[T_NP]
 ArrayComplexFloat = Array[np.complex64]
 
 class ArrayType(yardl.OutOfRangeEnum):
+    """array type to describe maps"""
+
     SPIN_DENSITY_MAP = 1
     T1_MAP = 2
     T2_MAP = 3
@@ -2099,7 +2100,8 @@ class ArrayType(yardl.OutOfRangeEnum):
     B1_MAP = 7
     SENSITIVITY_MAP = 8
     GFACTOR_MAP = 9
-    USER_MAP = 10
+    RGBA_MAP = 10
+    USER_MAP = 11
 
 class ArrayMetaValue:
     String: typing.ClassVar[type["ArrayMetaValueUnionCase[str]"]]
@@ -2117,29 +2119,30 @@ del ArrayMetaValueUnionCase
 ArrayMeta = dict[str, list[ArrayMetaValue]]
 
 class ArrayDimension(yardl.OutOfRangeEnum):
-    CHANNEL = 0
-    Z = 1
-    Y = 2
-    X = 3
-    FREQUENCY = 4
-    BASIS = 5
-    SAMPLES = 6
-    LOC = 7
-    S = 8
-    N = 9
-    E2 = 10
-    E1 = 11
-    E0 = 12
-    TIME = 13
+    CHANNEL = 1
+    Z = 2
+    Y = 3
+    X = 4
+    FREQUENCY = 5
+    BASIS = 6
+    SAMPLES = 7
+    LOC = 8
+    S = 9
+    N = 10
+    E2 = 11
+    E1 = 12
+    E0 = 13
+    RGBA = 14
+    TIME_NS = 15
 
-class NDArrayHeader:
+class ArrayHeader:
     dimension_labels: list[ArrayDimension]
-    array_type: ArrayType
+    array_type: typing.Optional[ArrayType]
     meta: ArrayMeta
 
     def __init__(self, *,
         dimension_labels: typing.Optional[list[ArrayDimension]] = None,
-        array_type: ArrayType,
+        array_type: typing.Optional[ArrayType] = None,
         meta: typing.Optional[ArrayMeta] = None,
     ):
         self.dimension_labels = dimension_labels if dimension_labels is not None else []
@@ -2148,28 +2151,28 @@ class NDArrayHeader:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, NDArrayHeader)
+            isinstance(other, ArrayHeader)
             and self.dimension_labels == other.dimension_labels
             and self.array_type == other.array_type
             and self.meta == other.meta
         )
 
     def __str__(self) -> str:
-        return f"NDArrayHeader(dimension_labels={self.dimension_labels}, array_type={self.array_type}, meta={self.meta})"
+        return f"ArrayHeader(dimension_labels={self.dimension_labels}, array_type={self.array_type}, meta={self.meta})"
 
     def __repr__(self) -> str:
-        return f"NDArrayHeader(dimension_labels={repr(self.dimension_labels)}, array_type={repr(self.array_type)}, meta={repr(self.meta)})"
+        return f"ArrayHeader(dimension_labels={repr(self.dimension_labels)}, array_type={repr(self.array_type)}, meta={repr(self.meta)})"
 
 
 class NDArray(typing.Generic[T_NP]):
-    head: NDArrayHeader
+    head: ArrayHeader
     data: Array[T_NP]
 
     def __init__(self, *,
-        head: NDArrayHeader,
+        head: typing.Optional[ArrayHeader] = None,
         data: Array[T_NP],
     ):
-        self.head = head
+        self.head = head if head is not None else ArrayHeader()
         self.data = data
 
     def __eq__(self, other: object) -> bool:
@@ -2349,8 +2352,8 @@ def _mk_get_dtype():
     dtype_map.setdefault(ArrayType, np.dtype(np.int32))
     dtype_map.setdefault(ArrayMetaValue, np.dtype(np.object_))
     dtype_map.setdefault(ArrayDimension, np.dtype(np.int32))
-    dtype_map.setdefault(NDArrayHeader, np.dtype([('dimension_labels', np.dtype(np.object_)), ('array_type', get_dtype(ArrayType)), ('meta', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(NDArray, lambda type_args: np.dtype([('head', get_dtype(NDArrayHeader)), ('data', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(ArrayHeader, np.dtype([('dimension_labels', np.dtype(np.object_)), ('array_type', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ArrayType))], align=True)), ('meta', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(NDArray, lambda type_args: np.dtype([('head', get_dtype(ArrayHeader)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(NDArrayUint16, get_dtype(types.GenericAlias(NDArray, (yardl.UInt16,))))
     dtype_map.setdefault(NDArrayInt16, get_dtype(types.GenericAlias(NDArray, (yardl.Int16,))))
     dtype_map.setdefault(NDArrayUint32, get_dtype(types.GenericAlias(NDArray, (yardl.UInt32,))))

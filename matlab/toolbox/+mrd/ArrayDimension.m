@@ -3,46 +3,49 @@
 classdef ArrayDimension < uint64
   methods (Static)
     function v = CHANNEL
-      v = mrd.ArrayDimension(0);
-    end
-    function v = Z
       v = mrd.ArrayDimension(1);
     end
-    function v = Y
+    function v = Z
       v = mrd.ArrayDimension(2);
     end
-    function v = X
+    function v = Y
       v = mrd.ArrayDimension(3);
     end
-    function v = FREQUENCY
+    function v = X
       v = mrd.ArrayDimension(4);
     end
-    function v = BASIS
+    function v = FREQUENCY
       v = mrd.ArrayDimension(5);
     end
-    function v = SAMPLES
+    function v = BASIS
       v = mrd.ArrayDimension(6);
     end
-    function v = LOC
+    function v = SAMPLES
       v = mrd.ArrayDimension(7);
     end
-    function v = S
+    function v = LOC
       v = mrd.ArrayDimension(8);
     end
-    function v = N
+    function v = S
       v = mrd.ArrayDimension(9);
     end
-    function v = E2
+    function v = N
       v = mrd.ArrayDimension(10);
     end
-    function v = E1
+    function v = E2
       v = mrd.ArrayDimension(11);
     end
-    function v = E0
+    function v = E1
       v = mrd.ArrayDimension(12);
     end
-    function v = TIME
+    function v = E0
       v = mrd.ArrayDimension(13);
+    end
+    function v = RGBA
+      v = mrd.ArrayDimension(14);
+    end
+    function v = TIME_NS
+      v = mrd.ArrayDimension(15);
     end
 
     function z = zeros(varargin)

@@ -869,8 +869,6 @@ namespace {
   t.insert("imag", &i);
   i = 5ULL;
   t.insert("complex", &i);
-  i = 6ULL;
-  t.insert("rgbaMap", &i);
   return t;
 }
 
@@ -895,40 +893,44 @@ namespace {
   i = 9;
   t.insert("gfactorMap", &i);
   i = 10;
+  t.insert("rgbaMap", &i);
+  i = 11;
   t.insert("userMap", &i);
   return t;
 }
 
 [[maybe_unused]] H5::EnumType GetArrayDimensionHdf5Ddl() {
   H5::EnumType t(H5::PredType::NATIVE_INT32);
-  int32_t i = 0;
+  int32_t i = 1;
   t.insert("channel", &i);
-  i = 1;
-  t.insert("z", &i);
   i = 2;
-  t.insert("y", &i);
+  t.insert("z", &i);
   i = 3;
-  t.insert("x", &i);
+  t.insert("y", &i);
   i = 4;
-  t.insert("frequency", &i);
+  t.insert("x", &i);
   i = 5;
-  t.insert("basis", &i);
+  t.insert("frequency", &i);
   i = 6;
-  t.insert("samples", &i);
+  t.insert("basis", &i);
   i = 7;
-  t.insert("loc", &i);
+  t.insert("samples", &i);
   i = 8;
-  t.insert("s", &i);
+  t.insert("loc", &i);
   i = 9;
-  t.insert("n", &i);
+  t.insert("s", &i);
   i = 10;
-  t.insert("e2", &i);
+  t.insert("n", &i);
   i = 11;
-  t.insert("e1", &i);
+  t.insert("e2", &i);
   i = 12;
-  t.insert("e0", &i);
+  t.insert("e1", &i);
   i = 13;
-  t.insert("time", &i);
+  t.insert("e0", &i);
+  i = 14;
+  t.insert("rgba", &i);
+  i = 15;
+  t.insert("timeNs", &i);
   return t;
 }
 
@@ -1867,22 +1869,22 @@ struct _Inner_ImageArray {
   yardl::hdf5::InnerVlen<mrd::hdf5::_Inner_Waveform<uint32_t, uint32_t>, mrd::WaveformUint32> waveforms;
 };
 
-struct _Inner_NDArrayHeader {
-  _Inner_NDArrayHeader() {} 
-  _Inner_NDArrayHeader(mrd::NDArrayHeader const& o) 
+struct _Inner_ArrayHeader {
+  _Inner_ArrayHeader() {} 
+  _Inner_ArrayHeader(mrd::ArrayHeader const& o) 
       : dimension_labels(o.dimension_labels),
       array_type(o.array_type),
       meta(o.meta) {
   }
 
-  void ToOuter (mrd::NDArrayHeader& o) const {
+  void ToOuter (mrd::ArrayHeader& o) const {
     yardl::hdf5::ToOuter(dimension_labels, o.dimension_labels);
     yardl::hdf5::ToOuter(array_type, o.array_type);
     yardl::hdf5::ToOuter(meta, o.meta);
   }
 
   yardl::hdf5::InnerVlen<mrd::ArrayDimension, mrd::ArrayDimension> dimension_labels;
-  mrd::ArrayType array_type;
+  yardl::hdf5::InnerOptional<mrd::ArrayType, mrd::ArrayType> array_type;
   yardl::hdf5::InnerMap<yardl::hdf5::InnerVlenString, std::string, yardl::hdf5::InnerVlen<::InnerUnion3<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>, mrd::ArrayMetaValue>, std::vector<mrd::ArrayMetaValue>> meta;
 };
 
@@ -1899,7 +1901,7 @@ struct _Inner_NDArray {
     yardl::hdf5::ToOuter(data, o.data);
   }
 
-  mrd::hdf5::_Inner_NDArrayHeader head;
+  mrd::hdf5::_Inner_ArrayHeader head;
   yardl::hdf5::InnerDynamicNdArray<_T_Inner, T> data;
 };
 
@@ -2400,11 +2402,11 @@ template <typename _T_Inner, typename T>
   return t;
 }
 
-[[maybe_unused]] H5::CompType GetNDArrayHeaderHdf5Ddl() {
-  using RecordType = mrd::hdf5::_Inner_NDArrayHeader;
+[[maybe_unused]] H5::CompType GetArrayHeaderHdf5Ddl() {
+  using RecordType = mrd::hdf5::_Inner_ArrayHeader;
   H5::CompType t(sizeof(RecordType));
   t.insertMember("dimensionLabels", HOFFSET(RecordType, dimension_labels), yardl::hdf5::InnerVlenDdl(mrd::hdf5::GetArrayDimensionHdf5Ddl()));
-  t.insertMember("arrayType", HOFFSET(RecordType, array_type), mrd::hdf5::GetArrayTypeHdf5Ddl());
+  t.insertMember("arrayType", HOFFSET(RecordType, array_type), yardl::hdf5::OptionalTypeDdl<mrd::ArrayType, mrd::ArrayType>(mrd::hdf5::GetArrayTypeHdf5Ddl()));
   t.insertMember("meta", HOFFSET(RecordType, meta), yardl::hdf5::InnerMapDdl<yardl::hdf5::InnerVlenString, yardl::hdf5::InnerVlen<::InnerUnion3<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>, mrd::ArrayMetaValue>>(yardl::hdf5::InnerVlenStringDdl(), yardl::hdf5::InnerVlenDdl(::InnerUnion3Ddl<yardl::hdf5::InnerVlenString, std::string, int64_t, int64_t, double, double>(false, yardl::hdf5::InnerVlenStringDdl(), "string", H5::PredType::NATIVE_INT64, "int64", H5::PredType::NATIVE_DOUBLE, "float64"))));
   return t;
 }
@@ -2413,7 +2415,7 @@ template <typename _T_Inner, typename T>
 [[maybe_unused]] H5::CompType GetNDArrayHdf5Ddl(H5::DataType const& T_type) {
   using RecordType = mrd::hdf5::_Inner_NDArray<_T_Inner, T>;
   H5::CompType t(sizeof(RecordType));
-  t.insertMember("head", HOFFSET(RecordType, head), mrd::hdf5::GetNDArrayHeaderHdf5Ddl());
+  t.insertMember("head", HOFFSET(RecordType, head), mrd::hdf5::GetArrayHeaderHdf5Ddl());
   t.insertMember("data", HOFFSET(RecordType, data), yardl::hdf5::DynamicNDArrayDdl<_T_Inner, T>(T_type));
   return t;
 }

@@ -583,9 +583,9 @@ def convert_image(mrd_img) -> ismrmrd.Image:
     # Create ISMRMRD image, resize it, and set header
     img = ismrmrd.Image()
     # Note: resize signature is (nc, nz, ny, nx) - same order as MRD!
-    img.resize(channels, z, y, x, )
+    img.resize(channels, z, y, x)
     img.setHead(head)
-    img.data[:] = data[:, np.newaxis]  # Drop frequency dimension
+    img.data[:] = data
 
     # Set attribute_string if present
     if attribute_string:
@@ -625,6 +625,7 @@ def stream_mrd_to_ismrmrd(reader: mrd.BinaryMrdReader, serializer: ismrmrd.seria
         elif isinstance(mrd_item, mrd.StreamItem.ImageComplexDouble):
             ismrmrd_item = convert_image(mrd_item.value)
         else:
+            print(f'Unsupported MRD StreamItem type: {mrd_item}')
             raise ValueError("Unsupported MRD StreamItem type")
         if ismrmrd_item is None:
             raise ValueError("Conversion resulted in invalid ISMRMRD item")

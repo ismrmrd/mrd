@@ -638,8 +638,8 @@ struct IsTriviallySerializable<mrd::ImageArray> {
 };
 
 template <>
-struct IsTriviallySerializable<mrd::NDArrayHeader> {
-  using __T__ = mrd::NDArrayHeader;
+struct IsTriviallySerializable<mrd::ArrayHeader> {
+  using __T__ = mrd::ArrayHeader;
   static constexpr bool value = 
     std::is_standard_layout_v<__T__> &&
     IsTriviallySerializable<decltype(__T__::dimension_labels)>::value &&
@@ -2619,25 +2619,25 @@ template<typename T, yardl::binary::Reader<T> ReadT>
   yardl::binary::ReadMap<std::string, std::vector<mrd::ArrayMetaValue>, yardl::binary::ReadString, yardl::binary::ReadVector<mrd::ArrayMetaValue, mrd::binary::ReadArrayMetaValue>>(stream, value);
 }
 
-[[maybe_unused]] void WriteNDArrayHeader(yardl::binary::CodedOutputStream& stream, mrd::NDArrayHeader const& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::NDArrayHeader>::value) {
+[[maybe_unused]] void WriteArrayHeader(yardl::binary::CodedOutputStream& stream, mrd::ArrayHeader const& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ArrayHeader>::value) {
     yardl::binary::WriteTriviallySerializable(stream, value);
     return;
   }
 
   yardl::binary::WriteVector<mrd::ArrayDimension, yardl::binary::WriteEnum<mrd::ArrayDimension>>(stream, value.dimension_labels);
-  yardl::binary::WriteEnum<mrd::ArrayType>(stream, value.array_type);
+  yardl::binary::WriteOptional<mrd::ArrayType, yardl::binary::WriteEnum<mrd::ArrayType>>(stream, value.array_type);
   mrd::binary::WriteArrayMeta(stream, value.meta);
 }
 
-[[maybe_unused]] void ReadNDArrayHeader(yardl::binary::CodedInputStream& stream, mrd::NDArrayHeader& value) {
-  if constexpr (yardl::binary::IsTriviallySerializable<mrd::NDArrayHeader>::value) {
+[[maybe_unused]] void ReadArrayHeader(yardl::binary::CodedInputStream& stream, mrd::ArrayHeader& value) {
+  if constexpr (yardl::binary::IsTriviallySerializable<mrd::ArrayHeader>::value) {
     yardl::binary::ReadTriviallySerializable(stream, value);
     return;
   }
 
   yardl::binary::ReadVector<mrd::ArrayDimension, yardl::binary::ReadEnum<mrd::ArrayDimension>>(stream, value.dimension_labels);
-  yardl::binary::ReadEnum<mrd::ArrayType>(stream, value.array_type);
+  yardl::binary::ReadOptional<mrd::ArrayType, yardl::binary::ReadEnum<mrd::ArrayType>>(stream, value.array_type);
   mrd::binary::ReadArrayMeta(stream, value.meta);
 }
 
@@ -2648,7 +2648,7 @@ template<typename T, yardl::binary::Writer<T> WriteT>
     return;
   }
 
-  mrd::binary::WriteNDArrayHeader(stream, value.head);
+  mrd::binary::WriteArrayHeader(stream, value.head);
   mrd::binary::WriteArray<T, WriteT>(stream, value.data);
 }
 
@@ -2659,7 +2659,7 @@ template<typename T, yardl::binary::Reader<T> ReadT>
     return;
   }
 
-  mrd::binary::ReadNDArrayHeader(stream, value.head);
+  mrd::binary::ReadArrayHeader(stream, value.head);
   mrd::binary::ReadArray<T, ReadT>(stream, value.data);
 }
 

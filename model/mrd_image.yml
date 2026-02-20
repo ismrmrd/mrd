@@ -23,7 +23,6 @@ ImageType: !enum
     real: 3
     imag: 4
     complex: 5
-    rgbaMap: 6          # a uint32 image in which channel dimension is R, G, B, alpha
 
 ImageData<Y>: !array
   items: Y

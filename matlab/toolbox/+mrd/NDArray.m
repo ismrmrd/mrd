@@ -9,11 +9,8 @@ classdef NDArray < handle
   methods
     function self = NDArray(kwargs)
       arguments
-        kwargs.head;
+        kwargs.head = mrd.ArrayHeader();
         kwargs.data;
-      end
-      if ~isfield(kwargs, "head")
-        throw(yardl.TypeError("Missing required keyword argument 'head'"))
       end
       self.head = kwargs.head;
       if ~isfield(kwargs, "data")
@@ -40,7 +37,7 @@ classdef NDArray < handle
 
   methods (Static)
     function z = zeros(varargin)
-      elem = mrd.NDArray(head=yardl.None, data=yardl.None);
+      elem = mrd.NDArray(data=yardl.None);
       if nargin == 0
         z = elem;
         return;

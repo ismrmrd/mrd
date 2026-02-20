@@ -181,8 +181,8 @@ void from_json(ordered_json const& j, mrd::ArrayType& value);
 void to_json(ordered_json& j, mrd::ArrayDimension const& value);
 void from_json(ordered_json const& j, mrd::ArrayDimension& value);
 
-void to_json(ordered_json& j, mrd::NDArrayHeader const& value);
-void from_json(ordered_json const& j, mrd::NDArrayHeader& value);
+void to_json(ordered_json& j, mrd::ArrayHeader const& value);
+void from_json(ordered_json const& j, mrd::ArrayHeader& value);
 
 template <typename T>
 void to_json(ordered_json& j, mrd::NDArray<T> const& value);
@@ -2683,7 +2683,6 @@ std::unordered_map<std::string, mrd::ImageType> const __ImageType_values = {
   {"real", mrd::ImageType::kReal},
   {"imag", mrd::ImageType::kImag},
   {"complex", mrd::ImageType::kComplex},
-  {"rgbaMap", mrd::ImageType::kRgbaMap},
 };
 } //namespace
 
@@ -2703,9 +2702,6 @@ void to_json(ordered_json& j, mrd::ImageType const& value) {
       break;
     case mrd::ImageType::kComplex:
       j = "complex";
-      break;
-    case mrd::ImageType::kRgbaMap:
-      j = "rgbaMap";
       break;
     default:
       using underlying_type = typename std::underlying_type<mrd::ImageType>::type;
@@ -3185,6 +3181,7 @@ std::unordered_map<std::string, mrd::ArrayType> const __ArrayType_values = {
   {"b1Map", mrd::ArrayType::kB1Map},
   {"sensitivityMap", mrd::ArrayType::kSensitivityMap},
   {"gfactorMap", mrd::ArrayType::kGfactorMap},
+  {"rgbaMap", mrd::ArrayType::kRgbaMap},
   {"userMap", mrd::ArrayType::kUserMap},
 };
 } //namespace
@@ -3217,6 +3214,9 @@ void to_json(ordered_json& j, mrd::ArrayType const& value) {
       break;
     case mrd::ArrayType::kGfactorMap:
       j = "gfactorMap";
+      break;
+    case mrd::ArrayType::kRgbaMap:
+      j = "rgbaMap";
       break;
     case mrd::ArrayType::kUserMap:
       j = "userMap";
@@ -3256,7 +3256,8 @@ std::unordered_map<std::string, mrd::ArrayDimension> const __ArrayDimension_valu
   {"e2", mrd::ArrayDimension::kE2},
   {"e1", mrd::ArrayDimension::kE1},
   {"e0", mrd::ArrayDimension::kE0},
-  {"time", mrd::ArrayDimension::kTime},
+  {"rgba", mrd::ArrayDimension::kRgba},
+  {"timeNs", mrd::ArrayDimension::kTimeNs},
 };
 } //namespace
 
@@ -3301,8 +3302,11 @@ void to_json(ordered_json& j, mrd::ArrayDimension const& value) {
     case mrd::ArrayDimension::kE0:
       j = "e0";
       break;
-    case mrd::ArrayDimension::kTime:
-      j = "time";
+    case mrd::ArrayDimension::kRgba:
+      j = "rgba";
+      break;
+    case mrd::ArrayDimension::kTimeNs:
+      j = "timeNs";
       break;
     default:
       using underlying_type = typename std::underlying_type<mrd::ArrayDimension>::type;
@@ -3324,7 +3328,7 @@ void from_json(ordered_json const& j, mrd::ArrayDimension& value) {
   value = static_cast<mrd::ArrayDimension>(j.get<underlying_type>());
 }
 
-void to_json(ordered_json& j, mrd::NDArrayHeader const& value) {
+void to_json(ordered_json& j, mrd::ArrayHeader const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.dimension_labels)) {
     j.push_back({"dimensionLabels", value.dimension_labels});
@@ -3337,7 +3341,7 @@ void to_json(ordered_json& j, mrd::NDArrayHeader const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::NDArrayHeader& value) {
+void from_json(ordered_json const& j, mrd::ArrayHeader& value) {
   if (auto it = j.find("dimensionLabels"); it != j.end()) {
     it->get_to(value.dimension_labels);
   }

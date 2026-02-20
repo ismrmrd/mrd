@@ -1107,6 +1107,32 @@ int convert(ArrayComplexFloat&) {
   return 0;
 }
 
+// Convert mrd::NDArray<T> - no equivalent in ISMRMRD::
+int convert(NDArray<unsigned short>&) {
+  return 0;
+}
+int convert(NDArray<short>&) {
+  return 0;
+}
+int convert(NDArray<unsigned int>&) {
+  return 0;
+}
+int convert(NDArray<int>&) {
+  return 0;
+}
+int convert(NDArray<float>&) {
+  return 0;
+}
+int convert(NDArray<double>&) {
+  return 0;
+}
+int convert(NDArray<std::complex<float>>&) {
+  return 0;
+}
+int convert(NDArray<std::complex<double>>&) {
+  return 0;
+}
+
 yardl::Date date_from_string(const std::string& s) {
   std::stringstream ss{s};
 

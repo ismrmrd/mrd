@@ -22,6 +22,14 @@ int convert(AcquisitionBucket&);
 int convert(ReconData&);
 int convert(ImageArray&);
 int convert(ArrayComplexFloat&);
+int convert(NDArray<unsigned short>& im);
+int convert(NDArray<short>& im);
+int convert(NDArray<unsigned int>& im);
+int convert(NDArray<int>& im);
+int convert(NDArray<float>& im);
+int convert(NDArray<double>& im);
+int convert(NDArray<std::complex<float>>& im);
+int convert(NDArray<std::complex<double>>& im);
 
 Header convert(ISMRMRD::IsmrmrdHeader& hdr);
 Acquisition convert(ISMRMRD::Acquisition& acq);

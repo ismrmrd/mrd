@@ -872,7 +872,6 @@ enum class ImageType : uint64_t {
   kReal = 3ULL,
   kImag = 4ULL,
   kComplex = 5ULL,
-  kRgbaMap = 6ULL,
 };
 
 template <typename Y>
@@ -1211,6 +1210,7 @@ using Array = yardl::DynamicNDArray<T>;
 
 using ArrayComplexFloat = mrd::Array<std::complex<float>>;
 
+// array type to describe maps
 enum class ArrayType {
   kSpinDensityMap = 1,
   kT1Map = 2,
@@ -1221,7 +1221,8 @@ enum class ArrayType {
   kB1Map = 7,
   kSensitivityMap = 8,
   kGfactorMap = 9,
-  kUserMap = 10,
+  kRgbaMap = 10,
+  kUserMap = 11,
 };
 
 using ArrayMetaValue = std::variant<std::string, int64_t, double>;
@@ -1229,41 +1230,42 @@ using ArrayMetaValue = std::variant<std::string, int64_t, double>;
 using ArrayMeta = std::unordered_map<std::string, std::vector<mrd::ArrayMetaValue>>;
 
 enum class ArrayDimension {
-  kChannel = 0,
-  kZ = 1,
-  kY = 2,
-  kX = 3,
-  kFrequency = 4,
-  kBasis = 5,
-  kSamples = 6,
-  kLoc = 7,
-  kS = 8,
-  kN = 9,
-  kE2 = 10,
-  kE1 = 11,
-  kE0 = 12,
-  kTime = 13,
+  kChannel = 1,
+  kZ = 2,
+  kY = 3,
+  kX = 4,
+  kFrequency = 5,
+  kBasis = 6,
+  kSamples = 7,
+  kLoc = 8,
+  kS = 9,
+  kN = 10,
+  kE2 = 11,
+  kE1 = 12,
+  kE0 = 13,
+  kRgba = 14,
+  kTimeNs = 15,
 };
 
-struct NDArrayHeader {
+struct ArrayHeader {
   std::vector<mrd::ArrayDimension> dimension_labels{};
-  mrd::ArrayType array_type{};
+  std::optional<mrd::ArrayType> array_type{};
   mrd::ArrayMeta meta{};
 
-  bool operator==(const NDArrayHeader& other) const {
+  bool operator==(const ArrayHeader& other) const {
     return dimension_labels == other.dimension_labels &&
       array_type == other.array_type &&
       meta == other.meta;
   }
 
-  bool operator!=(const NDArrayHeader& other) const {
+  bool operator!=(const ArrayHeader& other) const {
     return !(*this == other);
   }
 };
 
 template <typename T>
 struct NDArray {
-  mrd::NDArrayHeader head{};
+  mrd::ArrayHeader head{};
   mrd::Array<T> data{};
 
   bool operator==(const NDArray& other) const {
@@ -1292,6 +1294,7 @@ using NDArrayComplexFloat = mrd::NDArray<std::complex<float>>;
 
 using NDArrayComplexDouble = mrd::NDArray<std::complex<double>>;
 
+// Union of all MRD NDArray types
 using AnyNDArray = std::variant<mrd::NDArrayUint16, mrd::NDArrayInt16, mrd::NDArrayUint32, mrd::NDArrayInt32, mrd::NDArrayFloat, mrd::NDArrayDouble, mrd::NDArrayComplexFloat, mrd::NDArrayComplexDouble>;
 
 // Union of all primary types that can be streamed in the MRD Protocol

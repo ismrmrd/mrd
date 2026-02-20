@@ -11,6 +11,7 @@ def acquisition_reader(input: Iterable[mrd.StreamItem]) -> Iterable[mrd.Acquisit
     for item in input:
         if not isinstance(item, mrd.StreamItem.Acquisition):
             # Skip non-acquisition items
+            print(f"Skipping non-acquisition item: {item}")
             continue
         if item.value.head.flags & mrd.AcquisitionFlags.IS_NOISE_MEASUREMENT:
             # Currently ignoring noise scans

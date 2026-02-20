@@ -875,11 +875,11 @@ class ImageArraySerializer(_binary.RecordSerializer[ImageArray]):
         return ImageArray(data=field_values[0], headers=field_values[1], meta=field_values[2], waveforms=field_values[3])
 
 
-class NDArrayHeaderSerializer(_binary.RecordSerializer[NDArrayHeader]):
+class ArrayHeaderSerializer(_binary.RecordSerializer[ArrayHeader]):
     def __init__(self) -> None:
-        super().__init__([("dimension_labels", _binary.VectorSerializer(_binary.EnumSerializer(_binary.int32_serializer, ArrayDimension))), ("array_type", _binary.EnumSerializer(_binary.int32_serializer, ArrayType)), ("meta", _binary.MapSerializer(_binary.string_serializer, _binary.VectorSerializer(_binary.UnionSerializer(ArrayMetaValue, [(ArrayMetaValue.String, _binary.string_serializer), (ArrayMetaValue.Int64, _binary.int64_serializer), (ArrayMetaValue.Float64, _binary.float64_serializer)]))))])
+        super().__init__([("dimension_labels", _binary.VectorSerializer(_binary.EnumSerializer(_binary.int32_serializer, ArrayDimension))), ("array_type", _binary.OptionalSerializer(_binary.EnumSerializer(_binary.int32_serializer, ArrayType))), ("meta", _binary.MapSerializer(_binary.string_serializer, _binary.VectorSerializer(_binary.UnionSerializer(ArrayMetaValue, [(ArrayMetaValue.String, _binary.string_serializer), (ArrayMetaValue.Int64, _binary.int64_serializer), (ArrayMetaValue.Float64, _binary.float64_serializer)]))))])
 
-    def write(self, stream: _binary.CodedOutputStream, value: NDArrayHeader) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: ArrayHeader) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -888,14 +888,14 @@ class NDArrayHeaderSerializer(_binary.RecordSerializer[NDArrayHeader]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['dimension_labels'], value['array_type'], value['meta'])
 
-    def read(self, stream: _binary.CodedInputStream) -> NDArrayHeader:
+    def read(self, stream: _binary.CodedInputStream) -> ArrayHeader:
         field_values = self._read(stream)
-        return NDArrayHeader(dimension_labels=field_values[0], array_type=field_values[1], meta=field_values[2])
+        return ArrayHeader(dimension_labels=field_values[0], array_type=field_values[1], meta=field_values[2])
 
 
 class NDArraySerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[NDArray[T_NP]]):
     def __init__(self, t_serializer: _binary.TypeSerializer[T, T_NP]) -> None:
-        super().__init__([("head", NDArrayHeaderSerializer()), ("data", _binary.DynamicNDArraySerializer(t_serializer))])
+        super().__init__([("head", ArrayHeaderSerializer()), ("data", _binary.DynamicNDArraySerializer(t_serializer))])
 
     def write(self, stream: _binary.CodedOutputStream, value: NDArray[T_NP]) -> None:
         if isinstance(value, np.void):
