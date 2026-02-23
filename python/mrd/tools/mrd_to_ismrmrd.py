@@ -624,8 +624,9 @@ def stream_mrd_to_ismrmrd(reader: mrd.BinaryMrdReader, serializer: ismrmrd.seria
             ismrmrd_item = convert_image(mrd_item.value)
         elif isinstance(mrd_item, mrd.StreamItem.ImageComplexDouble):
             ismrmrd_item = convert_image(mrd_item.value)
+        elif 'NdArray' in mrd_item.__class__.__name__:  # skip any NDArray as ISMRMRD has no equivalent
+            continue
         else:
-            print(f'Unsupported MRD StreamItem type: {mrd_item}')
             raise ValueError("Unsupported MRD StreamItem type")
         if ismrmrd_item is None:
             raise ValueError("Conversion resulted in invalid ISMRMRD item")

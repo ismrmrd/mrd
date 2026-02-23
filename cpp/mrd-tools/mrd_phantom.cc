@@ -303,10 +303,14 @@ int main(int argc, char** argv) {
       coil_images = padded;
     }
 
+    // phantom, csm, coil_images are saved as ImageData, not as ComplexFloat in phantom.py
     auto serialize_array = [&h](const std::string& filename, const xt::xtensor<std::complex<float>, 4>& arr) {
       mrd::binary::MrdWriter w(filename);
       w.WriteHeader(h);
-      w.WriteData(arr);
+      NdArray<std::complex<float>> nd_arr;
+      nd_arr.head.dimension_labels = {mrd::ArrayDimension::kChannel, mrd::ArrayDimension::kZ, mrd::ArrayDimension::kY, mrd::ArrayDimension::kX};
+      nd_arr.data = arr;
+      w.WriteData(nd_arr);
       w.EndData();
       w.Close();
     };

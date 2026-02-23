@@ -34,7 +34,7 @@ class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
         _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.NdArrayUint16, NDArraySerializer(_binary.uint16_serializer)), (StreamItem.NdArrayInt16, NDArraySerializer(_binary.int16_serializer)), (StreamItem.NdArrayUint32, NDArraySerializer(_binary.uint32_serializer)), (StreamItem.NdArrayInt32, NDArraySerializer(_binary.int32_serializer)), (StreamItem.NdArrayFloat, NDArraySerializer(_binary.float32_serializer)), (StreamItem.NdArrayDouble, NDArraySerializer(_binary.float64_serializer)), (StreamItem.NdArrayComplexFloat, NDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.NdArrayComplexDouble, NDArraySerializer(_binary.complexfloat64_serializer))])).write(self._stream, value)
+        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.NdArrayUint16, NdArraySerializer(_binary.uint16_serializer)), (StreamItem.NdArrayInt16, NdArraySerializer(_binary.int16_serializer)), (StreamItem.NdArrayUint32, NdArraySerializer(_binary.uint32_serializer)), (StreamItem.NdArrayInt32, NdArraySerializer(_binary.int32_serializer)), (StreamItem.NdArrayFloat, NdArraySerializer(_binary.float32_serializer)), (StreamItem.NdArrayDouble, NdArraySerializer(_binary.float64_serializer)), (StreamItem.NdArrayComplexFloat, NdArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.NdArrayComplexDouble, NdArraySerializer(_binary.complexfloat64_serializer))])).write(self._stream, value)
 
 
 class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
@@ -52,7 +52,7 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.NdArrayUint16, NDArraySerializer(_binary.uint16_serializer)), (StreamItem.NdArrayInt16, NDArraySerializer(_binary.int16_serializer)), (StreamItem.NdArrayUint32, NDArraySerializer(_binary.uint32_serializer)), (StreamItem.NdArrayInt32, NDArraySerializer(_binary.int32_serializer)), (StreamItem.NdArrayFloat, NDArraySerializer(_binary.float32_serializer)), (StreamItem.NdArrayDouble, NDArraySerializer(_binary.float64_serializer)), (StreamItem.NdArrayComplexFloat, NDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.NdArrayComplexDouble, NDArraySerializer(_binary.complexfloat64_serializer))])).read(self._stream)
+        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.NdArrayUint16, NdArraySerializer(_binary.uint16_serializer)), (StreamItem.NdArrayInt16, NdArraySerializer(_binary.int16_serializer)), (StreamItem.NdArrayUint32, NdArraySerializer(_binary.uint32_serializer)), (StreamItem.NdArrayInt32, NdArraySerializer(_binary.int32_serializer)), (StreamItem.NdArrayFloat, NdArraySerializer(_binary.float32_serializer)), (StreamItem.NdArrayDouble, NdArraySerializer(_binary.float64_serializer)), (StreamItem.NdArrayComplexFloat, NdArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.NdArrayComplexDouble, NdArraySerializer(_binary.complexfloat64_serializer))])).read(self._stream)
 
 class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovarianceWriterBase):
     """Binary writer for the MrdNoiseCovariance protocol.
@@ -875,11 +875,11 @@ class ImageArraySerializer(_binary.RecordSerializer[ImageArray]):
         return ImageArray(data=field_values[0], headers=field_values[1], meta=field_values[2], waveforms=field_values[3])
 
 
-class ArrayHeaderSerializer(_binary.RecordSerializer[ArrayHeader]):
+class NdArrayHeaderSerializer(_binary.RecordSerializer[NdArrayHeader]):
     def __init__(self) -> None:
         super().__init__([("dimension_labels", _binary.VectorSerializer(_binary.EnumSerializer(_binary.int32_serializer, ArrayDimension))), ("array_type", _binary.OptionalSerializer(_binary.EnumSerializer(_binary.int32_serializer, ArrayType))), ("meta", _binary.MapSerializer(_binary.string_serializer, _binary.VectorSerializer(_binary.UnionSerializer(ArrayMetaValue, [(ArrayMetaValue.String, _binary.string_serializer), (ArrayMetaValue.Int64, _binary.int64_serializer), (ArrayMetaValue.Float64, _binary.float64_serializer)]))))])
 
-    def write(self, stream: _binary.CodedOutputStream, value: ArrayHeader) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: NdArrayHeader) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -888,16 +888,16 @@ class ArrayHeaderSerializer(_binary.RecordSerializer[ArrayHeader]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['dimension_labels'], value['array_type'], value['meta'])
 
-    def read(self, stream: _binary.CodedInputStream) -> ArrayHeader:
+    def read(self, stream: _binary.CodedInputStream) -> NdArrayHeader:
         field_values = self._read(stream)
-        return ArrayHeader(dimension_labels=field_values[0], array_type=field_values[1], meta=field_values[2])
+        return NdArrayHeader(dimension_labels=field_values[0], array_type=field_values[1], meta=field_values[2])
 
 
-class NDArraySerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[NDArray[T_NP]]):
+class NdArraySerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[NdArray[T_NP]]):
     def __init__(self, t_serializer: _binary.TypeSerializer[T, T_NP]) -> None:
-        super().__init__([("head", ArrayHeaderSerializer()), ("data", _binary.DynamicNDArraySerializer(t_serializer))])
+        super().__init__([("head", NdArrayHeaderSerializer()), ("data", _binary.DynamicNDArraySerializer(t_serializer))])
 
-    def write(self, stream: _binary.CodedOutputStream, value: NDArray[T_NP]) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: NdArray[T_NP]) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -906,8 +906,8 @@ class NDArraySerializer(typing.Generic[T, T_NP], _binary.RecordSerializer[NDArra
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['head'], value['data'])
 
-    def read(self, stream: _binary.CodedInputStream) -> NDArray[T_NP]:
+    def read(self, stream: _binary.CodedInputStream) -> NdArray[T_NP]:
         field_values = self._read(stream)
-        return NDArray[T_NP](head=field_values[0], data=field_values[1])
+        return NdArray[T_NP](head=field_values[0], data=field_values[1])
 
 

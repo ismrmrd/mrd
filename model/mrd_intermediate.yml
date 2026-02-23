@@ -68,8 +68,6 @@ ImageArray: !record
 Array<T>: !array
   items: T
 
-ArrayComplexFloat: Array<complexfloat>
-
 # array type to describe maps
 ArrayType: !enum
   values:
@@ -107,33 +105,33 @@ ArrayDimension: !enum   # labels for each dimension of NDArray in the order
     rgba: 14
     timeNs: 15
 
-ArrayHeader: !record
+NdArrayHeader: !record
   fields:
     dimensionLabels: ArrayDimension*  # optional ordered vector of dimension labels
     arrayType: ArrayType?             # optional type of the array
     meta: ArrayMeta
 
-NDArray<T>: !record                   # custom NDarray field with header
+NdArray<T>: !record                   # custom NDarray field with header
   fields:
-    head: ArrayHeader
+    head: NdArrayHeader
     data: Array<T>
 
-NDArrayUint16: NDArray<uint16>
-NDArrayInt16: NDArray<int16>
-NDArrayUint32: NDArray<uint>
-NDArrayInt32: NDArray<int>
-NDArrayFloat: NDArray<float>
-NDArrayDouble: NDArray<double>
-NDArrayComplexFloat: NDArray<complexfloat>
-NDArrayComplexDouble: NDArray<complexdouble>
+NdArrayUint16: NdArray<uint16>
+NdArrayInt16: NdArray<int16>
+NdArrayUint32: NdArray<uint>
+NdArrayInt32: NdArray<int>
+NdArrayFloat: NdArray<float>
+NdArrayDouble: NdArray<double>
+NdArrayComplexFloat: NdArray<complexfloat>
+NdArrayComplexDouble: NdArray<complexdouble>
 
 # Union of all MRD NDArray types
-AnyNDArray:
-  - NDArrayUint16
-  - NDArrayInt16
-  - NDArrayUint32
-  - NDArrayInt32
-  - NDArrayFloat
-  - NDArrayDouble
-  - NDArrayComplexFloat
-  - NDArrayComplexDouble
+AnyNdArray:
+  - NdArrayUint16
+  - NdArrayInt16
+  - NdArrayUint32
+  - NdArrayInt32
+  - NdArrayFloat
+  - NdArrayDouble
+  - NdArrayComplexFloat
+  - NdArrayComplexDouble

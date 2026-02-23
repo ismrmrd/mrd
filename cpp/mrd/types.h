@@ -1208,8 +1208,6 @@ struct ImageArray {
 template <typename T>
 using Array = yardl::DynamicNDArray<T>;
 
-using ArrayComplexFloat = mrd::Array<std::complex<float>>;
-
 // array type to describe maps
 enum class ArrayType {
   kSpinDensityMap = 1,
@@ -1247,58 +1245,58 @@ enum class ArrayDimension {
   kTimeNs = 15,
 };
 
-struct ArrayHeader {
+struct NdArrayHeader {
   std::vector<mrd::ArrayDimension> dimension_labels{};
   std::optional<mrd::ArrayType> array_type{};
   mrd::ArrayMeta meta{};
 
-  bool operator==(const ArrayHeader& other) const {
+  bool operator==(const NdArrayHeader& other) const {
     return dimension_labels == other.dimension_labels &&
       array_type == other.array_type &&
       meta == other.meta;
   }
 
-  bool operator!=(const ArrayHeader& other) const {
+  bool operator!=(const NdArrayHeader& other) const {
     return !(*this == other);
   }
 };
 
 template <typename T>
-struct NDArray {
-  mrd::ArrayHeader head{};
+struct NdArray {
+  mrd::NdArrayHeader head{};
   mrd::Array<T> data{};
 
-  bool operator==(const NDArray& other) const {
+  bool operator==(const NdArray& other) const {
     return head == other.head &&
       data == other.data;
   }
 
-  bool operator!=(const NDArray& other) const {
+  bool operator!=(const NdArray& other) const {
     return !(*this == other);
   }
 };
 
-using NDArrayUint16 = mrd::NDArray<uint16_t>;
+using NdArrayUint16 = mrd::NdArray<uint16_t>;
 
-using NDArrayInt16 = mrd::NDArray<int16_t>;
+using NdArrayInt16 = mrd::NdArray<int16_t>;
 
-using NDArrayUint32 = mrd::NDArray<uint32_t>;
+using NdArrayUint32 = mrd::NdArray<uint32_t>;
 
-using NDArrayInt32 = mrd::NDArray<int32_t>;
+using NdArrayInt32 = mrd::NdArray<int32_t>;
 
-using NDArrayFloat = mrd::NDArray<float>;
+using NdArrayFloat = mrd::NdArray<float>;
 
-using NDArrayDouble = mrd::NDArray<double>;
+using NdArrayDouble = mrd::NdArray<double>;
 
-using NDArrayComplexFloat = mrd::NDArray<std::complex<float>>;
+using NdArrayComplexFloat = mrd::NdArray<std::complex<float>>;
 
-using NDArrayComplexDouble = mrd::NDArray<std::complex<double>>;
+using NdArrayComplexDouble = mrd::NdArray<std::complex<double>>;
 
 // Union of all MRD NDArray types
-using AnyNDArray = std::variant<mrd::NDArrayUint16, mrd::NDArrayInt16, mrd::NDArrayUint32, mrd::NDArrayInt32, mrd::NDArrayFloat, mrd::NDArrayDouble, mrd::NDArrayComplexFloat, mrd::NDArrayComplexDouble>;
+using AnyNdArray = std::variant<mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
 
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::NDArrayUint16, mrd::NDArrayInt16, mrd::NDArrayUint32, mrd::NDArrayInt32, mrd::NDArrayFloat, mrd::NDArrayDouble, mrd::NDArrayComplexFloat, mrd::NDArrayComplexDouble>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
 
 } // namespace mrd
 

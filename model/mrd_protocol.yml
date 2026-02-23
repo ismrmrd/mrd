@@ -12,16 +12,15 @@ StreamItem: !union
   imageComplexDouble: ImageComplexDouble
   acquisitionBucket: AcquisitionBucket
   reconData: ReconData
-  arrayComplexFloat: ArrayComplexFloat
   imageArray: ImageArray
-  ndArrayUint16: NDArrayUint16      # stream NDArray types unlike noise
-  ndArrayInt16: NDArrayInt16
-  ndArrayUint32: NDArrayUint32
-  ndArrayInt32: NDArrayInt32
-  ndArrayFloat: NDArrayFloat
-  ndArrayDouble: NDArrayDouble
-  ndArrayComplexFloat: NDArrayComplexFloat
-  ndArrayComplexDouble: NDArrayComplexDouble
+  ndArrayUint16: NdArrayUint16
+  ndArrayInt16: NdArrayInt16
+  ndArrayUint32: NdArrayUint32
+  ndArrayInt32: NdArrayInt32
+  ndArrayFloat: NdArrayFloat
+  ndArrayDouble: NdArrayDouble
+  ndArrayComplexFloat: NdArrayComplexFloat
+  ndArrayComplexDouble: NdArrayComplexDouble
 
 # The MRD Protocol
 Mrd: !protocol

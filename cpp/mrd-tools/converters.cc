@@ -1102,34 +1102,29 @@ int convert(ImageArray&) {
   return 0;
 }
 
-// Convert mrd::Array - no equivalent in ISMRMRD::
-int convert(ArrayComplexFloat&) {
+// Convert mrd::NdArray<T> - no equivalent in ISMRMRD::
+int convert(NdArray<unsigned short>&) {
   return 0;
 }
-
-// Convert mrd::NDArray<T> - no equivalent in ISMRMRD::
-int convert(NDArray<unsigned short>&) {
+int convert(NdArray<short>&) {
   return 0;
 }
-int convert(NDArray<short>&) {
+int convert(NdArray<unsigned int>&) {
   return 0;
 }
-int convert(NDArray<unsigned int>&) {
+int convert(NdArray<int>&) {
   return 0;
 }
-int convert(NDArray<int>&) {
+int convert(NdArray<float>&) {
   return 0;
 }
-int convert(NDArray<float>&) {
+int convert(NdArray<double>&) {
   return 0;
 }
-int convert(NDArray<double>&) {
+int convert(NdArray<std::complex<float>>&) {
   return 0;
 }
-int convert(NDArray<std::complex<float>>&) {
-  return 0;
-}
-int convert(NDArray<std::complex<double>>&) {
+int convert(NdArray<std::complex<double>>&) {
   return 0;
 }
 
