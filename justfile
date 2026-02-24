@@ -79,6 +79,24 @@ python-converter-roundtrip-test: build
 
 converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
 
+pulseq-roundtrip-tests:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    export PYTHONPATH=$(realpath ./python)
+
+    for dir in test/test_data/pulseq/*/; do
+      [[ -d "$dir" ]] || continue
+      pulseq_version=$(basename "$dir")
+      for file in "$dir"*; do
+        [[ -f "$file" ]] || continue
+        # convert to MRD stream and back, compare ignoring comments and whitespace
+        python -m mrd.tools.seq_to_mrd --input "$file" | python -m mrd.tools.mrd_to_seq --pulseq-version "$pulseq_version" | diff -I '#.*' --ignore-space-change "$file" -
+        # Sanity check that PyPulseq can read the file
+        python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
+      done
+    done
+
 @conda-cpp-test: build
     cd cpp/build; \
     PATH=./:$PATH ../conda/run_test.sh
@@ -95,7 +113,7 @@ converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build converter-tests conda-cpp-test conda-python-test matlab-test end-to-end-test
+@test: build converter-tests pulseq-roundtrip-tests conda-cpp-test conda-python-test matlab-test end-to-end-test
 
 @validate: test
 
