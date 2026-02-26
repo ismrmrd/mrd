@@ -875,13 +875,17 @@ enum class ImageType {
 };
 
 template <typename Y>
-using ImageData = yardl::NDArray<Y, 4>;
+using ImageData = yardl::NDArray<Y, 5>;
 
 struct ImageHeader {
   // A bit mask of common attributes applicable to individual images
   mrd::ImageFlags flags{};
   // Unique ID corresponding to the image
   uint32_t measurement_uid{};
+  // NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension
+  std::optional<yardl::DynamicNDArray<uint32_t>> measurement_frequency{};
+  // NMR label of the measurementFrequency. Same size as measurementFrequency
+  std::optional<yardl::DynamicNDArray<std::string>> measurement_frequency_label{};
   // Physical size (in mm) in each of the 3 dimensions in the image
   yardl::FixedNDArray<float, 3> field_of_view{};
   // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -924,6 +928,8 @@ struct ImageHeader {
   bool operator==(const ImageHeader& other) const {
     return flags == other.flags &&
       measurement_uid == other.measurement_uid &&
+      measurement_frequency == other.measurement_frequency &&
+      measurement_frequency_label == other.measurement_frequency_label &&
       field_of_view == other.field_of_view &&
       position == other.position &&
       col_dir == other.col_dir &&
@@ -977,6 +983,10 @@ struct Image {
 
   yardl::Size Cols() const {
     return yardl::shape(data, 3);
+  }
+
+  yardl::Size Frequencies() const {
+    return yardl::shape(data, 4);
   }
 
   bool operator==(const Image& other) const {

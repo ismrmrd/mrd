@@ -964,6 +964,7 @@ ISMRMRD::Waveform convert(mrd::Waveform<uint32_t>& wfm) {
 // Convert mrd::Image<T> to ISMRMRD::Image<T>
 template <class T>
 ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
+  // ISMRMRD Image takes MRD Image without the frequency dimension (x, y, z, channels)
   ISMRMRD::Image<T> im(image.Cols(), image.Rows(), image.Slices(), image.Channels());
 
   mrd::ImageHeader& head = image.head;
@@ -1053,7 +1054,9 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
     for (int z = 0; z < im.getMatrixSizeZ(); z++) {
       for (int y = 0; y < im.getMatrixSizeY(); y++) {
         for (int x = 0; x < im.getMatrixSizeX(); x++) {
-          im(x, y, z, c) = image.data(c, z, y, x);
+          // MRD supports frequency as extra dimension, which does not exist in ISMRMRD format
+          // Take 0th image on frequency dimension from MRD to convert to ISMRMRD
+          im(x, y, z, c) = image.data(c, z, y, x, 0);
         }
       }
     }
@@ -2060,18 +2063,19 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
     image.head.user_float.push_back(im.getUserFloat(i));
   }
 
-  mrd::ImageData<T> data({im.getNumberOfChannels(), im.getMatrixSizeZ(), im.getMatrixSizeY(), im.getMatrixSizeX()});
+  // Add an extra singleton dimension to represent (channel, z, y, x, frequency) dimensions for MRD image
+  mrd::ImageData<T> data({im.getNumberOfChannels(), im.getMatrixSizeZ(), im.getMatrixSizeY(), im.getMatrixSizeX(), 1});
   for (int c = 0; c < im.getNumberOfChannels(); c++) {
     for (int z = 0; z < im.getMatrixSizeZ(); z++) {
       for (int y = 0; y < im.getMatrixSizeY(); y++) {
         for (int x = 0; x < im.getMatrixSizeX(); x++) {
-          data(c, z, y, x) = im(x, y, z, c);
+          data(c, z, y, x, 0) = im(x, y, z, c);
         }
       }
     }
   }
 
-  image.data = xt::view(data, xt::all(), xt::all(), xt::all(), xt::all());
+  image.data = xt::view(data, xt::all(), xt::all(), xt::all(), xt::all(), xt::all());
 
   std::string attrib;
   im.getAttributeString(attrib);

@@ -30,6 +30,7 @@ ImageData<Y>: !array
     z:
     y:
     x:
+    frequency:
 
 ImageHeader: !record
   fields:
@@ -37,6 +38,10 @@ ImageHeader: !record
     flags: ImageFlags
     # Unique ID corresponding to the image
     measurementUid: uint
+    # NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension
+    measurementFrequency: uint[]?
+    # NMR label of the measurementFrequency. Same size as measurementFrequency
+    measurementFrequencyLabel: string[]?
     # Physical size (in mm) in each of the 3 dimensions in the image
     fieldOfView: float[3]
     # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
@@ -76,7 +81,6 @@ ImageHeader: !record
     # User-defined float parameters
     userFloat: float*
 
-
 ImageMetaValue: [string, long, double]
 
 ImageMeta: string->ImageMetaValue*
@@ -94,6 +98,7 @@ Image<T>: !record
     slices: size(data, "z")
     rows: size(data, "y")
     cols: size(data, "x")
+    frequencies: size(data, "frequency")
 
 ImageUint16: Image<uint16>
 ImageInt16: Image<int16>

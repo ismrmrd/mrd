@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
           }
           slice = fftshift(slice);
 
-          std::array<size_t, 4> image_shape = {1, slice.shape(1), slice.shape(2), slice.shape(3)};
+          std::array<size_t, 5> image_shape = {1, slice.shape(1), slice.shape(2), slice.shape(3), 1}; // singleton frequency dimension added
           auto pixel_data = xt::sqrt(xt::abs(xt::sum(slice * xt::conj(slice), 0)));
 
           auto xoffset = (slice.shape(3) + 1) / 2 - (rNx + 1) / 2;
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
           mrd::Image<float> im;
           im.data = xt::zeros<float>(image_shape);
-          xt::view(im.data, 0, xt::all(), xt::all(), xt::all()) = combined;
+          xt::view(im.data, 0, xt::all(), xt::all(), xt::all(), 0) = combined;
 
           im.head.measurement_uid = acq.head.measurement_uid;
           im.head.field_of_view[0] = rFOVx;
