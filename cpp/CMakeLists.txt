@@ -16,8 +16,13 @@ project(mrd VERSION ${MRD_VERSION_STRING})
 
 message(STATUS "MRD_VERSION_STRING: ${MRD_VERSION_STRING}")
 
-SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+# if flags are already set, don't override them
+if (NOT DEFINED CMAKE_CXX_FLAGS_DEBUG)
+    SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+endif ()
+if (NOT DEFINED CMAKE_C_FLAGS_DEBUG)
+    SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+endif ()
 
 #Set the build type to Release if not specified
 if (NOT CMAKE_BUILD_TYPE)

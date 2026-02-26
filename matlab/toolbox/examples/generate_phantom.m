@@ -98,7 +98,16 @@ import mrd.binary.MrdWriter;
 if kwargs.output_phantom ~= ""
     w = MrdWriter(kwargs.output_phantom);
     w.write_header(h);
-    w.write_data(mrd.StreamItem.ArrayComplexFloat(phan));
+    arr_head = mrd.NdArrayHeader();
+    arr_head.dimension_labels = [
+        mrd.ArrayDimension.CHANNEL,
+        mrd.ArrayDimension.Z,
+        mrd.ArrayDimension.Y,
+        mrd.ArrayDimension.X
+    ];
+    arr_head.array_type = mrd.ArrayType.USER_MAP;
+    arr_head.meta = mrd.ArrayMeta("description", [mrd.ArrayMetaValue.String("shepp-logan phantom")]);
+    w.write_data([mrd.StreamItem.NdArrayComplexFloat(mrd.NdArray(head=arr_head, data=phan))]);
     w.end_data();
     w.close();
 end
@@ -106,7 +115,16 @@ end
 if kwargs.output_csm ~= ""
     w = MrdWriter(kwargs.output_csm);
     w.write_header(h);
-    w.write_data(mrd.StreamItem.ArrayComplexFloat(csm));
+    arr_head = mrd.NdArrayHeader();
+    arr_head.dimension_labels = [
+        mrd.ArrayDimension.CHANNEL,
+        mrd.ArrayDimension.Z,
+        mrd.ArrayDimension.Y,
+        mrd.ArrayDimension.X
+    ];
+    arr_head.array_type = mrd.ArrayType.SENSITIVITY_MAP;
+    arr_head.meta = mrd.ArrayMeta("description", [mrd.ArrayMetaValue.String("birdcage sensitivities")]);
+    w.write_data([mrd.StreamItem.NdArrayComplexFloat(mrd.NdArray(head=arr_head, data=csm))]);
     w.end_data();
     w.close();
 end
@@ -114,7 +132,16 @@ end
 if kwargs.output_coils ~= ""
     w = MrdWriter(kwargs.output_coils);
     w.write_header(h);
-    w.write_data(mrd.StreamItem.ArrayComplexFloat(coil_images));
+    arr_head = mrd.NdArrayHeader();
+    arr_head.dimension_labels = [
+        mrd.ArrayDimension.CHANNEL,
+        mrd.ArrayDimension.Z,
+        mrd.ArrayDimension.Y,
+        mrd.ArrayDimension.X
+    ];
+    arr_head.array_type = mrd.ArrayType.USER_MAP;
+    arr_head.meta = mrd.ArrayMeta("description", [mrd.ArrayMetaValue.String("coil images")]);
+    w.write_data([mrd.StreamItem.NdArrayComplexFloat(mrd.NdArray(head=arr_head, data=coil_images))]);
     w.end_data();
     w.close();
 end

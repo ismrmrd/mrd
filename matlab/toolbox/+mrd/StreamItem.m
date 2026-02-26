@@ -50,12 +50,40 @@ classdef StreamItem < yardl.Union
       res = mrd.StreamItem(12, value);
     end
 
-    function res = ArrayComplexFloat(value)
+    function res = ImageArray(value)
       res = mrd.StreamItem(13, value);
     end
 
-    function res = ImageArray(value)
+    function res = NdArrayUint16(value)
       res = mrd.StreamItem(14, value);
+    end
+
+    function res = NdArrayInt16(value)
+      res = mrd.StreamItem(15, value);
+    end
+
+    function res = NdArrayUint32(value)
+      res = mrd.StreamItem(16, value);
+    end
+
+    function res = NdArrayInt32(value)
+      res = mrd.StreamItem(17, value);
+    end
+
+    function res = NdArrayFloat(value)
+      res = mrd.StreamItem(18, value);
+    end
+
+    function res = NdArrayDouble(value)
+      res = mrd.StreamItem(19, value);
+    end
+
+    function res = NdArrayComplexFloat(value)
+      res = mrd.StreamItem(20, value);
+    end
+
+    function res = NdArrayComplexDouble(value)
+      res = mrd.StreamItem(21, value);
     end
 
     function z = zeros(varargin)
@@ -121,12 +149,40 @@ classdef StreamItem < yardl.Union
       res = self.index == 12;
     end
 
-    function res = isArrayComplexFloat(self)
+    function res = isImageArray(self)
       res = self.index == 13;
     end
 
-    function res = isImageArray(self)
+    function res = isNdArrayUint16(self)
       res = self.index == 14;
+    end
+
+    function res = isNdArrayInt16(self)
+      res = self.index == 15;
+    end
+
+    function res = isNdArrayUint32(self)
+      res = self.index == 16;
+    end
+
+    function res = isNdArrayInt32(self)
+      res = self.index == 17;
+    end
+
+    function res = isNdArrayFloat(self)
+      res = self.index == 18;
+    end
+
+    function res = isNdArrayDouble(self)
+      res = self.index == 19;
+    end
+
+    function res = isNdArrayComplexFloat(self)
+      res = self.index == 20;
+    end
+
+    function res = isNdArrayComplexDouble(self)
+      res = self.index == 21;
     end
 
     function eq = eq(self, other)
@@ -138,7 +194,7 @@ classdef StreamItem < yardl.Union
     end
 
     function t = tag(self)
-      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ArrayComplexFloat", "ImageArray"];
+      tags_ = ["Acquisition", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ImageArray", "NdArrayUint16", "NdArrayInt16", "NdArrayUint32", "NdArrayInt32", "NdArrayFloat", "NdArrayDouble", "NdArrayComplexFloat", "NdArrayComplexDouble"];
       t = tags_(self.index_);
     end
   end

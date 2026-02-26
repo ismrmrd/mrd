@@ -481,7 +481,7 @@ def convert_image(mrd_img) -> ismrmrd.Image:
     mrd_head = mrd_img.head
     data = mrd_img.data
 
-    # Get dimensions: data is (channels, z, y, x)
+    # Get dimensions: data is (channels, z, y, x, frequency) drop freq dimension
     channels = data.shape[0]
     z = data.shape[1]
     y = data.shape[2]
@@ -624,6 +624,8 @@ def stream_mrd_to_ismrmrd(reader: mrd.BinaryMrdReader, serializer: ismrmrd.seria
             ismrmrd_item = convert_image(mrd_item.value)
         elif isinstance(mrd_item, mrd.StreamItem.ImageComplexDouble):
             ismrmrd_item = convert_image(mrd_item.value)
+        elif 'NdArray' in mrd_item.__class__.__name__:  # skip any NDArray as ISMRMRD has no equivalent
+            continue
         else:
             raise ValueError("Unsupported MRD StreamItem type")
         if ismrmrd_item is None:

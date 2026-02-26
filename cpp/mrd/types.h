@@ -866,12 +866,12 @@ struct ImageFlags : yardl::BaseFlags<uint64_t, ImageFlags> {
   static const ImageFlags kLastInSet;
 };
 
-enum class ImageType {
-  kMagnitude = 1,
-  kPhase = 2,
-  kReal = 3,
-  kImag = 4,
-  kComplex = 5,
+enum class ImageType : uint64_t {
+  kMagnitude = 1ULL,
+  kPhase = 2ULL,
+  kReal = 3ULL,
+  kImag = 4ULL,
+  kComplex = 5ULL,
 };
 
 template <typename Y>
@@ -1014,7 +1014,7 @@ struct NoiseCovariance {
   std::vector<mrd::CoilLabelType> coil_labels{};
   // Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
   float receiver_noise_bandwidth{};
-  // Comes from Acquisition.sampleTimeNs
+  // Comes from Acquisition.sampleTimeUs
   uint64_t noise_dwell_time_ns{};
   // Number of samples used to compute matrix
   yardl::Size sample_count{};
@@ -1208,10 +1208,95 @@ struct ImageArray {
 template <typename T>
 using Array = yardl::DynamicNDArray<T>;
 
-using ArrayComplexFloat = mrd::Array<std::complex<float>>;
+// array type to describe maps
+enum class ArrayType {
+  kSpinDensityMap = 1,
+  kT1Map = 2,
+  kT2Map = 3,
+  kT2starMap = 4,
+  kAdcMap = 5,
+  kB0Map = 6,
+  kB1Map = 7,
+  kSensitivityMap = 8,
+  kGfactorMap = 9,
+  kRgbaMap = 10,
+  kUserMap = 11,
+};
+
+using ArrayMetaValue = std::variant<std::string, int64_t, double>;
+
+using ArrayMeta = std::unordered_map<std::string, std::vector<mrd::ArrayMetaValue>>;
+
+enum class ArrayDimension {
+  kChannel = 1,
+  kZ = 2,
+  kY = 3,
+  kX = 4,
+  kFrequency = 5,
+  kBasis = 6,
+  kSamples = 7,
+  kLoc = 8,
+  kS = 9,
+  kN = 10,
+  kE2 = 11,
+  kE1 = 12,
+  kE0 = 13,
+  kRgba = 14,
+  kTimeNs = 15,
+};
+
+struct NdArrayHeader {
+  std::vector<mrd::ArrayDimension> dimension_labels{};
+  std::optional<mrd::ArrayType> array_type{};
+  mrd::ArrayMeta meta{};
+
+  bool operator==(const NdArrayHeader& other) const {
+    return dimension_labels == other.dimension_labels &&
+      array_type == other.array_type &&
+      meta == other.meta;
+  }
+
+  bool operator!=(const NdArrayHeader& other) const {
+    return !(*this == other);
+  }
+};
+
+template <typename T>
+struct NdArray {
+  mrd::NdArrayHeader head{};
+  mrd::Array<T> data{};
+
+  bool operator==(const NdArray& other) const {
+    return head == other.head &&
+      data == other.data;
+  }
+
+  bool operator!=(const NdArray& other) const {
+    return !(*this == other);
+  }
+};
+
+using NdArrayUint16 = mrd::NdArray<uint16_t>;
+
+using NdArrayInt16 = mrd::NdArray<int16_t>;
+
+using NdArrayUint32 = mrd::NdArray<uint32_t>;
+
+using NdArrayInt32 = mrd::NdArray<int32_t>;
+
+using NdArrayFloat = mrd::NdArray<float>;
+
+using NdArrayDouble = mrd::NdArray<double>;
+
+using NdArrayComplexFloat = mrd::NdArray<std::complex<float>>;
+
+using NdArrayComplexDouble = mrd::NdArray<std::complex<double>>;
+
+// Union of all MRD NDArray types
+using AnyNdArray = std::variant<mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
 
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
 
 } // namespace mrd
 

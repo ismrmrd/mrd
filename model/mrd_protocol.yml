@@ -1,20 +1,26 @@
 # Union of all primary types that can be streamed in the MRD Protocol
-StreamItem:
-  - Acquisition
-  - WaveformUint32
-  - ImageUint16
-  - ImageInt16
-  - ImageUint32
-  - ImageInt32
-  - ImageFloat
-  - ImageDouble
-  - ImageComplexFloat
-  - ImageComplexDouble
-  - AcquisitionBucket
-  - ReconData
-  - ArrayComplexFloat
-  - ImageArray
-
+StreamItem: !union
+  acquisition: Acquisition
+  waveformUint32: WaveformUint32
+  imageUint16: ImageUint16
+  imageInt16: ImageInt16
+  imageUint32: ImageUint32
+  imageInt32: ImageInt32
+  imageFloat: ImageFloat
+  imageDouble: ImageDouble
+  imageComplexFloat: ImageComplexFloat
+  imageComplexDouble: ImageComplexDouble
+  acquisitionBucket: AcquisitionBucket
+  reconData: ReconData
+  imageArray: ImageArray
+  ndArrayUint16: NdArrayUint16
+  ndArrayInt16: NdArrayInt16
+  ndArrayUint32: NdArrayUint32
+  ndArrayInt32: NdArrayInt32
+  ndArrayFloat: NdArrayFloat
+  ndArrayDouble: NdArrayDouble
+  ndArrayComplexFloat: NdArrayComplexFloat
+  ndArrayComplexDouble: NdArrayComplexDouble
 
 # The MRD Protocol
 Mrd: !protocol

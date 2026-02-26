@@ -14,8 +14,9 @@ def verify_basic_recon(reference_file: str, testdata_file: str):
 
         coil_images = None
         for item in reader.read_data():
-            if isinstance(item, mrd.StreamItem.ArrayComplexFloat):
-                coil_images = np.squeeze(item.value)
+            # coil_images are saved as NdArrayComplex
+            if isinstance(item, mrd.StreamItem.NdArrayComplexFloat):
+                coil_images = np.squeeze(item.value.data)
 
         assert coil_images is not None, "No coil images found in reference data"
         reference = np.sqrt(np.abs(np.sum(coil_images * np.conj(coil_images), 0)))

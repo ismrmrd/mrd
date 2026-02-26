@@ -18,10 +18,17 @@ ISMRMRD::Image<float> convert(Image<float>& im);
 ISMRMRD::Image<double> convert(Image<double>& im);
 ISMRMRD::Image<std::complex<float>> convert(Image<std::complex<float>>& im);
 ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im);
-int convert(AcquisitionBucket&);
-int convert(ReconData&);
-int convert(ImageArray&);
-int convert(ArrayComplexFloat&);
+int convert(AcquisitionBucket&);  // replace later with NdArray
+int convert(ReconData&);          // replace later with NdArray
+int convert(ImageArray&);         // replace later with NdArray
+int convert(NdArray<unsigned short>& im);
+int convert(NdArray<short>& im);
+int convert(NdArray<unsigned int>& im);
+int convert(NdArray<int>& im);
+int convert(NdArray<float>& im);
+int convert(NdArray<double>& im);
+int convert(NdArray<std::complex<float>>& im);
+int convert(NdArray<std::complex<double>>& im);
 
 Header convert(ISMRMRD::IsmrmrdHeader& hdr);
 Acquisition convert(ISMRMRD::Acquisition& acq);
