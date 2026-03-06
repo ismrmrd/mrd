@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Convert ISMRMRD stream to MRD stream."""
+"""Convert ISMRMRD stream (or HDF5 dataset) to MRD stream."""
 
 import sys
+import heapq
 import argparse
 import itertools
 from typing import BinaryIO
@@ -477,7 +478,7 @@ def convert_image(ismrmrd_img: ismrmrd.Image) -> mrd.StreamItem:
                     # ISMRMRD Meta deserializes everything as strings
                     # Try to convert to appropriate numeric type if possible
                     if not isinstance(v, str):
-                        # Already a typed value (shouldn't happen with ISMRMRD, but handle it)
+                        # We must have a typed value (shouldn't happen with ISMRMRD, but we handle it)
                         if isinstance(v, (int, np.integer)):
                             meta_values.append(mrd.ImageMetaValue.Int64(int(v)))
                         elif isinstance(v, (float, np.floating)):
@@ -491,8 +492,8 @@ def convert_image(ismrmrd_img: ismrmrd.Image) -> mrd.StreamItem:
                         # Try integer first
                         try:
                             int_val = int(str_val)
-                            # Check if it's actually an integer (not a float like "3.0")
-                            if '.' not in str_val and 'e' not in str_val.lower():
+                            # Ensure it's not actually a float ("3.0") or a string ID ("6651_5764")
+                            if '_' not in str_val and '.' not in str_val and 'e' not in str_val.lower():
                                 meta_values.append(mrd.ImageMetaValue.Int64(int_val))
                                 continue
                         except (ValueError, TypeError):
@@ -572,7 +573,7 @@ def _generate_mrd_stream_items(ismrmrd_items):
             pass
 
 
-def convert_ismrmrd_to_mrd(input_stream: BinaryIO, output_stream: BinaryIO) -> None:
+def convert_ismrmrd_stream_to_mrd(input_stream: BinaryIO, output_stream: BinaryIO) -> None:
     """
     Convert ISMRMRD stream to MRD stream.
 
@@ -604,45 +605,97 @@ def convert_ismrmrd_to_mrd(input_stream: BinaryIO, output_stream: BinaryIO) -> N
             writer.write_data(_generate_mrd_stream_items(items))
 
 
+def convert_ismrmrd_hdf5_to_mrd(input_file: str, output_stream: BinaryIO) -> None:
+    """
+    Convert ISMRMRD HDF5 dataset to MRD stream.
+
+    Args:
+        input_file: Path to the ISMRMRD HDF5 file
+        output_stream: Binary output stream for MRD data
+    """
+
+    with ismrmrd.File(input_file, mode='r') as f:
+        data_paths = list(f.find_data())
+        image_paths = list(f.find_images())
+
+        ismrmrd_header = None
+        if len(data_paths) > 0:
+            dataset = f[data_paths[0]]
+            ismrmrd_header = dataset.header
+
+        with mrd.BinaryMrdWriter(output_stream) as writer:
+            if ismrmrd_header is not None:
+                writer.write_header(convert_header(ismrmrd_header))
+            else:
+                writer.write_header(None)
+
+            for path in data_paths:
+                dataset = f[path]
+                ismrmrd_items = []
+                if dataset.has_acquisitions() and dataset.has_waveforms():
+                    # Merge acquisitions and waveforms by timestamp to maintain temporal order in the output stream
+                    def keyfunc(item: ismrmrd.Acquisition | ismrmrd.Waveform):
+                        if isinstance(item, ismrmrd.Acquisition):
+                            return item.getHead().acquisition_time_stamp
+                        elif isinstance(item, ismrmrd.Waveform):
+                            return item.getHead().time_stamp
+                        else:
+                            return 0
+
+                    ismrmrd_items = heapq.merge(dataset.acquisitions, dataset.waveforms, key=keyfunc)
+                else:
+                    ismrmrd_items = itertools.chain(
+                        dataset.acquisitions if dataset.has_acquisitions() else [],
+                        dataset.waveforms if dataset.has_waveforms() else []
+                    )
+                writer.write_data(_generate_mrd_stream_items(ismrmrd_items))
+
+            for path in image_paths:
+                imageset = f[path]
+                writer.write_data(_generate_mrd_stream_items(imageset.images))
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert ISMRMRD stream to MRD stream"
+        description="Convert an ISMRMRD stream, *or* an ISMRMRD HDF5 dataset, to an MRD stream."
+    )
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument(
+        '-i', '--input', type=str, help="Input ISMRMRD stream (default: stdin)"
     )
     parser.add_argument(
-        '-i', '--input',
-        type=str,
-        help="Input ISMRMRD stream (default: stdin)"
+        '-o', '--output', type=str, help="Output MRD stream (default: stdout)"
     )
-    parser.add_argument(
-        '-o', '--output',
-        type=str,
-        help="Output MRD stream (default: stdout)"
+    inputs.add_argument(
+        '-d', '--dataset', type=str, help="Input ISMRMRD HDF5 Dataset (cannot be used with --input)"
     )
 
     args = parser.parse_args()
 
-    # Open input stream
-    if args.input:
-        try:
-            input_stream = open(args.input, 'rb')
-        except IOError as e:
-            print(f"Failed to open input file for reading: {e}", file=sys.stderr)
-            return 1
-    else:
-        input_stream = sys.stdin.buffer
-
-    # Open output stream
+    output_stream = sys.stdout.buffer
     if args.output:
+        # Open output stream if filepath is provided
         try:
             output_stream = open(args.output, 'wb')
         except IOError as e:
             print(f"Failed to open output file for writing: {e}", file=sys.stderr)
             return 1
-    else:
-        output_stream = sys.stdout.buffer
+
+    input_stream = sys.stdin.buffer
+    if args.input:
+        # Open input stream if filepath is provided
+        try:
+            input_stream = open(args.input, 'rb')
+        except IOError as e:
+            print(f"Failed to open input file for reading: {e}", file=sys.stderr)
+            return 1
 
     try:
-        convert_ismrmrd_to_mrd(input_stream, output_stream)
+        if args.dataset:
+            # Use a different conversion method if HDF5 dataset is provided
+            convert_ismrmrd_hdf5_to_mrd(args.dataset, output_stream)
+        else:
+            convert_ismrmrd_stream_to_mrd(input_stream, output_stream)
         return 0
     finally:
         if args.input:

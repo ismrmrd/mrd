@@ -1090,6 +1090,11 @@ ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im) {
   return convert<std::complex<double>>(im);
 }
 
+// Convert mrd::AcquisitionPrototype - no equivalent in ISMRMRD::
+int convert(AcquisitionPrototype&) {
+  return 0;
+}
+
 // Convert mrd::AcquisitionBucket - no equivalent in ISMRMRD::
 int convert(AcquisitionBucket&) {
   return 0;
@@ -1107,6 +1112,41 @@ int convert(ImageArray&) {
 
 // Convert mrd::Array - no equivalent in ISMRMRD::
 int convert(ArrayComplexFloat&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqDefinitions&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(std::vector<PulseqBlock>&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD:://
+int convert(PulseqRFEvent&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqArbitraryGradient&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqTrapezoidalGradient&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqADCEvent&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqShape&) {
   return 0;
 }
 
@@ -2117,4 +2157,4 @@ Image<std::complex<double>> convert(ISMRMRD::Image<std::complex<double>>& im) {
   return convert<std::complex<double>>(im);
 }
 
-}
+} // namespace mrd::converters
