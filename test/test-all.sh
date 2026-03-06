@@ -155,5 +155,23 @@ ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesi
 ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_roundtrip.ismrmrd
 python diff-ismrmrd-streams.py recon_direct.ismrmrd recon_roundtrip.ismrmrd
 
+## Test Pulseq roundtrip
+for dir in test_data/pulseq/*/; do
+  [[ -d "$dir" ]] || continue
+  pulseq_version=$(basename "$dir")
+  found_file=false
+  for file in "$dir"*; do
+    [[ -f "$file" ]] || continue
+    found_file=true
+    # convert to MRD stream and back, compare ignoring comments and whitespace
+    python -m mrd.tools.seq_to_mrd --input "$file" | python -m mrd.tools.mrd_to_seq --pulseq-version "$pulseq_version" | diff -I '#.*' --ignore-space-change "$file" -
+    # Sanity check that PyPulseq can read the file
+    python -c "import pypulseq as pp; seq = pp.Sequence(); seq.read('$file')"
+  done
+  if [[ "$found_file" == false ]]; then
+    echo "Error: no Pulseq files found in $dir" >&2
+    exit 1
+  fi
+done
 
 echo Finished end-to-end tests
