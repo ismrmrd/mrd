@@ -18,6 +18,9 @@ void from_json(ordered_json const& j, mrd::AcquisitionHeader& value);
 void to_json(ordered_json& j, mrd::Acquisition const& value);
 void from_json(ordered_json const& j, mrd::Acquisition& value);
 
+void to_json(ordered_json& j, mrd::AcquisitionPrototype const& value);
+void from_json(ordered_json const& j, mrd::AcquisitionPrototype& value);
+
 void to_json(ordered_json& j, mrd::PatientGender const& value);
 void from_json(ordered_json const& j, mrd::PatientGender& value);
 
@@ -188,6 +191,30 @@ template <typename T>
 void to_json(ordered_json& j, mrd::NdArray<T> const& value);
 template <typename T>
 void from_json(ordered_json const& j, mrd::NdArray<T>& value);
+
+void to_json(ordered_json& j, mrd::PulseqDefinitions const& value);
+void from_json(ordered_json const& j, mrd::PulseqDefinitions& value);
+
+void to_json(ordered_json& j, mrd::PulseqBlock const& value);
+void from_json(ordered_json const& j, mrd::PulseqBlock& value);
+
+void to_json(ordered_json& j, mrd::RFPulseUse const& value);
+void from_json(ordered_json const& j, mrd::RFPulseUse& value);
+
+void to_json(ordered_json& j, mrd::PulseqRFEvent const& value);
+void from_json(ordered_json const& j, mrd::PulseqRFEvent& value);
+
+void to_json(ordered_json& j, mrd::PulseqArbitraryGradient const& value);
+void from_json(ordered_json const& j, mrd::PulseqArbitraryGradient& value);
+
+void to_json(ordered_json& j, mrd::PulseqTrapezoidalGradient const& value);
+void from_json(ordered_json const& j, mrd::PulseqTrapezoidalGradient& value);
+
+void to_json(ordered_json& j, mrd::PulseqADCEvent const& value);
+void from_json(ordered_json const& j, mrd::PulseqADCEvent& value);
+
+void to_json(ordered_json& j, mrd::PulseqShape const& value);
+void from_json(ordered_json const& j, mrd::PulseqShape& value);
 
 } // namespace mrd
 
@@ -372,70 +399,73 @@ struct adl_serializer<std::variant<mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>
 };
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>> const& value) {
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>> const& value) {
     switch (value.index()) {
       case 0:
         j = ordered_json{ {"acquisition", std::get<mrd::Acquisition>(value)} };
         break;
       case 1:
-        j = ordered_json{ {"waveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
+        j = ordered_json{ {"acquisitionPrototype", std::get<mrd::AcquisitionPrototype>(value)} };
         break;
       case 2:
-        j = ordered_json{ {"imageUint16", std::get<mrd::Image<uint16_t>>(value)} };
+        j = ordered_json{ {"waveformUint32", std::get<mrd::Waveform<uint32_t>>(value)} };
         break;
       case 3:
-        j = ordered_json{ {"imageInt16", std::get<mrd::Image<int16_t>>(value)} };
+        j = ordered_json{ {"imageUint16", std::get<mrd::Image<uint16_t>>(value)} };
         break;
       case 4:
-        j = ordered_json{ {"imageUint32", std::get<mrd::Image<uint32_t>>(value)} };
+        j = ordered_json{ {"imageInt16", std::get<mrd::Image<int16_t>>(value)} };
         break;
       case 5:
-        j = ordered_json{ {"imageInt32", std::get<mrd::Image<int32_t>>(value)} };
+        j = ordered_json{ {"imageUint32", std::get<mrd::Image<uint32_t>>(value)} };
         break;
       case 6:
-        j = ordered_json{ {"imageFloat", std::get<mrd::Image<float>>(value)} };
+        j = ordered_json{ {"imageInt32", std::get<mrd::Image<int32_t>>(value)} };
         break;
       case 7:
-        j = ordered_json{ {"imageDouble", std::get<mrd::Image<double>>(value)} };
+        j = ordered_json{ {"imageFloat", std::get<mrd::Image<float>>(value)} };
         break;
       case 8:
-        j = ordered_json{ {"imageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
+        j = ordered_json{ {"imageDouble", std::get<mrd::Image<double>>(value)} };
         break;
       case 9:
-        j = ordered_json{ {"imageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
+        j = ordered_json{ {"imageComplexFloat", std::get<mrd::Image<std::complex<float>>>(value)} };
         break;
       case 10:
-        j = ordered_json{ {"acquisitionBucket", std::get<mrd::AcquisitionBucket>(value)} };
+        j = ordered_json{ {"imageComplexDouble", std::get<mrd::Image<std::complex<double>>>(value)} };
         break;
       case 11:
-        j = ordered_json{ {"reconData", std::get<mrd::ReconData>(value)} };
+        j = ordered_json{ {"acquisitionBucket", std::get<mrd::AcquisitionBucket>(value)} };
         break;
       case 12:
-        j = ordered_json{ {"imageArray", std::get<mrd::ImageArray>(value)} };
+        j = ordered_json{ {"reconData", std::get<mrd::ReconData>(value)} };
         break;
       case 13:
-        j = ordered_json{ {"ndArrayUint16", std::get<mrd::NdArray<uint16_t>>(value)} };
+        j = ordered_json{ {"imageArray", std::get<mrd::ImageArray>(value)} };
         break;
       case 14:
-        j = ordered_json{ {"ndArrayInt16", std::get<mrd::NdArray<int16_t>>(value)} };
+        j = ordered_json{ {"ndArrayUint16", std::get<mrd::NdArray<uint16_t>>(value)} };
         break;
       case 15:
-        j = ordered_json{ {"ndArrayUint32", std::get<mrd::NdArray<uint32_t>>(value)} };
+        j = ordered_json{ {"ndArrayInt16", std::get<mrd::NdArray<int16_t>>(value)} };
         break;
       case 16:
-        j = ordered_json{ {"ndArrayInt32", std::get<mrd::NdArray<int32_t>>(value)} };
+        j = ordered_json{ {"ndArrayUint32", std::get<mrd::NdArray<uint32_t>>(value)} };
         break;
       case 17:
-        j = ordered_json{ {"ndArrayFloat", std::get<mrd::NdArray<float>>(value)} };
+        j = ordered_json{ {"ndArrayInt32", std::get<mrd::NdArray<int32_t>>(value)} };
         break;
       case 18:
-        j = ordered_json{ {"ndArrayDouble", std::get<mrd::NdArray<double>>(value)} };
+        j = ordered_json{ {"ndArrayFloat", std::get<mrd::NdArray<float>>(value)} };
         break;
       case 19:
-        j = ordered_json{ {"ndArrayComplexFloat", std::get<mrd::NdArray<std::complex<float>>>(value)} };
+        j = ordered_json{ {"ndArrayDouble", std::get<mrd::NdArray<double>>(value)} };
         break;
       case 20:
+        j = ordered_json{ {"ndArrayComplexFloat", std::get<mrd::NdArray<std::complex<float>>>(value)} };
+        break;
+      case 21:
         j = ordered_json{ {"ndArrayComplexDouble", std::get<mrd::NdArray<std::complex<double>>>(value)} };
         break;
       default:
@@ -443,11 +473,15 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mr
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>>& value) {
     auto it = j.begin();
     std::string tag = it.key();
     if (tag == "acquisition") {
       value = it.value().get<mrd::Acquisition>();
+      return;
+    }
+    if (tag == "acquisitionPrototype") {
+      value = it.value().get<mrd::AcquisitionPrototype>();
       return;
     }
     if (tag == "waveformUint32") {
@@ -930,6 +964,9 @@ void to_json(ordered_json& j, mrd::AcquisitionHeader const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.scan_counter)) {
     j.push_back({"scanCounter", value.scan_counter});
   }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_center_frequency)) {
+    j.push_back({"acquisitionCenterFrequency", value.acquisition_center_frequency});
+  }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.acquisition_time_stamp_ns)) {
     j.push_back({"acquisitionTimeStampNs", value.acquisition_time_stamp_ns});
   }
@@ -990,6 +1027,9 @@ void from_json(ordered_json const& j, mrd::AcquisitionHeader& value) {
   if (auto it = j.find("scanCounter"); it != j.end()) {
     it->get_to(value.scan_counter);
   }
+  if (auto it = j.find("acquisitionCenterFrequency"); it != j.end()) {
+    it->get_to(value.acquisition_center_frequency);
+  }
   if (auto it = j.find("acquisitionTimeStampNs"); it != j.end()) {
     it->get_to(value.acquisition_time_stamp_ns);
   }
@@ -1045,6 +1085,9 @@ void to_json(ordered_json& j, mrd::Acquisition const& value) {
   if (yardl::ndjson::ShouldSerializeFieldValue(value.data)) {
     j.push_back({"data", value.data});
   }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase)) {
+    j.push_back({"phase", value.phase});
+  }
   if (yardl::ndjson::ShouldSerializeFieldValue(value.trajectory)) {
     j.push_back({"trajectory", value.trajectory});
   }
@@ -1057,8 +1100,30 @@ void from_json(ordered_json const& j, mrd::Acquisition& value) {
   if (auto it = j.find("data"); it != j.end()) {
     it->get_to(value.data);
   }
+  if (auto it = j.find("phase"); it != j.end()) {
+    it->get_to(value.phase);
+  }
   if (auto it = j.find("trajectory"); it != j.end()) {
     it->get_to(value.trajectory);
+  }
+}
+
+void to_json(ordered_json& j, mrd::AcquisitionPrototype const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.head)) {
+    j.push_back({"head", value.head});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.data_sample_counts)) {
+    j.push_back({"dataSampleCounts", value.data_sample_counts});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::AcquisitionPrototype& value) {
+  if (auto it = j.find("head"); it != j.end()) {
+    it->get_to(value.head);
+  }
+  if (auto it = j.find("dataSampleCounts"); it != j.end()) {
+    it->get_to(value.data_sample_counts);
   }
 }
 
@@ -3361,6 +3426,428 @@ template <typename T>
 void from_json(ordered_json const& j, mrd::NdArray<T>& value) {
   if (auto it = j.find("head"); it != j.end()) {
     it->get_to(value.head);
+  }
+  if (auto it = j.find("data"); it != j.end()) {
+    it->get_to(value.data);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseqDefinitions const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gradient_raster_time)) {
+    j.push_back({"gradientRasterTime", value.gradient_raster_time});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.radiofrequency_raster_time)) {
+    j.push_back({"radiofrequencyRasterTime", value.radiofrequency_raster_time});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.adc_raster_time)) {
+    j.push_back({"adcRasterTime", value.adc_raster_time});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.block_duration_raster)) {
+    j.push_back({"blockDurationRaster", value.block_duration_raster});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.name)) {
+    j.push_back({"name", value.name});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.fov)) {
+    j.push_back({"fov", value.fov});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.total_duration)) {
+    j.push_back({"totalDuration", value.total_duration});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.custom)) {
+    j.push_back({"custom", value.custom});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqDefinitions& value) {
+  if (auto it = j.find("gradientRasterTime"); it != j.end()) {
+    it->get_to(value.gradient_raster_time);
+  }
+  if (auto it = j.find("radiofrequencyRasterTime"); it != j.end()) {
+    it->get_to(value.radiofrequency_raster_time);
+  }
+  if (auto it = j.find("adcRasterTime"); it != j.end()) {
+    it->get_to(value.adc_raster_time);
+  }
+  if (auto it = j.find("blockDurationRaster"); it != j.end()) {
+    it->get_to(value.block_duration_raster);
+  }
+  if (auto it = j.find("name"); it != j.end()) {
+    it->get_to(value.name);
+  }
+  if (auto it = j.find("fov"); it != j.end()) {
+    it->get_to(value.fov);
+  }
+  if (auto it = j.find("totalDuration"); it != j.end()) {
+    it->get_to(value.total_duration);
+  }
+  if (auto it = j.find("custom"); it != j.end()) {
+    it->get_to(value.custom);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseqBlock const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
+    j.push_back({"id", value.id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.duration)) {
+    j.push_back({"duration", value.duration});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.rf)) {
+    j.push_back({"rf", value.rf});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gx)) {
+    j.push_back({"gx", value.gx});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gy)) {
+    j.push_back({"gy", value.gy});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.gz)) {
+    j.push_back({"gz", value.gz});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.adc)) {
+    j.push_back({"adc", value.adc});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.ext)) {
+    j.push_back({"ext", value.ext});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqBlock& value) {
+  if (auto it = j.find("id"); it != j.end()) {
+    it->get_to(value.id);
+  }
+  if (auto it = j.find("duration"); it != j.end()) {
+    it->get_to(value.duration);
+  }
+  if (auto it = j.find("rf"); it != j.end()) {
+    it->get_to(value.rf);
+  }
+  if (auto it = j.find("gx"); it != j.end()) {
+    it->get_to(value.gx);
+  }
+  if (auto it = j.find("gy"); it != j.end()) {
+    it->get_to(value.gy);
+  }
+  if (auto it = j.find("gz"); it != j.end()) {
+    it->get_to(value.gz);
+  }
+  if (auto it = j.find("adc"); it != j.end()) {
+    it->get_to(value.adc);
+  }
+  if (auto it = j.find("ext"); it != j.end()) {
+    it->get_to(value.ext);
+  }
+}
+
+namespace {
+std::unordered_map<std::string, mrd::RFPulseUse> const __RFPulseUse_values = {
+  {"undefined", mrd::RFPulseUse::kUndefined},
+  {"excitation", mrd::RFPulseUse::kExcitation},
+  {"refocusing", mrd::RFPulseUse::kRefocusing},
+  {"inversion", mrd::RFPulseUse::kInversion},
+  {"saturation", mrd::RFPulseUse::kSaturation},
+  {"preparation", mrd::RFPulseUse::kPreparation},
+  {"other", mrd::RFPulseUse::kOther},
+};
+} //namespace
+
+void to_json(ordered_json& j, mrd::RFPulseUse const& value) {
+  switch (value) {
+    case mrd::RFPulseUse::kUndefined:
+      j = "undefined";
+      break;
+    case mrd::RFPulseUse::kExcitation:
+      j = "excitation";
+      break;
+    case mrd::RFPulseUse::kRefocusing:
+      j = "refocusing";
+      break;
+    case mrd::RFPulseUse::kInversion:
+      j = "inversion";
+      break;
+    case mrd::RFPulseUse::kSaturation:
+      j = "saturation";
+      break;
+    case mrd::RFPulseUse::kPreparation:
+      j = "preparation";
+      break;
+    case mrd::RFPulseUse::kOther:
+      j = "other";
+      break;
+    default:
+      using underlying_type = typename std::underlying_type<mrd::RFPulseUse>::type;
+      j = static_cast<underlying_type>(value);
+      break;
+  }
+}
+
+void from_json(ordered_json const& j, mrd::RFPulseUse& value) {
+  if (j.is_string()) {
+    auto symbol = j.get<std::string>();
+    if (auto res = __RFPulseUse_values.find(symbol); res != __RFPulseUse_values.end()) {
+      value = res->second;
+      return;
+    }
+    throw std::runtime_error("Invalid enum value '" + symbol + "' for enum mrd::RFPulseUse");
+  }
+  using underlying_type = typename std::underlying_type<mrd::RFPulseUse>::type;
+  value = static_cast<mrd::RFPulseUse>(j.get<underlying_type>());
+}
+
+void to_json(ordered_json& j, mrd::PulseqRFEvent const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
+    j.push_back({"id", value.id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.amp)) {
+    j.push_back({"amp", value.amp});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.mag_id)) {
+    j.push_back({"magId", value.mag_id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase_id)) {
+    j.push_back({"phaseId", value.phase_id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.time_id)) {
+    j.push_back({"timeId", value.time_id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.center)) {
+    j.push_back({"center", value.center});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.delay)) {
+    j.push_back({"delay", value.delay});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.freq_ppm)) {
+    j.push_back({"freqPPM", value.freq_ppm});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase_ppm)) {
+    j.push_back({"phasePPM", value.phase_ppm});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.freq_offset)) {
+    j.push_back({"freqOffset", value.freq_offset});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase_offset)) {
+    j.push_back({"phaseOffset", value.phase_offset});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.use)) {
+    j.push_back({"use", value.use});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqRFEvent& value) {
+  if (auto it = j.find("id"); it != j.end()) {
+    it->get_to(value.id);
+  }
+  if (auto it = j.find("amp"); it != j.end()) {
+    it->get_to(value.amp);
+  }
+  if (auto it = j.find("magId"); it != j.end()) {
+    it->get_to(value.mag_id);
+  }
+  if (auto it = j.find("phaseId"); it != j.end()) {
+    it->get_to(value.phase_id);
+  }
+  if (auto it = j.find("timeId"); it != j.end()) {
+    it->get_to(value.time_id);
+  }
+  if (auto it = j.find("center"); it != j.end()) {
+    it->get_to(value.center);
+  }
+  if (auto it = j.find("delay"); it != j.end()) {
+    it->get_to(value.delay);
+  }
+  if (auto it = j.find("freqPPM"); it != j.end()) {
+    it->get_to(value.freq_ppm);
+  }
+  if (auto it = j.find("phasePPM"); it != j.end()) {
+    it->get_to(value.phase_ppm);
+  }
+  if (auto it = j.find("freqOffset"); it != j.end()) {
+    it->get_to(value.freq_offset);
+  }
+  if (auto it = j.find("phaseOffset"); it != j.end()) {
+    it->get_to(value.phase_offset);
+  }
+  if (auto it = j.find("use"); it != j.end()) {
+    it->get_to(value.use);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseqArbitraryGradient const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
+    j.push_back({"id", value.id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.amp)) {
+    j.push_back({"amp", value.amp});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.first)) {
+    j.push_back({"first", value.first});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.last)) {
+    j.push_back({"last", value.last});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.shape_id)) {
+    j.push_back({"shapeId", value.shape_id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.time_id)) {
+    j.push_back({"timeId", value.time_id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.delay)) {
+    j.push_back({"delay", value.delay});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqArbitraryGradient& value) {
+  if (auto it = j.find("id"); it != j.end()) {
+    it->get_to(value.id);
+  }
+  if (auto it = j.find("amp"); it != j.end()) {
+    it->get_to(value.amp);
+  }
+  if (auto it = j.find("first"); it != j.end()) {
+    it->get_to(value.first);
+  }
+  if (auto it = j.find("last"); it != j.end()) {
+    it->get_to(value.last);
+  }
+  if (auto it = j.find("shapeId"); it != j.end()) {
+    it->get_to(value.shape_id);
+  }
+  if (auto it = j.find("timeId"); it != j.end()) {
+    it->get_to(value.time_id);
+  }
+  if (auto it = j.find("delay"); it != j.end()) {
+    it->get_to(value.delay);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseqTrapezoidalGradient const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
+    j.push_back({"id", value.id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.amp)) {
+    j.push_back({"amp", value.amp});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.rise)) {
+    j.push_back({"rise", value.rise});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.flat)) {
+    j.push_back({"flat", value.flat});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.fall)) {
+    j.push_back({"fall", value.fall});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.delay)) {
+    j.push_back({"delay", value.delay});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqTrapezoidalGradient& value) {
+  if (auto it = j.find("id"); it != j.end()) {
+    it->get_to(value.id);
+  }
+  if (auto it = j.find("amp"); it != j.end()) {
+    it->get_to(value.amp);
+  }
+  if (auto it = j.find("rise"); it != j.end()) {
+    it->get_to(value.rise);
+  }
+  if (auto it = j.find("flat"); it != j.end()) {
+    it->get_to(value.flat);
+  }
+  if (auto it = j.find("fall"); it != j.end()) {
+    it->get_to(value.fall);
+  }
+  if (auto it = j.find("delay"); it != j.end()) {
+    it->get_to(value.delay);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseqADCEvent const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
+    j.push_back({"id", value.id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.num)) {
+    j.push_back({"num", value.num});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.dwell)) {
+    j.push_back({"dwell", value.dwell});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.delay)) {
+    j.push_back({"delay", value.delay});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.freq_ppm)) {
+    j.push_back({"freqPPM", value.freq_ppm});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase_ppm)) {
+    j.push_back({"phasePPM", value.phase_ppm});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.freq)) {
+    j.push_back({"freq", value.freq});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase)) {
+    j.push_back({"phase", value.phase});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.phase_shape_id)) {
+    j.push_back({"phaseShapeId", value.phase_shape_id});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqADCEvent& value) {
+  if (auto it = j.find("id"); it != j.end()) {
+    it->get_to(value.id);
+  }
+  if (auto it = j.find("num"); it != j.end()) {
+    it->get_to(value.num);
+  }
+  if (auto it = j.find("dwell"); it != j.end()) {
+    it->get_to(value.dwell);
+  }
+  if (auto it = j.find("delay"); it != j.end()) {
+    it->get_to(value.delay);
+  }
+  if (auto it = j.find("freqPPM"); it != j.end()) {
+    it->get_to(value.freq_ppm);
+  }
+  if (auto it = j.find("phasePPM"); it != j.end()) {
+    it->get_to(value.phase_ppm);
+  }
+  if (auto it = j.find("freq"); it != j.end()) {
+    it->get_to(value.freq);
+  }
+  if (auto it = j.find("phase"); it != j.end()) {
+    it->get_to(value.phase);
+  }
+  if (auto it = j.find("phaseShapeId"); it != j.end()) {
+    it->get_to(value.phase_shape_id);
+  }
+}
+
+void to_json(ordered_json& j, mrd::PulseqShape const& value) {
+  j = ordered_json::object();
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
+    j.push_back({"id", value.id});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.num_samples)) {
+    j.push_back({"numSamples", value.num_samples});
+  }
+  if (yardl::ndjson::ShouldSerializeFieldValue(value.data)) {
+    j.push_back({"data", value.data});
+  }
+}
+
+void from_json(ordered_json const& j, mrd::PulseqShape& value) {
+  if (auto it = j.find("id"); it != j.end()) {
+    it->get_to(value.id);
+  }
+  if (auto it = j.find("numSamples"); it != j.end()) {
+    it->get_to(value.num_samples);
   }
   if (auto it = j.find("data"); it != j.end()) {
     it->get_to(value.data);

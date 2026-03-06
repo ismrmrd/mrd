@@ -6,6 +6,8 @@ classdef Acquisition < handle
     head
     % Raw k-space samples array
     data
+    % Phase offset array as optional field
+    phase
     % Trajectory array
     trajectory
   end
@@ -15,10 +17,12 @@ classdef Acquisition < handle
       arguments
         kwargs.head = mrd.AcquisitionHeader();
         kwargs.data = single.empty();
+        kwargs.phase = yardl.None;
         kwargs.trajectory = single.empty();
       end
       self.head = kwargs.head;
       self.data = kwargs.data;
+      self.phase = kwargs.phase;
       self.trajectory = kwargs.trajectory;
     end
 
@@ -53,6 +57,7 @@ classdef Acquisition < handle
         isa(other, "mrd.Acquisition") && ...
         isequal({self.head}, {other.head}) && ...
         isequal({self.data}, {other.data}) && ...
+        isequal({self.phase}, {other.phase}) && ...
         isequal({self.trajectory}, {other.trajectory});
     end
 

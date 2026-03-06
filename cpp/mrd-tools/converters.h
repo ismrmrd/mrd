@@ -2,8 +2,8 @@
 
 #include "mrd/types.h"
 
-#include <ismrmrd/xml.h>
 #include <ismrmrd/waveform.h>
+#include <ismrmrd/xml.h>
 
 namespace mrd::converters {
 
@@ -29,6 +29,14 @@ int convert(NdArray<float>& im);
 int convert(NdArray<double>& im);
 int convert(NdArray<std::complex<float>>& im);
 int convert(NdArray<std::complex<double>>& im);
+int convert(AcquisitionPrototype&);
+int convert(PulseqDefinitions&);
+int convert(std::vector<PulseqBlock>&);
+int convert(PulseqRFEvent&);
+int convert(PulseqArbitraryGradient&);
+int convert(PulseqTrapezoidalGradient&);
+int convert(PulseqADCEvent&);
+int convert(PulseqShape&);
 
 Header convert(ISMRMRD::IsmrmrdHeader& hdr);
 Acquisition convert(ISMRMRD::Acquisition& acq);

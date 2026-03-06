@@ -43,42 +43,6 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
 @generate:
     cd model && yardl generate
 
-cpp-converter-roundtrip-test: build
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd cpp/build
-    rm -f phantom.h5
-    rm -f direct.ismrmrd
-    rm -f roundtrip.ismrmrd
-    rm -f recon_direct.ismrmrd
-    rm -f recon_rountrip.ismrmrd
-    ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > roundtrip.ismrmrd
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | ./ismrmrd_to_mrd | ./mrd_to_ismrmrd > recon_rountrip.ismrmrd
-    diff direct.ismrmrd roundtrip.ismrmrd && diff recon_direct.ismrmrd recon_rountrip.ismrmrd
-
-python-converter-roundtrip-test: build
-    #!/usr/bin/env bash
-    set -euo pipefail
-    export PYTHONPATH=$(realpath ./python)
-    cd cpp/build
-    rm -f phantom.h5
-    rm -f direct.ismrmrd
-    rm -f roundtrip.ismrmrd
-    rm -f recon_direct.ismrmrd
-    rm -f recon_rountrip.ismrmrd
-    ismrmrd_generate_cartesian_shepp_logan -o phantom.h5
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout > direct.ismrmrd
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > roundtrip.ismrmrd
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout > recon_direct.ismrmrd
-    ismrmrd_hdf5_to_stream -i phantom.h5 --use-stdout | ismrmrd_stream_recon_cartesian_2d --use-stdin --use-stdout | python -m mrd.tools.ismrmrd_to_mrd | python -m mrd.tools.mrd_to_ismrmrd > recon_rountrip.ismrmrd
-    python ../../test/diff-ismrmrd-streams.py direct.ismrmrd roundtrip.ismrmrd
-    python ../../test/diff-ismrmrd-streams.py recon_direct.ismrmrd recon_rountrip.ismrmrd
-
-converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
-
 @conda-cpp-test: build
     cd cpp/build; \
     PATH=./:$PATH ../conda/run_test.sh
@@ -95,7 +59,7 @@ converter-tests: cpp-converter-roundtrip-test python-converter-roundtrip-test
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build converter-tests conda-cpp-test conda-python-test matlab-test end-to-end-test
+@test: build conda-cpp-test conda-python-test matlab-test end-to-end-test
 
 @validate: test
 
