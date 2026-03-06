@@ -1233,7 +1233,7 @@ struct ImageArray {
 template <typename T>
 using Array = yardl::DynamicNDArray<T>;
 
-// array type to describe maps
+// array type to describe maps TODO: add exhasutive list of types
 enum class ArrayType {
   kSpinDensityMap = 1,
   kT1Map = 2,
@@ -1258,16 +1258,24 @@ enum class ArrayDimension {
   kY = 3,
   kX = 4,
   kFrequency = 5,
-  kBasis = 6,
+  kCoils = 6,
   kSamples = 7,
-  kLoc = 8,
-  kS = 9,
-  kN = 10,
-  kE2 = 11,
-  kE1 = 12,
-  kE0 = 13,
-  kRgba = 14,
-  kTimeNs = 15,
+  kBasis = 8,
+  kAverage = 9,
+  kSlice = 10,
+  kContrast = 11,
+  kPhase = 12,
+  kRepetition = 13,
+  kSet = 14,
+  kSegment = 15,
+  kLoc = 16,
+  kS = 17,
+  kN = 18,
+  kE2 = 19,
+  kE1 = 20,
+  kE0 = 21,
+  kRgba = 22,
+  kTimeNs = 23,
 };
 
 struct NdArrayHeader {
@@ -1319,9 +1327,6 @@ using NdArrayComplexDouble = mrd::NdArray<std::complex<double>>;
 
 // Union of all MRD NDArray types
 using AnyNdArray = std::variant<mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
-
-// Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
 
 // Pulseq definitions
 struct PulseqDefinitions {
@@ -1580,6 +1585,9 @@ struct PulseqShape {
     return !(*this == other);
   }
 };
+
+// Union of all primary types that can be streamed in the MRD Protocol
+using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>;
 
 } // namespace mrd
 

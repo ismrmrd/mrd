@@ -90,6 +90,34 @@ classdef StreamItem < yardl.Union
       res = mrd.StreamItem(22, value);
     end
 
+    function res = PulseqDefinitions(value)
+      res = mrd.StreamItem(23, value);
+    end
+
+    function res = PulseqBlocks(value)
+      res = mrd.StreamItem(24, value);
+    end
+
+    function res = PulseqRfEvent(value)
+      res = mrd.StreamItem(25, value);
+    end
+
+    function res = PulseqArbitraryGradient(value)
+      res = mrd.StreamItem(26, value);
+    end
+
+    function res = PulseqTrapezoidalGradient(value)
+      res = mrd.StreamItem(27, value);
+    end
+
+    function res = PulseqAdcEvent(value)
+      res = mrd.StreamItem(28, value);
+    end
+
+    function res = PulseqShape(value)
+      res = mrd.StreamItem(29, value);
+    end
+
     function z = zeros(varargin)
       elem = mrd.StreamItem(0, yardl.None);
       if nargin == 0
@@ -193,6 +221,34 @@ classdef StreamItem < yardl.Union
       res = self.index == 22;
     end
 
+    function res = isPulseqDefinitions(self)
+      res = self.index == 23;
+    end
+
+    function res = isPulseqBlocks(self)
+      res = self.index == 24;
+    end
+
+    function res = isPulseqRfEvent(self)
+      res = self.index == 25;
+    end
+
+    function res = isPulseqArbitraryGradient(self)
+      res = self.index == 26;
+    end
+
+    function res = isPulseqTrapezoidalGradient(self)
+      res = self.index == 27;
+    end
+
+    function res = isPulseqAdcEvent(self)
+      res = self.index == 28;
+    end
+
+    function res = isPulseqShape(self)
+      res = self.index == 29;
+    end
+
     function eq = eq(self, other)
       eq = isa(other, "mrd.StreamItem") && all([self.index_] == [other.index_], 'all') && all([self.value] == [other.value], 'all');
     end
@@ -202,7 +258,7 @@ classdef StreamItem < yardl.Union
     end
 
     function t = tag(self)
-      tags_ = ["Acquisition", "AcquisitionPrototype", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ImageArray", "NdArrayUint16", "NdArrayInt16", "NdArrayUint32", "NdArrayInt32", "NdArrayFloat", "NdArrayDouble", "NdArrayComplexFloat", "NdArrayComplexDouble"];
+      tags_ = ["Acquisition", "AcquisitionPrototype", "WaveformUint32", "ImageUint16", "ImageInt16", "ImageUint32", "ImageInt32", "ImageFloat", "ImageDouble", "ImageComplexFloat", "ImageComplexDouble", "AcquisitionBucket", "ReconData", "ImageArray", "NdArrayUint16", "NdArrayInt16", "NdArrayUint32", "NdArrayInt32", "NdArrayFloat", "NdArrayDouble", "NdArrayComplexFloat", "NdArrayComplexDouble", "PulseqDefinitions", "PulseqBlocks", "PulseqRfEvent", "PulseqArbitraryGradient", "PulseqTrapezoidalGradient", "PulseqAdcEvent", "PulseqShape"];
       t = tags_(self.index_);
     end
   end

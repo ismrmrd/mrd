@@ -22,6 +22,14 @@ StreamItem: !union
   ndArrayDouble: NdArrayDouble
   ndArrayComplexFloat: NdArrayComplexFloat
   ndArrayComplexDouble: NdArrayComplexDouble
+  pulseqDefinitions: PulseqDefinitions
+  pulseqBlocks: PulseqBlock*
+  pulseqRfEvent: PulseqRFEvent
+  pulseqArbitraryGradient: PulseqArbitraryGradient
+  pulseqTrapezoidalGradient: PulseqTrapezoidalGradient
+  pulseqAdcEvent: PulseqADCEvent
+  pulseqShape: PulseqShape
+
 
 # The MRD Protocol
 Mrd: !protocol

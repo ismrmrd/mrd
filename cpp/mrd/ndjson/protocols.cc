@@ -399,8 +399,8 @@ struct adl_serializer<std::variant<mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>
 };
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>> const& value) {
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape> const& value) {
     switch (value.index()) {
       case 0:
         j = ordered_json{ {"acquisition", std::get<mrd::Acquisition>(value)} };
@@ -468,12 +468,33 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, 
       case 21:
         j = ordered_json{ {"ndArrayComplexDouble", std::get<mrd::NdArray<std::complex<double>>>(value)} };
         break;
+      case 22:
+        j = ordered_json{ {"pulseqDefinitions", std::get<mrd::PulseqDefinitions>(value)} };
+        break;
+      case 23:
+        j = ordered_json{ {"pulseqBlocks", std::get<std::vector<mrd::PulseqBlock>>(value)} };
+        break;
+      case 24:
+        j = ordered_json{ {"pulseqRfEvent", std::get<mrd::PulseqRFEvent>(value)} };
+        break;
+      case 25:
+        j = ordered_json{ {"pulseqArbitraryGradient", std::get<mrd::PulseqArbitraryGradient>(value)} };
+        break;
+      case 26:
+        j = ordered_json{ {"pulseqTrapezoidalGradient", std::get<mrd::PulseqTrapezoidalGradient>(value)} };
+        break;
+      case 27:
+        j = ordered_json{ {"pulseqAdcEvent", std::get<mrd::PulseqADCEvent>(value)} };
+        break;
+      case 28:
+        j = ordered_json{ {"pulseqShape", std::get<mrd::PulseqShape>(value)} };
+        break;
       default:
         throw std::runtime_error("Invalid union value");
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArray<uint16_t>, mrd::NdArray<int16_t>, mrd::NdArray<uint32_t>, mrd::NdArray<int32_t>, mrd::NdArray<float>, mrd::NdArray<double>, mrd::NdArray<std::complex<float>>, mrd::NdArray<std::complex<double>>, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>& value) {
     auto it = j.begin();
     std::string tag = it.key();
     if (tag == "acquisition") {
@@ -562,6 +583,34 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, 
     }
     if (tag == "ndArrayComplexDouble") {
       value = it.value().get<mrd::NdArray<std::complex<double>>>();
+      return;
+    }
+    if (tag == "pulseqDefinitions") {
+      value = it.value().get<mrd::PulseqDefinitions>();
+      return;
+    }
+    if (tag == "pulseqBlocks") {
+      value = it.value().get<std::vector<mrd::PulseqBlock>>();
+      return;
+    }
+    if (tag == "pulseqRfEvent") {
+      value = it.value().get<mrd::PulseqRFEvent>();
+      return;
+    }
+    if (tag == "pulseqArbitraryGradient") {
+      value = it.value().get<mrd::PulseqArbitraryGradient>();
+      return;
+    }
+    if (tag == "pulseqTrapezoidalGradient") {
+      value = it.value().get<mrd::PulseqTrapezoidalGradient>();
+      return;
+    }
+    if (tag == "pulseqAdcEvent") {
+      value = it.value().get<mrd::PulseqADCEvent>();
+      return;
+    }
+    if (tag == "pulseqShape") {
+      value = it.value().get<mrd::PulseqShape>();
       return;
     }
   }
@@ -3306,8 +3355,16 @@ std::unordered_map<std::string, mrd::ArrayDimension> const __ArrayDimension_valu
   {"y", mrd::ArrayDimension::kY},
   {"x", mrd::ArrayDimension::kX},
   {"frequency", mrd::ArrayDimension::kFrequency},
-  {"basis", mrd::ArrayDimension::kBasis},
+  {"coils", mrd::ArrayDimension::kCoils},
   {"samples", mrd::ArrayDimension::kSamples},
+  {"basis", mrd::ArrayDimension::kBasis},
+  {"average", mrd::ArrayDimension::kAverage},
+  {"slice", mrd::ArrayDimension::kSlice},
+  {"contrast", mrd::ArrayDimension::kContrast},
+  {"phase", mrd::ArrayDimension::kPhase},
+  {"repetition", mrd::ArrayDimension::kRepetition},
+  {"set", mrd::ArrayDimension::kSet},
+  {"segment", mrd::ArrayDimension::kSegment},
   {"loc", mrd::ArrayDimension::kLoc},
   {"s", mrd::ArrayDimension::kS},
   {"n", mrd::ArrayDimension::kN},
@@ -3336,11 +3393,35 @@ void to_json(ordered_json& j, mrd::ArrayDimension const& value) {
     case mrd::ArrayDimension::kFrequency:
       j = "frequency";
       break;
-    case mrd::ArrayDimension::kBasis:
-      j = "basis";
+    case mrd::ArrayDimension::kCoils:
+      j = "coils";
       break;
     case mrd::ArrayDimension::kSamples:
       j = "samples";
+      break;
+    case mrd::ArrayDimension::kBasis:
+      j = "basis";
+      break;
+    case mrd::ArrayDimension::kAverage:
+      j = "average";
+      break;
+    case mrd::ArrayDimension::kSlice:
+      j = "slice";
+      break;
+    case mrd::ArrayDimension::kContrast:
+      j = "contrast";
+      break;
+    case mrd::ArrayDimension::kPhase:
+      j = "phase";
+      break;
+    case mrd::ArrayDimension::kRepetition:
+      j = "repetition";
+      break;
+    case mrd::ArrayDimension::kSet:
+      j = "set";
+      break;
+    case mrd::ArrayDimension::kSegment:
+      j = "segment";
       break;
     case mrd::ArrayDimension::kLoc:
       j = "loc";

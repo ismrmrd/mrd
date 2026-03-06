@@ -68,7 +68,7 @@ ImageArray: !record
 Array<T>: !array
   items: T
 
-# array type to describe maps
+# array type to describe maps TODO: add exhasutive list of types
 ArrayType: !enum
   values:
     spinDensityMap: 1  # in mol/m^3
@@ -94,16 +94,24 @@ ArrayDimension: !enum   # labels for each dimension of NDArray in the order
     y: 3
     x: 4
     frequency: 5
-    basis: 6
+    coils: 6
     samples: 7
-    loc: 8
-    s: 9
-    n: 10
-    e2: 11
-    e1: 12
-    e0: 13
-    rgba: 14
-    timeNs: 15
+    basis: 8
+    average: 9
+    slice: 10
+    contrast: 11
+    phase: 12
+    repetition: 13
+    set: 14
+    segment: 15
+    loc: 16
+    s: 17
+    n: 18
+    e2: 19
+    e1: 20
+    e0: 21
+    rgba: 22
+    timeNs: 23
 
 NdArrayHeader: !record
   fields:

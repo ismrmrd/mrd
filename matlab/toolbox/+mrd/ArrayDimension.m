@@ -17,35 +17,59 @@ classdef ArrayDimension < uint64
     function v = FREQUENCY
       v = mrd.ArrayDimension(5);
     end
-    function v = BASIS
+    function v = COILS
       v = mrd.ArrayDimension(6);
     end
     function v = SAMPLES
       v = mrd.ArrayDimension(7);
     end
-    function v = LOC
+    function v = BASIS
       v = mrd.ArrayDimension(8);
     end
-    function v = S
+    function v = AVERAGE
       v = mrd.ArrayDimension(9);
     end
-    function v = N
+    function v = SLICE
       v = mrd.ArrayDimension(10);
     end
-    function v = E2
+    function v = CONTRAST
       v = mrd.ArrayDimension(11);
     end
-    function v = E1
+    function v = PHASE
       v = mrd.ArrayDimension(12);
     end
-    function v = E0
+    function v = REPETITION
       v = mrd.ArrayDimension(13);
     end
-    function v = RGBA
+    function v = SET
       v = mrd.ArrayDimension(14);
     end
-    function v = TIME_NS
+    function v = SEGMENT
       v = mrd.ArrayDimension(15);
+    end
+    function v = LOC
+      v = mrd.ArrayDimension(16);
+    end
+    function v = S
+      v = mrd.ArrayDimension(17);
+    end
+    function v = N
+      v = mrd.ArrayDimension(18);
+    end
+    function v = E2
+      v = mrd.ArrayDimension(19);
+    end
+    function v = E1
+      v = mrd.ArrayDimension(20);
+    end
+    function v = E0
+      v = mrd.ArrayDimension(21);
+    end
+    function v = RGBA
+      v = mrd.ArrayDimension(22);
+    end
+    function v = TIME_NS
+      v = mrd.ArrayDimension(23);
     end
 
     function z = zeros(varargin)
