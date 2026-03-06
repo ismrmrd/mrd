@@ -1274,7 +1274,7 @@ struct PulseqDefinitions {
 };
 
 // A sequence block that includes possible RF, gradient, and ADC events.
-struct Block {
+struct PulseqBlock {
   // ID of the sequence block
   int32_t id{};
   // Duration of the block in units of Definitions.blockDurationRaster
@@ -1292,7 +1292,7 @@ struct Block {
   // ID of the extension table entry
   int32_t ext{};
 
-  bool operator==(const Block& other) const {
+  bool operator==(const PulseqBlock& other) const {
     return id == other.id &&
       duration == other.duration &&
       rf == other.rf &&
@@ -1303,7 +1303,7 @@ struct Block {
       ext == other.ext;
   }
 
-  bool operator!=(const Block& other) const {
+  bool operator!=(const PulseqBlock& other) const {
     return !(*this == other);
   }
 };
@@ -1319,7 +1319,7 @@ enum class RFPulseUse {
 };
 
 // An RF event
-struct RFEvent {
+struct PulseqRFEvent {
   // ID of the RF event
   int32_t id{};
   // Peak amplitude in Hz
@@ -1349,7 +1349,7 @@ struct RFEvent {
   double phase_offset{};
   mrd::RFPulseUse use{};
 
-  bool operator==(const RFEvent& other) const {
+  bool operator==(const PulseqRFEvent& other) const {
     return id == other.id &&
       amp == other.amp &&
       mag_id == other.mag_id &&
@@ -1364,13 +1364,13 @@ struct RFEvent {
       use == other.use;
   }
 
-  bool operator!=(const RFEvent& other) const {
+  bool operator!=(const PulseqRFEvent& other) const {
     return !(*this == other);
   }
 };
 
 // An arbitrary gradient event
-struct ArbitraryGradient {
+struct PulseqArbitraryGradient {
   // ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
   int32_t id{};
   // Peak amplitude in Hz/m
@@ -1387,7 +1387,7 @@ struct ArbitraryGradient {
   // Delay before starting the gradient, specified in microseconds
   uint64_t delay{};
 
-  bool operator==(const ArbitraryGradient& other) const {
+  bool operator==(const PulseqArbitraryGradient& other) const {
     return id == other.id &&
       amp == other.amp &&
       first == other.first &&
@@ -1397,13 +1397,13 @@ struct ArbitraryGradient {
       delay == other.delay;
   }
 
-  bool operator!=(const ArbitraryGradient& other) const {
+  bool operator!=(const PulseqArbitraryGradient& other) const {
     return !(*this == other);
   }
 };
 
 // A trapezoidal gradient event
-struct TrapezoidalGradient {
+struct PulseqTrapezoidalGradient {
   // ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
   int32_t id{};
   // Peak amplitude in Hz/m
@@ -1417,7 +1417,7 @@ struct TrapezoidalGradient {
   // Delay before starting the gradient, specified in microseconds
   uint64_t delay{};
 
-  bool operator==(const TrapezoidalGradient& other) const {
+  bool operator==(const PulseqTrapezoidalGradient& other) const {
     return id == other.id &&
       amp == other.amp &&
       rise == other.rise &&
@@ -1426,13 +1426,13 @@ struct TrapezoidalGradient {
       delay == other.delay;
   }
 
-  bool operator!=(const TrapezoidalGradient& other) const {
+  bool operator!=(const PulseqTrapezoidalGradient& other) const {
     return !(*this == other);
   }
 };
 
 // An ADC event
-struct ADCEvent {
+struct PulseqADCEvent {
   // ID of the ADC event
   int32_t id{};
   // Number of samples
@@ -1454,7 +1454,7 @@ struct ADCEvent {
   // The shape ID
   int32_t phase_shape_id{};
 
-  bool operator==(const ADCEvent& other) const {
+  bool operator==(const PulseqADCEvent& other) const {
     return id == other.id &&
       num == other.num &&
       dwell == other.dwell &&
@@ -1466,14 +1466,14 @@ struct ADCEvent {
       phase_shape_id == other.phase_shape_id;
   }
 
-  bool operator!=(const ADCEvent& other) const {
+  bool operator!=(const PulseqADCEvent& other) const {
     return !(*this == other);
   }
 };
 
 // A list of samples that is potentially compressed.
 // If numSamples == size(data) then the shape is uncompressed.
-struct Shape {
+struct PulseqShape {
   // ID of the shape
   int32_t id{};
   // Number of samples of the uncompressed shape
@@ -1482,19 +1482,19 @@ struct Shape {
   // In the spec, this should be float32, but PyPulseq uses float64.
   yardl::NDArray<double, 1> data{};
 
-  bool operator==(const Shape& other) const {
+  bool operator==(const PulseqShape& other) const {
     return id == other.id &&
       num_samples == other.num_samples &&
       data == other.data;
   }
 
-  bool operator!=(const Shape& other) const {
+  bool operator!=(const PulseqShape& other) const {
     return !(*this == other);
   }
 };
 
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>;
 
 } // namespace mrd
 

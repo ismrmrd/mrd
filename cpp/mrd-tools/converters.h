@@ -24,12 +24,12 @@ int convert(ImageArray&);
 int convert(ArrayComplexFloat&);
 int convert(AcquisitionPrototype&);
 int convert(PulseqDefinitions&);
-int convert(std::vector<Block>&);
-int convert(RFEvent&);
-int convert(ArbitraryGradient&);
-int convert(TrapezoidalGradient&);
-int convert(ADCEvent&);
-int convert(Shape&);
+int convert(std::vector<PulseqBlock>&);
+int convert(PulseqRFEvent&);
+int convert(PulseqArbitraryGradient&);
+int convert(PulseqTrapezoidalGradient&);
+int convert(PulseqADCEvent&);
+int convert(PulseqShape&);
 
 Header convert(ISMRMRD::IsmrmrdHeader& hdr);
 Acquisition convert(ISMRMRD::Acquisition& acq);

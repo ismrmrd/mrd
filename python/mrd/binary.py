@@ -34,7 +34,7 @@ class BinaryMrdWriter(_binary.BinaryProtocolWriter, MrdWriterBase):
         _binary.OptionalSerializer(HeaderSerializer()).write(self._stream, value)
 
     def _write_data(self, value: collections.abc.Iterable[StreamItem]) -> None:
-        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(BlockSerializer())), (StreamItem.Rf, RFEventSerializer()), (StreamItem.ArbitraryGradient, ArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, TrapezoidalGradientSerializer()), (StreamItem.Adc, ADCEventSerializer()), (StreamItem.Shape, ShapeSerializer())])).write(self._stream, value)
+        _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(PulseqBlockSerializer())), (StreamItem.Rf, PulseqRFEventSerializer()), (StreamItem.ArbitraryGradient, PulseqArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, PulseqTrapezoidalGradientSerializer()), (StreamItem.Adc, PulseqADCEventSerializer()), (StreamItem.Shape, PulseqShapeSerializer())])).write(self._stream, value)
 
 
 class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
@@ -52,7 +52,7 @@ class BinaryMrdReader(_binary.BinaryProtocolReader, MrdReaderBase):
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def _read_data(self) -> collections.abc.Iterable[StreamItem]:
-        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(BlockSerializer())), (StreamItem.Rf, RFEventSerializer()), (StreamItem.ArbitraryGradient, ArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, TrapezoidalGradientSerializer()), (StreamItem.Adc, ADCEventSerializer()), (StreamItem.Shape, ShapeSerializer())])).read(self._stream)
+        return _binary.StreamSerializer(_binary.UnionSerializer(StreamItem, [(StreamItem.Acquisition, AcquisitionSerializer()), (StreamItem.AcquisitionPrototype, AcquisitionPrototypeSerializer()), (StreamItem.WaveformUint32, WaveformSerializer(_binary.uint32_serializer)), (StreamItem.ImageUint16, ImageSerializer(_binary.uint16_serializer)), (StreamItem.ImageInt16, ImageSerializer(_binary.int16_serializer)), (StreamItem.ImageUint32, ImageSerializer(_binary.uint32_serializer)), (StreamItem.ImageInt32, ImageSerializer(_binary.int32_serializer)), (StreamItem.ImageFloat, ImageSerializer(_binary.float32_serializer)), (StreamItem.ImageDouble, ImageSerializer(_binary.float64_serializer)), (StreamItem.ImageComplexFloat, ImageSerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageComplexDouble, ImageSerializer(_binary.complexfloat64_serializer)), (StreamItem.AcquisitionBucket, AcquisitionBucketSerializer()), (StreamItem.ReconData, ReconDataSerializer()), (StreamItem.ArrayComplexFloat, _binary.DynamicNDArraySerializer(_binary.complexfloat32_serializer)), (StreamItem.ImageArray, ImageArraySerializer()), (StreamItem.PulseqDefinitions, PulseqDefinitionsSerializer()), (StreamItem.Blocks, _binary.VectorSerializer(PulseqBlockSerializer())), (StreamItem.Rf, PulseqRFEventSerializer()), (StreamItem.ArbitraryGradient, PulseqArbitraryGradientSerializer()), (StreamItem.TrapezoidalGradient, PulseqTrapezoidalGradientSerializer()), (StreamItem.Adc, PulseqADCEventSerializer()), (StreamItem.Shape, PulseqShapeSerializer())])).read(self._stream)
 
 class BinaryMrdNoiseCovarianceWriter(_binary.BinaryProtocolWriter, MrdNoiseCovarianceWriterBase):
     """Binary writer for the MrdNoiseCovariance protocol.
@@ -911,11 +911,11 @@ class PulseqDefinitionsSerializer(_binary.RecordSerializer[PulseqDefinitions]):
         return PulseqDefinitions(gradient_raster_time=field_values[0], radiofrequency_raster_time=field_values[1], adc_raster_time=field_values[2], block_duration_raster=field_values[3], name=field_values[4], fov=field_values[5], total_duration=field_values[6], custom=field_values[7])
 
 
-class BlockSerializer(_binary.RecordSerializer[Block]):
+class PulseqBlockSerializer(_binary.RecordSerializer[PulseqBlock]):
     def __init__(self) -> None:
         super().__init__([("id", _binary.int32_serializer), ("duration", _binary.uint64_serializer), ("rf", _binary.int32_serializer), ("gx", _binary.int32_serializer), ("gy", _binary.int32_serializer), ("gz", _binary.int32_serializer), ("adc", _binary.int32_serializer), ("ext", _binary.int32_serializer)])
 
-    def write(self, stream: _binary.CodedOutputStream, value: Block) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: PulseqBlock) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -924,16 +924,16 @@ class BlockSerializer(_binary.RecordSerializer[Block]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['id'], value['duration'], value['rf'], value['gx'], value['gy'], value['gz'], value['adc'], value['ext'])
 
-    def read(self, stream: _binary.CodedInputStream) -> Block:
+    def read(self, stream: _binary.CodedInputStream) -> PulseqBlock:
         field_values = self._read(stream)
-        return Block(id=field_values[0], duration=field_values[1], rf=field_values[2], gx=field_values[3], gy=field_values[4], gz=field_values[5], adc=field_values[6], ext=field_values[7])
+        return PulseqBlock(id=field_values[0], duration=field_values[1], rf=field_values[2], gx=field_values[3], gy=field_values[4], gz=field_values[5], adc=field_values[6], ext=field_values[7])
 
 
-class RFEventSerializer(_binary.RecordSerializer[RFEvent]):
+class PulseqRFEventSerializer(_binary.RecordSerializer[PulseqRFEvent]):
     def __init__(self) -> None:
         super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("mag_id", _binary.int32_serializer), ("phase_id", _binary.int32_serializer), ("time_id", _binary.int32_serializer), ("center", _binary.float64_serializer), ("delay", _binary.uint64_serializer), ("freq_ppm", _binary.float64_serializer), ("phase_ppm", _binary.float64_serializer), ("freq_offset", _binary.float64_serializer), ("phase_offset", _binary.float64_serializer), ("use", _binary.EnumSerializer(_binary.int32_serializer, RFPulseUse))])
 
-    def write(self, stream: _binary.CodedOutputStream, value: RFEvent) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: PulseqRFEvent) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -942,16 +942,16 @@ class RFEventSerializer(_binary.RecordSerializer[RFEvent]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['id'], value['amp'], value['mag_id'], value['phase_id'], value['time_id'], value['center'], value['delay'], value['freq_ppm'], value['phase_ppm'], value['freq_offset'], value['phase_offset'], value['use'])
 
-    def read(self, stream: _binary.CodedInputStream) -> RFEvent:
+    def read(self, stream: _binary.CodedInputStream) -> PulseqRFEvent:
         field_values = self._read(stream)
-        return RFEvent(id=field_values[0], amp=field_values[1], mag_id=field_values[2], phase_id=field_values[3], time_id=field_values[4], center=field_values[5], delay=field_values[6], freq_ppm=field_values[7], phase_ppm=field_values[8], freq_offset=field_values[9], phase_offset=field_values[10], use=field_values[11])
+        return PulseqRFEvent(id=field_values[0], amp=field_values[1], mag_id=field_values[2], phase_id=field_values[3], time_id=field_values[4], center=field_values[5], delay=field_values[6], freq_ppm=field_values[7], phase_ppm=field_values[8], freq_offset=field_values[9], phase_offset=field_values[10], use=field_values[11])
 
 
-class ArbitraryGradientSerializer(_binary.RecordSerializer[ArbitraryGradient]):
+class PulseqArbitraryGradientSerializer(_binary.RecordSerializer[PulseqArbitraryGradient]):
     def __init__(self) -> None:
         super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("first", _binary.float64_serializer), ("last", _binary.float64_serializer), ("shape_id", _binary.int32_serializer), ("time_id", _binary.int32_serializer), ("delay", _binary.uint64_serializer)])
 
-    def write(self, stream: _binary.CodedOutputStream, value: ArbitraryGradient) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: PulseqArbitraryGradient) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -960,16 +960,16 @@ class ArbitraryGradientSerializer(_binary.RecordSerializer[ArbitraryGradient]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['id'], value['amp'], value['first'], value['last'], value['shape_id'], value['time_id'], value['delay'])
 
-    def read(self, stream: _binary.CodedInputStream) -> ArbitraryGradient:
+    def read(self, stream: _binary.CodedInputStream) -> PulseqArbitraryGradient:
         field_values = self._read(stream)
-        return ArbitraryGradient(id=field_values[0], amp=field_values[1], first=field_values[2], last=field_values[3], shape_id=field_values[4], time_id=field_values[5], delay=field_values[6])
+        return PulseqArbitraryGradient(id=field_values[0], amp=field_values[1], first=field_values[2], last=field_values[3], shape_id=field_values[4], time_id=field_values[5], delay=field_values[6])
 
 
-class TrapezoidalGradientSerializer(_binary.RecordSerializer[TrapezoidalGradient]):
+class PulseqTrapezoidalGradientSerializer(_binary.RecordSerializer[PulseqTrapezoidalGradient]):
     def __init__(self) -> None:
         super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("rise", _binary.uint64_serializer), ("flat", _binary.uint64_serializer), ("fall", _binary.uint64_serializer), ("delay", _binary.uint64_serializer)])
 
-    def write(self, stream: _binary.CodedOutputStream, value: TrapezoidalGradient) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: PulseqTrapezoidalGradient) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -978,16 +978,16 @@ class TrapezoidalGradientSerializer(_binary.RecordSerializer[TrapezoidalGradient
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['id'], value['amp'], value['rise'], value['flat'], value['fall'], value['delay'])
 
-    def read(self, stream: _binary.CodedInputStream) -> TrapezoidalGradient:
+    def read(self, stream: _binary.CodedInputStream) -> PulseqTrapezoidalGradient:
         field_values = self._read(stream)
-        return TrapezoidalGradient(id=field_values[0], amp=field_values[1], rise=field_values[2], flat=field_values[3], fall=field_values[4], delay=field_values[5])
+        return PulseqTrapezoidalGradient(id=field_values[0], amp=field_values[1], rise=field_values[2], flat=field_values[3], fall=field_values[4], delay=field_values[5])
 
 
-class ADCEventSerializer(_binary.RecordSerializer[ADCEvent]):
+class PulseqADCEventSerializer(_binary.RecordSerializer[PulseqADCEvent]):
     def __init__(self) -> None:
         super().__init__([("id", _binary.int32_serializer), ("num", _binary.uint64_serializer), ("dwell", _binary.float32_serializer), ("delay", _binary.uint64_serializer), ("freq_ppm", _binary.float64_serializer), ("phase_ppm", _binary.float64_serializer), ("freq", _binary.float64_serializer), ("phase", _binary.float64_serializer), ("phase_shape_id", _binary.int32_serializer)])
 
-    def write(self, stream: _binary.CodedOutputStream, value: ADCEvent) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: PulseqADCEvent) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -996,16 +996,16 @@ class ADCEventSerializer(_binary.RecordSerializer[ADCEvent]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['id'], value['num'], value['dwell'], value['delay'], value['freq_ppm'], value['phase_ppm'], value['freq'], value['phase'], value['phase_shape_id'])
 
-    def read(self, stream: _binary.CodedInputStream) -> ADCEvent:
+    def read(self, stream: _binary.CodedInputStream) -> PulseqADCEvent:
         field_values = self._read(stream)
-        return ADCEvent(id=field_values[0], num=field_values[1], dwell=field_values[2], delay=field_values[3], freq_ppm=field_values[4], phase_ppm=field_values[5], freq=field_values[6], phase=field_values[7], phase_shape_id=field_values[8])
+        return PulseqADCEvent(id=field_values[0], num=field_values[1], dwell=field_values[2], delay=field_values[3], freq_ppm=field_values[4], phase_ppm=field_values[5], freq=field_values[6], phase=field_values[7], phase_shape_id=field_values[8])
 
 
-class ShapeSerializer(_binary.RecordSerializer[Shape]):
+class PulseqShapeSerializer(_binary.RecordSerializer[PulseqShape]):
     def __init__(self) -> None:
         super().__init__([("id", _binary.int32_serializer), ("num_samples", _binary.uint64_serializer), ("data", _binary.NDArraySerializer(_binary.float64_serializer, 1))])
 
-    def write(self, stream: _binary.CodedOutputStream, value: Shape) -> None:
+    def write(self, stream: _binary.CodedOutputStream, value: PulseqShape) -> None:
         if isinstance(value, np.void):
             self.write_numpy(stream, value)
             return
@@ -1014,8 +1014,8 @@ class ShapeSerializer(_binary.RecordSerializer[Shape]):
     def write_numpy(self, stream: _binary.CodedOutputStream, value: np.void) -> None:
         self._write(stream, value['id'], value['num_samples'], value['data'])
 
-    def read(self, stream: _binary.CodedInputStream) -> Shape:
+    def read(self, stream: _binary.CodedInputStream) -> PulseqShape:
         field_values = self._read(stream)
-        return Shape(id=field_values[0], num_samples=field_values[1], data=field_values[2])
+        return PulseqShape(id=field_values[0], num_samples=field_values[1], data=field_values[2])
 
 

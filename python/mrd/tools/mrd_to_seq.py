@@ -111,7 +111,7 @@ def write_definitions(file: TextIO, definitions: Union[mrd.PulseqDefinitions, No
     file.write("\n")
 
 
-def write_blocks(file, blocks: list[mrd.Block]) -> None:
+def write_blocks(file, blocks: list[mrd.PulseqBlock]) -> None:
     file.write("# Format of blocks:\n")
     file.write("# NUM DUR RF  GX  GY  GZ  ADC  EXT\n")
     file.write("[BLOCKS]\n")
@@ -127,7 +127,7 @@ def write_blocks(file, blocks: list[mrd.Block]) -> None:
 
 
 def write_arbitrary_grad_events(
-    file, arb_grad_events: list[mrd.ArbitraryGradient], version
+    file, arb_grad_events: list[mrd.PulseqArbitraryGradient], version
 ) -> None:
     if len(arb_grad_events) == 0:
         return
@@ -168,7 +168,7 @@ def write_arbitrary_grad_events(
 
 
 def write_trap_grad_events(
-    file, trap_grad_events: list[mrd.TrapezoidalGradient]
+    file, trap_grad_events: list[mrd.PulseqTrapezoidalGradient]
 ) -> None:
     if len(trap_grad_events) == 0:
         return
@@ -187,7 +187,7 @@ def write_trap_grad_events(
     file.write("\n")
 
 
-def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
+def write_rf_events(file, rf_events: list[mrd.PulseqRFEvent], version):
     if len(rf_events) == 0:
         return
 
@@ -225,7 +225,7 @@ def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
     file.write("\n")
 
 
-def write_adc_events(file, adc_events: list[mrd.ADCEvent], version) -> None:
+def write_adc_events(file, adc_events: list[mrd.PulseqADCEvent], version) -> None:
     if len(adc_events) == 0:
         return
 
@@ -258,7 +258,7 @@ def write_adc_events(file, adc_events: list[mrd.ADCEvent], version) -> None:
     file.write("\n")
 
 
-def write_shapes(file, shapes: list[mrd.Shape]) -> None:
+def write_shapes(file, shapes: list[mrd.PulseqShape]) -> None:
     if len(shapes) == 0:
         return
 

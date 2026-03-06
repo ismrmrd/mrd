@@ -29,7 +29,7 @@ PulseqDefinitions: !record
     custom: string->string
 
 # A sequence block that includes possible RF, gradient, and ADC events.
-Block: !record
+PulseqBlock: !record
   fields:
     # ID of the sequence block
     id: int32
@@ -67,7 +67,7 @@ RFPulseUse: !enum
     - other
 
 # An RF event
-RFEvent: !record
+PulseqRFEvent: !record
   fields:
     # ID of the RF event
     id: int32
@@ -110,7 +110,7 @@ RFEvent: !record
     use: RFPulseUse
 
 # An arbitrary gradient event
-ArbitraryGradient: !record
+PulseqArbitraryGradient: !record
   fields:
     # ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
     id: int32
@@ -135,7 +135,7 @@ ArbitraryGradient: !record
     delay: uint64
 
 # A trapezoidal gradient event
-TrapezoidalGradient: !record
+PulseqTrapezoidalGradient: !record
   fields:
     # ID of the gradient event. Must be unique among all arbitrary and trapezoidal gradient events.
     id: int32
@@ -157,7 +157,7 @@ TrapezoidalGradient: !record
 
 
 # An ADC event
-ADCEvent: !record
+PulseqADCEvent: !record
   fields:
     # ID of the ADC event
     id: int32
@@ -190,7 +190,7 @@ ADCEvent: !record
 
 # A list of samples that is potentially compressed.
 # If numSamples == size(data) then the shape is uncompressed.
-Shape: !record
+PulseqShape: !record
   fields:
     # ID of the shape
     id: int32

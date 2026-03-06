@@ -181,26 +181,26 @@ void from_json(ordered_json const& j, mrd::ImageArray& value);
 void to_json(ordered_json& j, mrd::PulseqDefinitions const& value);
 void from_json(ordered_json const& j, mrd::PulseqDefinitions& value);
 
-void to_json(ordered_json& j, mrd::Block const& value);
-void from_json(ordered_json const& j, mrd::Block& value);
+void to_json(ordered_json& j, mrd::PulseqBlock const& value);
+void from_json(ordered_json const& j, mrd::PulseqBlock& value);
 
 void to_json(ordered_json& j, mrd::RFPulseUse const& value);
 void from_json(ordered_json const& j, mrd::RFPulseUse& value);
 
-void to_json(ordered_json& j, mrd::RFEvent const& value);
-void from_json(ordered_json const& j, mrd::RFEvent& value);
+void to_json(ordered_json& j, mrd::PulseqRFEvent const& value);
+void from_json(ordered_json const& j, mrd::PulseqRFEvent& value);
 
-void to_json(ordered_json& j, mrd::ArbitraryGradient const& value);
-void from_json(ordered_json const& j, mrd::ArbitraryGradient& value);
+void to_json(ordered_json& j, mrd::PulseqArbitraryGradient const& value);
+void from_json(ordered_json const& j, mrd::PulseqArbitraryGradient& value);
 
-void to_json(ordered_json& j, mrd::TrapezoidalGradient const& value);
-void from_json(ordered_json const& j, mrd::TrapezoidalGradient& value);
+void to_json(ordered_json& j, mrd::PulseqTrapezoidalGradient const& value);
+void from_json(ordered_json const& j, mrd::PulseqTrapezoidalGradient& value);
 
-void to_json(ordered_json& j, mrd::ADCEvent const& value);
-void from_json(ordered_json const& j, mrd::ADCEvent& value);
+void to_json(ordered_json& j, mrd::PulseqADCEvent const& value);
+void from_json(ordered_json const& j, mrd::PulseqADCEvent& value);
 
-void to_json(ordered_json& j, mrd::Shape const& value);
-void from_json(ordered_json const& j, mrd::Shape& value);
+void to_json(ordered_json& j, mrd::PulseqShape const& value);
+void from_json(ordered_json const& j, mrd::PulseqShape& value);
 
 } // namespace mrd
 
@@ -314,8 +314,8 @@ struct adl_serializer<std::variant<mrd::Image<uint16_t>, mrd::Image<int16_t>, mr
 };
 
 template <>
-struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape>> {
-  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape> const& value) {
+struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>> {
+  static void to_json(ordered_json& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape> const& value) {
     switch (value.index()) {
       case 0:
         j = ordered_json{ {"acquisition", std::get<mrd::Acquisition>(value)} };
@@ -366,29 +366,29 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, 
         j = ordered_json{ {"pulseqDefinitions", std::get<mrd::PulseqDefinitions>(value)} };
         break;
       case 16:
-        j = ordered_json{ {"blocks", std::get<std::vector<mrd::Block>>(value)} };
+        j = ordered_json{ {"blocks", std::get<std::vector<mrd::PulseqBlock>>(value)} };
         break;
       case 17:
-        j = ordered_json{ {"rf", std::get<mrd::RFEvent>(value)} };
+        j = ordered_json{ {"rf", std::get<mrd::PulseqRFEvent>(value)} };
         break;
       case 18:
-        j = ordered_json{ {"arbitraryGradient", std::get<mrd::ArbitraryGradient>(value)} };
+        j = ordered_json{ {"arbitraryGradient", std::get<mrd::PulseqArbitraryGradient>(value)} };
         break;
       case 19:
-        j = ordered_json{ {"trapezoidalGradient", std::get<mrd::TrapezoidalGradient>(value)} };
+        j = ordered_json{ {"trapezoidalGradient", std::get<mrd::PulseqTrapezoidalGradient>(value)} };
         break;
       case 20:
-        j = ordered_json{ {"adc", std::get<mrd::ADCEvent>(value)} };
+        j = ordered_json{ {"adc", std::get<mrd::PulseqADCEvent>(value)} };
         break;
       case 21:
-        j = ordered_json{ {"shape", std::get<mrd::Shape>(value)} };
+        j = ordered_json{ {"shape", std::get<mrd::PulseqShape>(value)} };
         break;
       default:
         throw std::runtime_error("Invalid union value");
     }
   }
 
-  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::Block>, mrd::RFEvent, mrd::ArbitraryGradient, mrd::TrapezoidalGradient, mrd::ADCEvent, mrd::Shape>& value) {
+  static void from_json(ordered_json const& j, std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::Waveform<uint32_t>, mrd::Image<uint16_t>, mrd::Image<int16_t>, mrd::Image<uint32_t>, mrd::Image<int32_t>, mrd::Image<float>, mrd::Image<double>, mrd::Image<std::complex<float>>, mrd::Image<std::complex<double>>, mrd::AcquisitionBucket, mrd::ReconData, yardl::DynamicNDArray<std::complex<float>>, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>& value) {
     auto it = j.begin();
     std::string tag = it.key();
     if (tag == "acquisition") {
@@ -456,27 +456,27 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, 
       return;
     }
     if (tag == "blocks") {
-      value = it.value().get<std::vector<mrd::Block>>();
+      value = it.value().get<std::vector<mrd::PulseqBlock>>();
       return;
     }
     if (tag == "rf") {
-      value = it.value().get<mrd::RFEvent>();
+      value = it.value().get<mrd::PulseqRFEvent>();
       return;
     }
     if (tag == "arbitraryGradient") {
-      value = it.value().get<mrd::ArbitraryGradient>();
+      value = it.value().get<mrd::PulseqArbitraryGradient>();
       return;
     }
     if (tag == "trapezoidalGradient") {
-      value = it.value().get<mrd::TrapezoidalGradient>();
+      value = it.value().get<mrd::PulseqTrapezoidalGradient>();
       return;
     }
     if (tag == "adc") {
-      value = it.value().get<mrd::ADCEvent>();
+      value = it.value().get<mrd::PulseqADCEvent>();
       return;
     }
     if (tag == "shape") {
-      value = it.value().get<mrd::Shape>();
+      value = it.value().get<mrd::PulseqShape>();
       return;
     }
   }
@@ -3198,7 +3198,7 @@ void from_json(ordered_json const& j, mrd::PulseqDefinitions& value) {
   }
 }
 
-void to_json(ordered_json& j, mrd::Block const& value) {
+void to_json(ordered_json& j, mrd::PulseqBlock const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
     j.push_back({"id", value.id});
@@ -3226,7 +3226,7 @@ void to_json(ordered_json& j, mrd::Block const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::Block& value) {
+void from_json(ordered_json const& j, mrd::PulseqBlock& value) {
   if (auto it = j.find("id"); it != j.end()) {
     it->get_to(value.id);
   }
@@ -3308,7 +3308,7 @@ void from_json(ordered_json const& j, mrd::RFPulseUse& value) {
   value = static_cast<mrd::RFPulseUse>(j.get<underlying_type>());
 }
 
-void to_json(ordered_json& j, mrd::RFEvent const& value) {
+void to_json(ordered_json& j, mrd::PulseqRFEvent const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
     j.push_back({"id", value.id});
@@ -3348,7 +3348,7 @@ void to_json(ordered_json& j, mrd::RFEvent const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::RFEvent& value) {
+void from_json(ordered_json const& j, mrd::PulseqRFEvent& value) {
   if (auto it = j.find("id"); it != j.end()) {
     it->get_to(value.id);
   }
@@ -3387,7 +3387,7 @@ void from_json(ordered_json const& j, mrd::RFEvent& value) {
   }
 }
 
-void to_json(ordered_json& j, mrd::ArbitraryGradient const& value) {
+void to_json(ordered_json& j, mrd::PulseqArbitraryGradient const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
     j.push_back({"id", value.id});
@@ -3412,7 +3412,7 @@ void to_json(ordered_json& j, mrd::ArbitraryGradient const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::ArbitraryGradient& value) {
+void from_json(ordered_json const& j, mrd::PulseqArbitraryGradient& value) {
   if (auto it = j.find("id"); it != j.end()) {
     it->get_to(value.id);
   }
@@ -3436,7 +3436,7 @@ void from_json(ordered_json const& j, mrd::ArbitraryGradient& value) {
   }
 }
 
-void to_json(ordered_json& j, mrd::TrapezoidalGradient const& value) {
+void to_json(ordered_json& j, mrd::PulseqTrapezoidalGradient const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
     j.push_back({"id", value.id});
@@ -3458,7 +3458,7 @@ void to_json(ordered_json& j, mrd::TrapezoidalGradient const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::TrapezoidalGradient& value) {
+void from_json(ordered_json const& j, mrd::PulseqTrapezoidalGradient& value) {
   if (auto it = j.find("id"); it != j.end()) {
     it->get_to(value.id);
   }
@@ -3479,7 +3479,7 @@ void from_json(ordered_json const& j, mrd::TrapezoidalGradient& value) {
   }
 }
 
-void to_json(ordered_json& j, mrd::ADCEvent const& value) {
+void to_json(ordered_json& j, mrd::PulseqADCEvent const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
     j.push_back({"id", value.id});
@@ -3510,7 +3510,7 @@ void to_json(ordered_json& j, mrd::ADCEvent const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::ADCEvent& value) {
+void from_json(ordered_json const& j, mrd::PulseqADCEvent& value) {
   if (auto it = j.find("id"); it != j.end()) {
     it->get_to(value.id);
   }
@@ -3540,7 +3540,7 @@ void from_json(ordered_json const& j, mrd::ADCEvent& value) {
   }
 }
 
-void to_json(ordered_json& j, mrd::Shape const& value) {
+void to_json(ordered_json& j, mrd::PulseqShape const& value) {
   j = ordered_json::object();
   if (yardl::ndjson::ShouldSerializeFieldValue(value.id)) {
     j.push_back({"id", value.id});
@@ -3553,7 +3553,7 @@ void to_json(ordered_json& j, mrd::Shape const& value) {
   }
 }
 
-void from_json(ordered_json const& j, mrd::Shape& value) {
+void from_json(ordered_json const& j, mrd::PulseqShape& value) {
   if (auto it = j.find("id"); it != j.end()) {
     it->get_to(value.id);
   }

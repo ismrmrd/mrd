@@ -109,12 +109,12 @@ def pulseq_text_to_stream_items(file: TextIO) -> Iterable[mrd.StreamItem]:
         )
 
     definitions: Optional[mrd.PulseqDefinitions] = None
-    blocks: list[mrd.Block] = []
-    rf_events: list[mrd.RFEvent] = []
-    trapezoidal_gradients: list[mrd.TrapezoidalGradient] = []
-    arbitrary_gradients: list[mrd.ArbitraryGradient] = []
-    adc_events: list[mrd.ADCEvent] = []
-    shapes: list[mrd.Shape] = []
+    blocks: list[mrd.PulseqBlock] = []
+    rf_events: list[mrd.PulseqRFEvent] = []
+    trapezoidal_gradients: list[mrd.PulseqTrapezoidalGradient] = []
+    arbitrary_gradients: list[mrd.PulseqArbitraryGradient] = []
+    adc_events: list[mrd.PulseqADCEvent] = []
+    shapes: list[mrd.PulseqShape] = []
 
     for line_number, line in linesIterable:
         if line == "":
@@ -224,8 +224,8 @@ def _parse_definitions(lines: _LinesIterator) -> mrd.PulseqDefinitions:
     return definitions
 
 
-def _parse_blocks(lines: _LinesIterator) -> list[mrd.Block]:
-    blocks: list[mrd.Block] = []
+def _parse_blocks(lines: _LinesIterator) -> list[mrd.PulseqBlock]:
+    blocks: list[mrd.PulseqBlock] = []
     for line_number, line in lines.read_until_next_section():
         if line == "":
             continue
@@ -234,7 +234,7 @@ def _parse_blocks(lines: _LinesIterator) -> list[mrd.Block]:
             if len(tokens) != 8:
                 raise RuntimeError(f"Line {line_number}: Invalid block `{line}`")
 
-            block = mrd.Block(
+            block = mrd.PulseqBlock(
                 id=int(tokens[0]),
                 duration=int(tokens[1]),
                 rf=int(tokens[2]),
@@ -252,8 +252,8 @@ def _parse_blocks(lines: _LinesIterator) -> list[mrd.Block]:
     return blocks
 
 
-def _parse_rf_events(lines: _LinesIterator, version) -> list[mrd.RFEvent]:
-    rf_events: list[mrd.RFEvent] = []
+def _parse_rf_events(lines: _LinesIterator, version) -> list[mrd.PulseqRFEvent]:
+    rf_events: list[mrd.PulseqRFEvent] = []
     for line_number, line in lines.read_until_next_section():
         if line == "":
             continue
@@ -265,7 +265,7 @@ def _parse_rf_events(lines: _LinesIterator, version) -> list[mrd.RFEvent]:
                         f"Line {line_number}: Invalid RF event `{line}`"
                     )
 
-                rf_event = mrd.RFEvent(
+                rf_event = mrd.PulseqRFEvent(
                     id=int(tokens[0]),
                     amp=float(tokens[1]),
                     mag_id=int(tokens[2]),
@@ -284,7 +284,7 @@ def _parse_rf_events(lines: _LinesIterator, version) -> list[mrd.RFEvent]:
                     raise RuntimeError(
                         f"Line {line_number}: Invalid RF event `{line}`"
                     )
-                rf_event = mrd.RFEvent(
+                rf_event = mrd.PulseqRFEvent(
                     id=int(tokens[0]),
                     amp=float(tokens[1]),
                     mag_id=int(tokens[2]),
@@ -305,14 +305,14 @@ def _parse_rf_events(lines: _LinesIterator, version) -> list[mrd.RFEvent]:
     return rf_events
 
 
-def _parse_trap_gradients(lines: _LinesIterator) -> list[mrd.TrapezoidalGradient]:
-    trap_gradients: list[mrd.TrapezoidalGradient] = []
+def _parse_trap_gradients(lines: _LinesIterator) -> list[mrd.PulseqTrapezoidalGradient]:
+    trap_gradients: list[mrd.PulseqTrapezoidalGradient] = []
     for line_number, line in lines.read_until_next_section():
         if line == "":
             continue
         tokens = line.split()
         try:
-            trap_gradient = mrd.TrapezoidalGradient(
+            trap_gradient = mrd.PulseqTrapezoidalGradient(
                 id=int(tokens[0]),
                 amp=float(tokens[1]),
                 rise=int(tokens[2]),
@@ -332,8 +332,8 @@ def _parse_trap_gradients(lines: _LinesIterator) -> list[mrd.TrapezoidalGradient
 
 def _parse_arbitrary_gradients(
     lines: _LinesIterator, version
-) -> list[mrd.ArbitraryGradient]:
-    arbitrary_gradients: list[mrd.ArbitraryGradient] = []
+) -> list[mrd.PulseqArbitraryGradient]:
+    arbitrary_gradients: list[mrd.PulseqArbitraryGradient] = []
     for line_number, line in lines.read_until_next_section():
         if line == "":
             continue
@@ -344,7 +344,7 @@ def _parse_arbitrary_gradients(
                     raise RuntimeError(
                         f"Line {line_number}: Invalid arbitrary gradient `{line}`"
                     )
-                arbitrary_gradient = mrd.ArbitraryGradient(
+                arbitrary_gradient = mrd.PulseqArbitraryGradient(
                     id=int(tokens[0]),
                     amp=float(tokens[1]),
                     first=float(tokens[2]),
@@ -358,7 +358,7 @@ def _parse_arbitrary_gradients(
                     raise RuntimeError(
                         f"Line {line_number}: Invalid arbitrary gradient `{line}`"
                     )
-                arbitrary_gradient = mrd.ArbitraryGradient(
+                arbitrary_gradient = mrd.PulseqArbitraryGradient(
                     id=int(tokens[0]),
                     amp=float(tokens[1]),
                     shape_id=int(tokens[2]),
@@ -374,8 +374,8 @@ def _parse_arbitrary_gradients(
     return arbitrary_gradients
 
 
-def _parse_adc_events(lines: _LinesIterator, version) -> list[mrd.ADCEvent]:
-    adc_events: list[mrd.ADCEvent] = []
+def _parse_adc_events(lines: _LinesIterator, version) -> list[mrd.PulseqADCEvent]:
+    adc_events: list[mrd.PulseqADCEvent] = []
     for line_number, line in lines.read_until_next_section():
         if line == "":
             continue
@@ -386,7 +386,7 @@ def _parse_adc_events(lines: _LinesIterator, version) -> list[mrd.ADCEvent]:
                     raise RuntimeError(
                         f"Line {line_number}: invalid ADC event `{line}`"
                     )
-                adc_event = mrd.ADCEvent(
+                adc_event = mrd.PulseqADCEvent(
                     id=int(tokens[0]),
                     num=int(tokens[1]),
                     dwell=float(tokens[2]),
@@ -402,7 +402,7 @@ def _parse_adc_events(lines: _LinesIterator, version) -> list[mrd.ADCEvent]:
                     raise RuntimeError(
                         f"Line {line_number}: invalid ADC event `{line}`"
                     )
-                adc_event = mrd.ADCEvent(
+                adc_event = mrd.PulseqADCEvent(
                     id=int(tokens[0]),
                     num=int(tokens[1]),
                     dwell=float(tokens[2]),
@@ -420,8 +420,8 @@ def _parse_adc_events(lines: _LinesIterator, version) -> list[mrd.ADCEvent]:
     return adc_events
 
 
-def _parse_shapes(lines: _LinesIterator) -> list[mrd.Shape]:
-    shapes: list[mrd.Shape] = []
+def _parse_shapes(lines: _LinesIterator) -> list[mrd.PulseqShape]:
+    shapes: list[mrd.PulseqShape] = []
 
     while True:
         lines.skip_empty_lines()
@@ -457,7 +457,7 @@ def _parse_shapes(lines: _LinesIterator) -> list[mrd.Shape]:
                 )
 
         shapes.append(
-            mrd.Shape(
+            mrd.PulseqShape(
                 id=shape_id,
                 num_samples=num_samples,
                 data=np.array(data, dtype=np.float64),

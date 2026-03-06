@@ -1118,32 +1118,32 @@ int convert(PulseqDefinitions&) {
 }
 
 // no equivalent in ISMRMRD::
-int convert(std::vector<Block>&) {
+int convert(std::vector<PulseqBlock>&) {
   return 0;
 }
 
 // no equivalent in ISMRMRD:://
-int convert(RFEvent&) {
+int convert(PulseqRFEvent&) {
   return 0;
 }
 
 // no equivalent in ISMRMRD::
-int convert(ArbitraryGradient&) {
+int convert(PulseqArbitraryGradient&) {
   return 0;
 }
 
 // no equivalent in ISMRMRD::
-int convert(TrapezoidalGradient&) {
+int convert(PulseqTrapezoidalGradient&) {
   return 0;
 }
 
 // no equivalent in ISMRMRD::
-int convert(ADCEvent&) {
+int convert(PulseqADCEvent&) {
   return 0;
 }
 
 // no equivalent in ISMRMRD::
-int convert(Shape&) {
+int convert(PulseqShape&) {
   return 0;
 }
 

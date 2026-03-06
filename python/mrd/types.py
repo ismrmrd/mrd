@@ -2204,7 +2204,7 @@ class PulseqDefinitions:
         return f"PulseqDefinitions(gradient_raster_time={repr(self.gradient_raster_time)}, radiofrequency_raster_time={repr(self.radiofrequency_raster_time)}, adc_raster_time={repr(self.adc_raster_time)}, block_duration_raster={repr(self.block_duration_raster)}, name={repr(self.name)}, fov={repr(self.fov)}, total_duration={repr(self.total_duration)}, custom={repr(self.custom)})"
 
 
-class Block:
+class PulseqBlock:
     """A sequence block that includes possible RF, gradient, and ADC events."""
 
     id: yardl.Int32
@@ -2253,7 +2253,7 @@ class Block:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, Block)
+            isinstance(other, PulseqBlock)
             and self.id == other.id
             and self.duration == other.duration
             and self.rf == other.rf
@@ -2265,10 +2265,10 @@ class Block:
         )
 
     def __str__(self) -> str:
-        return f"Block(id={self.id}, duration={self.duration}, rf={self.rf}, gx={self.gx}, gy={self.gy}, gz={self.gz}, adc={self.adc}, ext={self.ext})"
+        return f"PulseqBlock(id={self.id}, duration={self.duration}, rf={self.rf}, gx={self.gx}, gy={self.gy}, gz={self.gz}, adc={self.adc}, ext={self.ext})"
 
     def __repr__(self) -> str:
-        return f"Block(id={repr(self.id)}, duration={repr(self.duration)}, rf={repr(self.rf)}, gx={repr(self.gx)}, gy={repr(self.gy)}, gz={repr(self.gz)}, adc={repr(self.adc)}, ext={repr(self.ext)})"
+        return f"PulseqBlock(id={repr(self.id)}, duration={repr(self.duration)}, rf={repr(self.rf)}, gx={repr(self.gx)}, gy={repr(self.gy)}, gz={repr(self.gz)}, adc={repr(self.adc)}, ext={repr(self.ext)})"
 
 
 class RFPulseUse(yardl.OutOfRangeEnum):
@@ -2280,7 +2280,7 @@ class RFPulseUse(yardl.OutOfRangeEnum):
     PREPARATION = 5
     OTHER = 6
 
-class RFEvent:
+class PulseqRFEvent:
     """An RF event"""
 
     id: yardl.Int32
@@ -2356,7 +2356,7 @@ class RFEvent:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, RFEvent)
+            isinstance(other, PulseqRFEvent)
             and self.id == other.id
             and self.amp == other.amp
             and self.mag_id == other.mag_id
@@ -2372,13 +2372,13 @@ class RFEvent:
         )
 
     def __str__(self) -> str:
-        return f"RFEvent(id={self.id}, amp={self.amp}, mag_id={self.mag_id}, phase_id={self.phase_id}, time_id={self.time_id}, center={self.center}, delay={self.delay}, freq_ppm={self.freq_ppm}, phase_ppm={self.phase_ppm}, freq_offset={self.freq_offset}, phase_offset={self.phase_offset}, use={self.use})"
+        return f"PulseqRFEvent(id={self.id}, amp={self.amp}, mag_id={self.mag_id}, phase_id={self.phase_id}, time_id={self.time_id}, center={self.center}, delay={self.delay}, freq_ppm={self.freq_ppm}, phase_ppm={self.phase_ppm}, freq_offset={self.freq_offset}, phase_offset={self.phase_offset}, use={self.use})"
 
     def __repr__(self) -> str:
-        return f"RFEvent(id={repr(self.id)}, amp={repr(self.amp)}, mag_id={repr(self.mag_id)}, phase_id={repr(self.phase_id)}, time_id={repr(self.time_id)}, center={repr(self.center)}, delay={repr(self.delay)}, freq_ppm={repr(self.freq_ppm)}, phase_ppm={repr(self.phase_ppm)}, freq_offset={repr(self.freq_offset)}, phase_offset={repr(self.phase_offset)}, use={repr(self.use)})"
+        return f"PulseqRFEvent(id={repr(self.id)}, amp={repr(self.amp)}, mag_id={repr(self.mag_id)}, phase_id={repr(self.phase_id)}, time_id={repr(self.time_id)}, center={repr(self.center)}, delay={repr(self.delay)}, freq_ppm={repr(self.freq_ppm)}, phase_ppm={repr(self.phase_ppm)}, freq_offset={repr(self.freq_offset)}, phase_offset={repr(self.phase_offset)}, use={repr(self.use)})"
 
 
-class ArbitraryGradient:
+class PulseqArbitraryGradient:
     """An arbitrary gradient event"""
 
     id: yardl.Int32
@@ -2424,7 +2424,7 @@ class ArbitraryGradient:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, ArbitraryGradient)
+            isinstance(other, PulseqArbitraryGradient)
             and self.id == other.id
             and self.amp == other.amp
             and self.first == other.first
@@ -2435,13 +2435,13 @@ class ArbitraryGradient:
         )
 
     def __str__(self) -> str:
-        return f"ArbitraryGradient(id={self.id}, amp={self.amp}, first={self.first}, last={self.last}, shape_id={self.shape_id}, time_id={self.time_id}, delay={self.delay})"
+        return f"PulseqArbitraryGradient(id={self.id}, amp={self.amp}, first={self.first}, last={self.last}, shape_id={self.shape_id}, time_id={self.time_id}, delay={self.delay})"
 
     def __repr__(self) -> str:
-        return f"ArbitraryGradient(id={repr(self.id)}, amp={repr(self.amp)}, first={repr(self.first)}, last={repr(self.last)}, shape_id={repr(self.shape_id)}, time_id={repr(self.time_id)}, delay={repr(self.delay)})"
+        return f"PulseqArbitraryGradient(id={repr(self.id)}, amp={repr(self.amp)}, first={repr(self.first)}, last={repr(self.last)}, shape_id={repr(self.shape_id)}, time_id={repr(self.time_id)}, delay={repr(self.delay)})"
 
 
-class TrapezoidalGradient:
+class PulseqTrapezoidalGradient:
     """A trapezoidal gradient event"""
 
     id: yardl.Int32
@@ -2480,7 +2480,7 @@ class TrapezoidalGradient:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, TrapezoidalGradient)
+            isinstance(other, PulseqTrapezoidalGradient)
             and self.id == other.id
             and self.amp == other.amp
             and self.rise == other.rise
@@ -2490,13 +2490,13 @@ class TrapezoidalGradient:
         )
 
     def __str__(self) -> str:
-        return f"TrapezoidalGradient(id={self.id}, amp={self.amp}, rise={self.rise}, flat={self.flat}, fall={self.fall}, delay={self.delay})"
+        return f"PulseqTrapezoidalGradient(id={self.id}, amp={self.amp}, rise={self.rise}, flat={self.flat}, fall={self.fall}, delay={self.delay})"
 
     def __repr__(self) -> str:
-        return f"TrapezoidalGradient(id={repr(self.id)}, amp={repr(self.amp)}, rise={repr(self.rise)}, flat={repr(self.flat)}, fall={repr(self.fall)}, delay={repr(self.delay)})"
+        return f"PulseqTrapezoidalGradient(id={repr(self.id)}, amp={repr(self.amp)}, rise={repr(self.rise)}, flat={repr(self.flat)}, fall={repr(self.fall)}, delay={repr(self.delay)})"
 
 
-class ADCEvent:
+class PulseqADCEvent:
     """An ADC event"""
 
     id: yardl.Int32
@@ -2554,7 +2554,7 @@ class ADCEvent:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, ADCEvent)
+            isinstance(other, PulseqADCEvent)
             and self.id == other.id
             and self.num == other.num
             and self.dwell == other.dwell
@@ -2567,13 +2567,13 @@ class ADCEvent:
         )
 
     def __str__(self) -> str:
-        return f"ADCEvent(id={self.id}, num={self.num}, dwell={self.dwell}, delay={self.delay}, freq_ppm={self.freq_ppm}, phase_ppm={self.phase_ppm}, freq={self.freq}, phase={self.phase}, phase_shape_id={self.phase_shape_id})"
+        return f"PulseqADCEvent(id={self.id}, num={self.num}, dwell={self.dwell}, delay={self.delay}, freq_ppm={self.freq_ppm}, phase_ppm={self.phase_ppm}, freq={self.freq}, phase={self.phase}, phase_shape_id={self.phase_shape_id})"
 
     def __repr__(self) -> str:
-        return f"ADCEvent(id={repr(self.id)}, num={repr(self.num)}, dwell={repr(self.dwell)}, delay={repr(self.delay)}, freq_ppm={repr(self.freq_ppm)}, phase_ppm={repr(self.phase_ppm)}, freq={repr(self.freq)}, phase={repr(self.phase)}, phase_shape_id={repr(self.phase_shape_id)})"
+        return f"PulseqADCEvent(id={repr(self.id)}, num={repr(self.num)}, dwell={repr(self.dwell)}, delay={repr(self.delay)}, freq_ppm={repr(self.freq_ppm)}, phase_ppm={repr(self.phase_ppm)}, freq={repr(self.freq)}, phase={repr(self.phase)}, phase_shape_id={repr(self.phase_shape_id)})"
 
 
-class Shape:
+class PulseqShape:
     """A list of samples that is potentially compressed.
     If numSamples == size(data) then the shape is uncompressed.
     """
@@ -2601,17 +2601,17 @@ class Shape:
 
     def __eq__(self, other: object) -> bool:
         return (
-            isinstance(other, Shape)
+            isinstance(other, PulseqShape)
             and self.id == other.id
             and self.num_samples == other.num_samples
             and yardl.structural_equal(self.data, other.data)
         )
 
     def __str__(self) -> str:
-        return f"Shape(id={self.id}, num_samples={self.num_samples}, data={self.data})"
+        return f"PulseqShape(id={self.id}, num_samples={self.num_samples}, data={self.data})"
 
     def __repr__(self) -> str:
-        return f"Shape(id={repr(self.id)}, num_samples={repr(self.num_samples)}, data={repr(self.data)})"
+        return f"PulseqShape(id={repr(self.id)}, num_samples={repr(self.num_samples)}, data={repr(self.data)})"
 
 
 class StreamItem:
@@ -2631,12 +2631,12 @@ class StreamItem:
     ArrayComplexFloat: typing.ClassVar[type["StreamItemUnionCase[ArrayComplexFloat]"]]
     ImageArray: typing.ClassVar[type["StreamItemUnionCase[ImageArray]"]]
     PulseqDefinitions: typing.ClassVar[type["StreamItemUnionCase[PulseqDefinitions]"]]
-    Blocks: typing.ClassVar[type["StreamItemUnionCase[list[Block]]"]]
-    Rf: typing.ClassVar[type["StreamItemUnionCase[RFEvent]"]]
-    ArbitraryGradient: typing.ClassVar[type["StreamItemUnionCase[ArbitraryGradient]"]]
-    TrapezoidalGradient: typing.ClassVar[type["StreamItemUnionCase[TrapezoidalGradient]"]]
-    Adc: typing.ClassVar[type["StreamItemUnionCase[ADCEvent]"]]
-    Shape: typing.ClassVar[type["StreamItemUnionCase[Shape]"]]
+    Blocks: typing.ClassVar[type["StreamItemUnionCase[list[PulseqBlock]]"]]
+    Rf: typing.ClassVar[type["StreamItemUnionCase[PulseqRFEvent]"]]
+    ArbitraryGradient: typing.ClassVar[type["StreamItemUnionCase[PulseqArbitraryGradient]"]]
+    TrapezoidalGradient: typing.ClassVar[type["StreamItemUnionCase[PulseqTrapezoidalGradient]"]]
+    Adc: typing.ClassVar[type["StreamItemUnionCase[PulseqADCEvent]"]]
+    Shape: typing.ClassVar[type["StreamItemUnionCase[PulseqShape]"]]
 
 class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
@@ -2737,13 +2737,13 @@ def _mk_get_dtype():
     dtype_map.setdefault(ReconData, np.dtype([('buffers', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageArray, np.dtype([('data', np.dtype(np.object_)), ('headers', np.dtype(np.object_)), ('meta', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PulseqDefinitions, np.dtype([('gradient_raster_time', np.dtype(np.float64)), ('radiofrequency_raster_time', np.dtype(np.float64)), ('adc_raster_time', np.dtype(np.float64)), ('block_duration_raster', np.dtype(np.float64)), ('name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('fov', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ThreeDimensionalFloat))], align=True)), ('total_duration', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float64))], align=True)), ('custom', np.dtype(np.object_))], align=True))
-    dtype_map.setdefault(Block, np.dtype([('id', np.dtype(np.int32)), ('duration', np.dtype(np.uint64)), ('rf', np.dtype(np.int32)), ('gx', np.dtype(np.int32)), ('gy', np.dtype(np.int32)), ('gz', np.dtype(np.int32)), ('adc', np.dtype(np.int32)), ('ext', np.dtype(np.int32))], align=True))
+    dtype_map.setdefault(PulseqBlock, np.dtype([('id', np.dtype(np.int32)), ('duration', np.dtype(np.uint64)), ('rf', np.dtype(np.int32)), ('gx', np.dtype(np.int32)), ('gy', np.dtype(np.int32)), ('gz', np.dtype(np.int32)), ('adc', np.dtype(np.int32)), ('ext', np.dtype(np.int32))], align=True))
     dtype_map.setdefault(RFPulseUse, np.dtype(np.int32))
-    dtype_map.setdefault(RFEvent, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('mag_id', np.dtype(np.int32)), ('phase_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('center', np.dtype(np.float64)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq_offset', np.dtype(np.float64)), ('phase_offset', np.dtype(np.float64)), ('use', get_dtype(RFPulseUse))], align=True))
-    dtype_map.setdefault(ArbitraryGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('first', np.dtype(np.float64)), ('last', np.dtype(np.float64)), ('shape_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('delay', np.dtype(np.uint64))], align=True))
-    dtype_map.setdefault(TrapezoidalGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('rise', np.dtype(np.uint64)), ('flat', np.dtype(np.uint64)), ('fall', np.dtype(np.uint64)), ('delay', np.dtype(np.uint64))], align=True))
-    dtype_map.setdefault(ADCEvent, np.dtype([('id', np.dtype(np.int32)), ('num', np.dtype(np.uint64)), ('dwell', np.dtype(np.float32)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq', np.dtype(np.float64)), ('phase', np.dtype(np.float64)), ('phase_shape_id', np.dtype(np.int32))], align=True))
-    dtype_map.setdefault(Shape, np.dtype([('id', np.dtype(np.int32)), ('num_samples', np.dtype(np.uint64)), ('data', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(PulseqRFEvent, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('mag_id', np.dtype(np.int32)), ('phase_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('center', np.dtype(np.float64)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq_offset', np.dtype(np.float64)), ('phase_offset', np.dtype(np.float64)), ('use', get_dtype(RFPulseUse))], align=True))
+    dtype_map.setdefault(PulseqArbitraryGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('first', np.dtype(np.float64)), ('last', np.dtype(np.float64)), ('shape_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('delay', np.dtype(np.uint64))], align=True))
+    dtype_map.setdefault(PulseqTrapezoidalGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('rise', np.dtype(np.uint64)), ('flat', np.dtype(np.uint64)), ('fall', np.dtype(np.uint64)), ('delay', np.dtype(np.uint64))], align=True))
+    dtype_map.setdefault(PulseqADCEvent, np.dtype([('id', np.dtype(np.int32)), ('num', np.dtype(np.uint64)), ('dwell', np.dtype(np.float32)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq', np.dtype(np.float64)), ('phase', np.dtype(np.float64)), ('phase_shape_id', np.dtype(np.int32))], align=True))
+    dtype_map.setdefault(PulseqShape, np.dtype([('id', np.dtype(np.int32)), ('num_samples', np.dtype(np.uint64)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(StreamItem, np.dtype(np.object_))
 
     return get_dtype
