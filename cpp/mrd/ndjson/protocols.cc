@@ -366,22 +366,22 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, 
         j = ordered_json{ {"pulseqDefinitions", std::get<mrd::PulseqDefinitions>(value)} };
         break;
       case 16:
-        j = ordered_json{ {"blocks", std::get<std::vector<mrd::PulseqBlock>>(value)} };
+        j = ordered_json{ {"pulseqBlocks", std::get<std::vector<mrd::PulseqBlock>>(value)} };
         break;
       case 17:
-        j = ordered_json{ {"rf", std::get<mrd::PulseqRFEvent>(value)} };
+        j = ordered_json{ {"pulseqRfEvent", std::get<mrd::PulseqRFEvent>(value)} };
         break;
       case 18:
-        j = ordered_json{ {"arbitraryGradient", std::get<mrd::PulseqArbitraryGradient>(value)} };
+        j = ordered_json{ {"pulseqArbitraryGradient", std::get<mrd::PulseqArbitraryGradient>(value)} };
         break;
       case 19:
-        j = ordered_json{ {"trapezoidalGradient", std::get<mrd::PulseqTrapezoidalGradient>(value)} };
+        j = ordered_json{ {"pulseqTrapezoidalGradient", std::get<mrd::PulseqTrapezoidalGradient>(value)} };
         break;
       case 20:
-        j = ordered_json{ {"adc", std::get<mrd::PulseqADCEvent>(value)} };
+        j = ordered_json{ {"pulseqAdcEvent", std::get<mrd::PulseqADCEvent>(value)} };
         break;
       case 21:
-        j = ordered_json{ {"shape", std::get<mrd::PulseqShape>(value)} };
+        j = ordered_json{ {"pulseqShape", std::get<mrd::PulseqShape>(value)} };
         break;
       default:
         throw std::runtime_error("Invalid union value");
@@ -455,27 +455,27 @@ struct adl_serializer<std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, 
       value = it.value().get<mrd::PulseqDefinitions>();
       return;
     }
-    if (tag == "blocks") {
+    if (tag == "pulseqBlocks") {
       value = it.value().get<std::vector<mrd::PulseqBlock>>();
       return;
     }
-    if (tag == "rf") {
+    if (tag == "pulseqRfEvent") {
       value = it.value().get<mrd::PulseqRFEvent>();
       return;
     }
-    if (tag == "arbitraryGradient") {
+    if (tag == "pulseqArbitraryGradient") {
       value = it.value().get<mrd::PulseqArbitraryGradient>();
       return;
     }
-    if (tag == "trapezoidalGradient") {
+    if (tag == "pulseqTrapezoidalGradient") {
       value = it.value().get<mrd::PulseqTrapezoidalGradient>();
       return;
     }
-    if (tag == "adc") {
+    if (tag == "pulseqAdcEvent") {
       value = it.value().get<mrd::PulseqADCEvent>();
       return;
     }
-    if (tag == "shape") {
+    if (tag == "pulseqShape") {
       value = it.value().get<mrd::PulseqShape>();
       return;
     }

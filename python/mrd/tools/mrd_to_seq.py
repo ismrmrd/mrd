@@ -53,17 +53,17 @@ def stream_items_to_pulseq_text(
             # If this is not the first occurrence of a Definition,
             # should we merge instead of replacing? Raise an error or warning?
             definitions = item.value
-        elif isinstance(item, mrd.StreamItem.Blocks):
+        elif isinstance(item, mrd.StreamItem.PulseqBlocks):
             blocks.extend(item.value)
-        elif isinstance(item, mrd.StreamItem.Rf):
+        elif isinstance(item, mrd.StreamItem.PulseqRfEvent):
             rf_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.Adc):
+        elif isinstance(item, mrd.StreamItem.PulseqAdcEvent):
             adc_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.TrapezoidalGradient):
+        elif isinstance(item, mrd.StreamItem.PulseqTrapezoidalGradient):
             trap_grad_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.ArbitraryGradient):
+        elif isinstance(item, mrd.StreamItem.PulseqArbitraryGradient):
             arb_grad_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.Shape):
+        elif isinstance(item, mrd.StreamItem.PulseqShape):
             shapes.append(item.value)
 
     write_header(file)

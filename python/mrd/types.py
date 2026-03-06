@@ -2631,12 +2631,12 @@ class StreamItem:
     ArrayComplexFloat: typing.ClassVar[type["StreamItemUnionCase[ArrayComplexFloat]"]]
     ImageArray: typing.ClassVar[type["StreamItemUnionCase[ImageArray]"]]
     PulseqDefinitions: typing.ClassVar[type["StreamItemUnionCase[PulseqDefinitions]"]]
-    Blocks: typing.ClassVar[type["StreamItemUnionCase[list[PulseqBlock]]"]]
-    Rf: typing.ClassVar[type["StreamItemUnionCase[PulseqRFEvent]"]]
-    ArbitraryGradient: typing.ClassVar[type["StreamItemUnionCase[PulseqArbitraryGradient]"]]
-    TrapezoidalGradient: typing.ClassVar[type["StreamItemUnionCase[PulseqTrapezoidalGradient]"]]
-    Adc: typing.ClassVar[type["StreamItemUnionCase[PulseqADCEvent]"]]
-    Shape: typing.ClassVar[type["StreamItemUnionCase[PulseqShape]"]]
+    PulseqBlocks: typing.ClassVar[type["StreamItemUnionCase[list[PulseqBlock]]"]]
+    PulseqRfEvent: typing.ClassVar[type["StreamItemUnionCase[PulseqRFEvent]"]]
+    PulseqArbitraryGradient: typing.ClassVar[type["StreamItemUnionCase[PulseqArbitraryGradient]"]]
+    PulseqTrapezoidalGradient: typing.ClassVar[type["StreamItemUnionCase[PulseqTrapezoidalGradient]"]]
+    PulseqAdcEvent: typing.ClassVar[type["StreamItemUnionCase[PulseqADCEvent]"]]
+    PulseqShape: typing.ClassVar[type["StreamItemUnionCase[PulseqShape]"]]
 
 class StreamItemUnionCase(StreamItem, yardl.UnionCase[_T]):
     pass
@@ -2657,12 +2657,12 @@ StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"in
 StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 13, "tag": "arrayComplexFloat"})
 StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 14, "tag": "imageArray"})
 StreamItem.PulseqDefinitions = type("StreamItem.PulseqDefinitions", (StreamItemUnionCase,), {"index": 15, "tag": "pulseqDefinitions"})
-StreamItem.Blocks = type("StreamItem.Blocks", (StreamItemUnionCase,), {"index": 16, "tag": "blocks"})
-StreamItem.Rf = type("StreamItem.Rf", (StreamItemUnionCase,), {"index": 17, "tag": "rf"})
-StreamItem.ArbitraryGradient = type("StreamItem.ArbitraryGradient", (StreamItemUnionCase,), {"index": 18, "tag": "arbitraryGradient"})
-StreamItem.TrapezoidalGradient = type("StreamItem.TrapezoidalGradient", (StreamItemUnionCase,), {"index": 19, "tag": "trapezoidalGradient"})
-StreamItem.Adc = type("StreamItem.Adc", (StreamItemUnionCase,), {"index": 20, "tag": "adc"})
-StreamItem.Shape = type("StreamItem.Shape", (StreamItemUnionCase,), {"index": 21, "tag": "shape"})
+StreamItem.PulseqBlocks = type("StreamItem.PulseqBlocks", (StreamItemUnionCase,), {"index": 16, "tag": "pulseqBlocks"})
+StreamItem.PulseqRfEvent = type("StreamItem.PulseqRfEvent", (StreamItemUnionCase,), {"index": 17, "tag": "pulseqRfEvent"})
+StreamItem.PulseqArbitraryGradient = type("StreamItem.PulseqArbitraryGradient", (StreamItemUnionCase,), {"index": 18, "tag": "pulseqArbitraryGradient"})
+StreamItem.PulseqTrapezoidalGradient = type("StreamItem.PulseqTrapezoidalGradient", (StreamItemUnionCase,), {"index": 19, "tag": "pulseqTrapezoidalGradient"})
+StreamItem.PulseqAdcEvent = type("StreamItem.PulseqAdcEvent", (StreamItemUnionCase,), {"index": 20, "tag": "pulseqAdcEvent"})
+StreamItem.PulseqShape = type("StreamItem.PulseqShape", (StreamItemUnionCase,), {"index": 21, "tag": "pulseqShape"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():

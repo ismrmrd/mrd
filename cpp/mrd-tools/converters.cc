@@ -2153,4 +2153,4 @@ Image<std::complex<double>> convert(ISMRMRD::Image<std::complex<double>>& im) {
   return convert<std::complex<double>>(im);
 }
 
-}
+} // namespace mrd::converters

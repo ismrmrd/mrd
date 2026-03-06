@@ -150,16 +150,16 @@ def pulseq_text_to_stream_items(file: TextIO) -> Iterable[mrd.StreamItem]:
     if definitions:
         yield mrd.StreamItem.PulseqDefinitions(definitions)
     for shape in shapes:
-        yield mrd.StreamItem.Shape(shape)
+        yield mrd.StreamItem.PulseqShape(shape)
     for rf in rf_events:
-        yield mrd.StreamItem.Rf(rf)
+        yield mrd.StreamItem.PulseqRfEvent(rf)
     for trap in trapezoidal_gradients:
-        yield mrd.StreamItem.TrapezoidalGradient(trap)
+        yield mrd.StreamItem.PulseqTrapezoidalGradient(trap)
     for grad in arbitrary_gradients:
-        yield mrd.StreamItem.ArbitraryGradient(grad)
+        yield mrd.StreamItem.PulseqArbitraryGradient(grad)
     for adc in adc_events:
-        yield mrd.StreamItem.Adc(adc)
-    yield mrd.StreamItem.Blocks(blocks)
+        yield mrd.StreamItem.PulseqAdcEvent(adc)
+    yield mrd.StreamItem.PulseqBlocks(blocks)
 
 
 def _parse_version(lines: _LinesIterator) -> Tuple[int, int, int]:

@@ -16,12 +16,12 @@ StreamItem: !union
   arrayComplexFloat: ArrayComplexFloat
   imageArray: ImageArray
   pulseqDefinitions: PulseqDefinitions
-  blocks: PulseqBlock*
-  rf: PulseqRFEvent
-  arbitraryGradient: PulseqArbitraryGradient
-  trapezoidalGradient: PulseqTrapezoidalGradient
-  adc: PulseqADCEvent
-  shape: PulseqShape
+  pulseqBlocks: PulseqBlock*
+  pulseqRfEvent: PulseqRFEvent
+  pulseqArbitraryGradient: PulseqArbitraryGradient
+  pulseqTrapezoidalGradient: PulseqTrapezoidalGradient
+  pulseqAdcEvent: PulseqADCEvent
+  pulseqShape: PulseqShape
 
 
 # The MRD Protocol
