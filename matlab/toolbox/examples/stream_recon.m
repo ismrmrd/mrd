@@ -156,6 +156,8 @@ while r.has_data()
                 img_head.image_index = image_index;
                 image_index = image_index + 1;
 
+                % reshape to (frequency=1, x, y, z, ch=1) to add frequency dimension
+                combined = reshape(combined, [1, size(combined, 1), size(combined, 2), size(combined, 3), 1]);
                 mrd_image = mrd.ImageFloat(head=img_head, data=combined);
 
                 w.write_data(mrd.StreamItem.ImageFloat(mrd_image));
