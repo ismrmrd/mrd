@@ -31,7 +31,7 @@ jobs:
           miniforge-version: 25.11.0-1
 
       - name: Set up just command runner
-        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
+        uses: extractions/setup-just@f8a3cce218d9f83db3a2ecd90e41ac3de6cdfd9b
 
       - name: Build C++ conda package
         run: |
