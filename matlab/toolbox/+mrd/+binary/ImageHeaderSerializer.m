@@ -19,7 +19,7 @@ classdef ImageHeaderSerializer < yardl.binary.RecordSerializer
       field_serializers{14} = yardl.binary.OptionalSerializer(yardl.binary.Uint32Serializer);
       field_serializers{15} = yardl.binary.OptionalSerializer(yardl.binary.Uint64Serializer);
       field_serializers{16} = yardl.binary.VectorSerializer(yardl.binary.Uint64Serializer);
-      field_serializers{17} = yardl.binary.EnumSerializer('mrd.ImageType', @mrd.ImageType, yardl.binary.Int32Serializer);
+      field_serializers{17} = yardl.binary.EnumSerializer('mrd.ImageType', @mrd.ImageType, yardl.binary.Uint64Serializer);
       field_serializers{18} = yardl.binary.OptionalSerializer(yardl.binary.Uint32Serializer);
       field_serializers{19} = yardl.binary.OptionalSerializer(yardl.binary.Uint32Serializer);
       field_serializers{20} = yardl.binary.VectorSerializer(yardl.binary.Int32Serializer);

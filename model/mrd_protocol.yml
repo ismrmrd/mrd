@@ -13,8 +13,15 @@ StreamItem: !union
   imageComplexDouble: ImageComplexDouble
   acquisitionBucket: AcquisitionBucket
   reconData: ReconData
-  arrayComplexFloat: ArrayComplexFloat
   imageArray: ImageArray
+  ndArrayUint16: NdArrayUint16
+  ndArrayInt16: NdArrayInt16
+  ndArrayUint32: NdArrayUint32
+  ndArrayInt32: NdArrayInt32
+  ndArrayFloat: NdArrayFloat
+  ndArrayDouble: NdArrayDouble
+  ndArrayComplexFloat: NdArrayComplexFloat
+  ndArrayComplexDouble: NdArrayComplexDouble
   pulseqDefinitions: PulseqDefinitions
   pulseqBlocks: PulseqBlock*
   pulseqRfEvent: PulseqRFEvent
