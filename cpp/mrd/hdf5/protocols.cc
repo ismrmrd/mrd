@@ -2445,7 +2445,7 @@ template <typename _T_Inner, typename T>
   t.insertMember("phaseId", HOFFSET(RecordType, phase_id), H5::PredType::NATIVE_INT32);
   t.insertMember("timeId", HOFFSET(RecordType, time_id), H5::PredType::NATIVE_INT32);
   t.insertMember("center", HOFFSET(RecordType, center), H5::PredType::NATIVE_DOUBLE);
-  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_UINT64);
+  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_INT64);
   t.insertMember("freqPPM", HOFFSET(RecordType, freq_ppm), H5::PredType::NATIVE_DOUBLE);
   t.insertMember("phasePPM", HOFFSET(RecordType, phase_ppm), H5::PredType::NATIVE_DOUBLE);
   t.insertMember("freqOffset", HOFFSET(RecordType, freq_offset), H5::PredType::NATIVE_DOUBLE);
@@ -2463,7 +2463,7 @@ template <typename _T_Inner, typename T>
   t.insertMember("last", HOFFSET(RecordType, last), H5::PredType::NATIVE_DOUBLE);
   t.insertMember("shapeId", HOFFSET(RecordType, shape_id), H5::PredType::NATIVE_INT32);
   t.insertMember("timeId", HOFFSET(RecordType, time_id), H5::PredType::NATIVE_INT32);
-  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_UINT64);
+  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_INT64);
   return t;
 }
 
@@ -2475,7 +2475,7 @@ template <typename _T_Inner, typename T>
   t.insertMember("rise", HOFFSET(RecordType, rise), H5::PredType::NATIVE_UINT64);
   t.insertMember("flat", HOFFSET(RecordType, flat), H5::PredType::NATIVE_UINT64);
   t.insertMember("fall", HOFFSET(RecordType, fall), H5::PredType::NATIVE_UINT64);
-  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_UINT64);
+  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_INT64);
   return t;
 }
 
@@ -2485,7 +2485,7 @@ template <typename _T_Inner, typename T>
   t.insertMember("id", HOFFSET(RecordType, id), H5::PredType::NATIVE_INT32);
   t.insertMember("num", HOFFSET(RecordType, num), H5::PredType::NATIVE_UINT64);
   t.insertMember("dwell", HOFFSET(RecordType, dwell), H5::PredType::NATIVE_FLOAT);
-  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_UINT64);
+  t.insertMember("delay", HOFFSET(RecordType, delay), H5::PredType::NATIVE_INT64);
   t.insertMember("freqPPM", HOFFSET(RecordType, freq_ppm), H5::PredType::NATIVE_DOUBLE);
   t.insertMember("phasePPM", HOFFSET(RecordType, phase_ppm), H5::PredType::NATIVE_DOUBLE);
   t.insertMember("freq", HOFFSET(RecordType, freq), H5::PredType::NATIVE_DOUBLE);

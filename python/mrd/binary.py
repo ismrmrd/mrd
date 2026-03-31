@@ -931,7 +931,7 @@ class PulseqBlockSerializer(_binary.RecordSerializer[PulseqBlock]):
 
 class PulseqRFEventSerializer(_binary.RecordSerializer[PulseqRFEvent]):
     def __init__(self) -> None:
-        super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("mag_id", _binary.int32_serializer), ("phase_id", _binary.int32_serializer), ("time_id", _binary.int32_serializer), ("center", _binary.float64_serializer), ("delay", _binary.uint64_serializer), ("freq_ppm", _binary.float64_serializer), ("phase_ppm", _binary.float64_serializer), ("freq_offset", _binary.float64_serializer), ("phase_offset", _binary.float64_serializer), ("use", _binary.EnumSerializer(_binary.int32_serializer, RFPulseUse))])
+        super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("mag_id", _binary.int32_serializer), ("phase_id", _binary.int32_serializer), ("time_id", _binary.int32_serializer), ("center", _binary.float64_serializer), ("delay", _binary.int64_serializer), ("freq_ppm", _binary.float64_serializer), ("phase_ppm", _binary.float64_serializer), ("freq_offset", _binary.float64_serializer), ("phase_offset", _binary.float64_serializer), ("use", _binary.EnumSerializer(_binary.int32_serializer, RFPulseUse))])
 
     def write(self, stream: _binary.CodedOutputStream, value: PulseqRFEvent) -> None:
         if isinstance(value, np.void):
@@ -949,7 +949,7 @@ class PulseqRFEventSerializer(_binary.RecordSerializer[PulseqRFEvent]):
 
 class PulseqArbitraryGradientSerializer(_binary.RecordSerializer[PulseqArbitraryGradient]):
     def __init__(self) -> None:
-        super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("first", _binary.float64_serializer), ("last", _binary.float64_serializer), ("shape_id", _binary.int32_serializer), ("time_id", _binary.int32_serializer), ("delay", _binary.uint64_serializer)])
+        super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("first", _binary.float64_serializer), ("last", _binary.float64_serializer), ("shape_id", _binary.int32_serializer), ("time_id", _binary.int32_serializer), ("delay", _binary.int64_serializer)])
 
     def write(self, stream: _binary.CodedOutputStream, value: PulseqArbitraryGradient) -> None:
         if isinstance(value, np.void):
@@ -967,7 +967,7 @@ class PulseqArbitraryGradientSerializer(_binary.RecordSerializer[PulseqArbitrary
 
 class PulseqTrapezoidalGradientSerializer(_binary.RecordSerializer[PulseqTrapezoidalGradient]):
     def __init__(self) -> None:
-        super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("rise", _binary.uint64_serializer), ("flat", _binary.uint64_serializer), ("fall", _binary.uint64_serializer), ("delay", _binary.uint64_serializer)])
+        super().__init__([("id", _binary.int32_serializer), ("amp", _binary.float64_serializer), ("rise", _binary.uint64_serializer), ("flat", _binary.uint64_serializer), ("fall", _binary.uint64_serializer), ("delay", _binary.int64_serializer)])
 
     def write(self, stream: _binary.CodedOutputStream, value: PulseqTrapezoidalGradient) -> None:
         if isinstance(value, np.void):
@@ -985,7 +985,7 @@ class PulseqTrapezoidalGradientSerializer(_binary.RecordSerializer[PulseqTrapezo
 
 class PulseqADCEventSerializer(_binary.RecordSerializer[PulseqADCEvent]):
     def __init__(self) -> None:
-        super().__init__([("id", _binary.int32_serializer), ("num", _binary.uint64_serializer), ("dwell", _binary.float32_serializer), ("delay", _binary.uint64_serializer), ("freq_ppm", _binary.float64_serializer), ("phase_ppm", _binary.float64_serializer), ("freq", _binary.float64_serializer), ("phase", _binary.float64_serializer), ("phase_shape_id", _binary.int32_serializer)])
+        super().__init__([("id", _binary.int32_serializer), ("num", _binary.uint64_serializer), ("dwell", _binary.float32_serializer), ("delay", _binary.int64_serializer), ("freq_ppm", _binary.float64_serializer), ("phase_ppm", _binary.float64_serializer), ("freq", _binary.float64_serializer), ("phase", _binary.float64_serializer), ("phase_shape_id", _binary.int32_serializer)])
 
     def write(self, stream: _binary.CodedOutputStream, value: PulseqADCEvent) -> None:
         if isinstance(value, np.void):

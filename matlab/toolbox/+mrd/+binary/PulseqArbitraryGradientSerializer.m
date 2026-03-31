@@ -9,7 +9,7 @@ classdef PulseqArbitraryGradientSerializer < yardl.binary.RecordSerializer
       field_serializers{4} = yardl.binary.Float64Serializer;
       field_serializers{5} = yardl.binary.Int32Serializer;
       field_serializers{6} = yardl.binary.Int32Serializer;
-      field_serializers{7} = yardl.binary.Uint64Serializer;
+      field_serializers{7} = yardl.binary.Int64Serializer;
       self@yardl.binary.RecordSerializer('mrd.PulseqArbitraryGradient', field_serializers);
     end
 

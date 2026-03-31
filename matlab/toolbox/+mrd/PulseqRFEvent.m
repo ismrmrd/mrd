@@ -42,7 +42,7 @@ classdef PulseqRFEvent < handle
         kwargs.phase_id = int32(0);
         kwargs.time_id = int32(0);
         kwargs.center = double(0);
-        kwargs.delay = uint64(0);
+        kwargs.delay = int64(0);
         kwargs.freq_ppm = double(0);
         kwargs.phase_ppm = double(0);
         kwargs.freq_offset = double(0);

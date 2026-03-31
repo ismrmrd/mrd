@@ -3394,7 +3394,7 @@ class PulseqRFEventConverter(_ndjson.JsonConverter[PulseqRFEvent, np.void]):
         self._phase_id_converter = _ndjson.int32_converter
         self._time_id_converter = _ndjson.int32_converter
         self._center_converter = _ndjson.float64_converter
-        self._delay_converter = _ndjson.uint64_converter
+        self._delay_converter = _ndjson.int64_converter
         self._freq_ppm_converter = _ndjson.float64_converter
         self._phase_ppm_converter = _ndjson.float64_converter
         self._freq_offset_converter = _ndjson.float64_converter
@@ -3498,7 +3498,7 @@ class PulseqArbitraryGradientConverter(_ndjson.JsonConverter[PulseqArbitraryGrad
         self._last_converter = _ndjson.float64_converter
         self._shape_id_converter = _ndjson.int32_converter
         self._time_id_converter = _ndjson.int32_converter
-        self._delay_converter = _ndjson.uint64_converter
+        self._delay_converter = _ndjson.int64_converter
         super().__init__(np.dtype([
             ("id", self._id_converter.overall_dtype()),
             ("amp", self._amp_converter.overall_dtype()),
@@ -3571,7 +3571,7 @@ class PulseqTrapezoidalGradientConverter(_ndjson.JsonConverter[PulseqTrapezoidal
         self._rise_converter = _ndjson.uint64_converter
         self._flat_converter = _ndjson.uint64_converter
         self._fall_converter = _ndjson.uint64_converter
-        self._delay_converter = _ndjson.uint64_converter
+        self._delay_converter = _ndjson.int64_converter
         super().__init__(np.dtype([
             ("id", self._id_converter.overall_dtype()),
             ("amp", self._amp_converter.overall_dtype()),
@@ -3637,7 +3637,7 @@ class PulseqADCEventConverter(_ndjson.JsonConverter[PulseqADCEvent, np.void]):
         self._id_converter = _ndjson.int32_converter
         self._num_converter = _ndjson.uint64_converter
         self._dwell_converter = _ndjson.float32_converter
-        self._delay_converter = _ndjson.uint64_converter
+        self._delay_converter = _ndjson.int64_converter
         self._freq_ppm_converter = _ndjson.float64_converter
         self._phase_ppm_converter = _ndjson.float64_converter
         self._freq_converter = _ndjson.float64_converter

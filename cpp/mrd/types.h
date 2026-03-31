@@ -1336,7 +1336,7 @@ struct PulseqRFEvent {
   // the RF shape at which the effective rotation takes place
   double center{};
   // Delay before starting the RF pulse, specified in microseconds
-  uint64_t delay{};
+  int64_t delay{};
   // Frequency offset relative to the main system's frequency,
   // specified in parts per million (ppm)
   double freq_ppm{};
@@ -1385,7 +1385,7 @@ struct PulseqArbitraryGradient {
   // 0 means default time raster, -1 means 1/2 of the default time raster (gradient oversampling case).
   int32_t time_id{};
   // Delay before starting the gradient, specified in microseconds
-  uint64_t delay{};
+  int64_t delay{};
 
   bool operator==(const PulseqArbitraryGradient& other) const {
     return id == other.id &&
@@ -1415,7 +1415,7 @@ struct PulseqTrapezoidalGradient {
   // Fall time of the trapezoid in microseconds
   uint64_t fall{};
   // Delay before starting the gradient, specified in microseconds
-  uint64_t delay{};
+  int64_t delay{};
 
   bool operator==(const PulseqTrapezoidalGradient& other) const {
     return id == other.id &&
@@ -1440,7 +1440,7 @@ struct PulseqADCEvent {
   // The ADC dwell time, specified in nanoseconds
   float dwell{};
   // Delay between start of block and first sample, specified in microseconds
-  uint64_t delay{};
+  int64_t delay{};
   // Frequency offset of the ADC receiver relative to the system frequency,
   // specified in parts per million (ppm)
   double freq_ppm{};

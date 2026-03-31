@@ -91,7 +91,7 @@ PulseqRFEvent: !record
     center: float64
 
     # Delay before starting the RF pulse, specified in microseconds
-    delay: uint64
+    delay: int64
 
     # Frequency offset relative to the main system's frequency,
     # specified in parts per million (ppm)
@@ -132,7 +132,7 @@ PulseqArbitraryGradient: !record
     timeId: int32
 
     # Delay before starting the gradient, specified in microseconds
-    delay: uint64
+    delay: int64
 
 # A trapezoidal gradient event
 PulseqTrapezoidalGradient: !record
@@ -153,7 +153,7 @@ PulseqTrapezoidalGradient: !record
     fall: uint64
 
     # Delay before starting the gradient, specified in microseconds
-    delay: uint64
+    delay: int64
 
 
 # An ADC event
@@ -169,7 +169,7 @@ PulseqADCEvent: !record
     dwell: float
 
     # Delay between start of block and first sample, specified in microseconds
-    delay: uint64
+    delay: int64
 
     # Frequency offset of the ADC receiver relative to the system frequency,
     # specified in parts per million (ppm)

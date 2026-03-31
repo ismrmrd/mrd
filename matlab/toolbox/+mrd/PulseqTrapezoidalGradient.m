@@ -25,7 +25,7 @@ classdef PulseqTrapezoidalGradient < handle
         kwargs.rise = uint64(0);
         kwargs.flat = uint64(0);
         kwargs.fall = uint64(0);
-        kwargs.delay = uint64(0);
+        kwargs.delay = int64(0);
       end
       self.id = kwargs.id;
       self.amp = kwargs.amp;

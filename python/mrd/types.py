@@ -2306,7 +2306,7 @@ class PulseqRFEvent:
     the RF shape at which the effective rotation takes place
     """
 
-    delay: yardl.UInt64
+    delay: yardl.Int64
     """Delay before starting the RF pulse, specified in microseconds"""
 
     freq_ppm: yardl.Float64
@@ -2334,7 +2334,7 @@ class PulseqRFEvent:
         phase_id: yardl.Int32 = 0,
         time_id: yardl.Int32 = 0,
         center: yardl.Float64 = 0.0,
-        delay: yardl.UInt64 = 0,
+        delay: yardl.Int64 = 0,
         freq_ppm: yardl.Float64 = 0.0,
         phase_ppm: yardl.Float64 = 0.0,
         freq_offset: yardl.Float64 = 0.0,
@@ -2401,7 +2401,7 @@ class PulseqArbitraryGradient:
     0 means default time raster, -1 means 1/2 of the default time raster (gradient oversampling case).
     """
 
-    delay: yardl.UInt64
+    delay: yardl.Int64
     """Delay before starting the gradient, specified in microseconds"""
 
 
@@ -2412,7 +2412,7 @@ class PulseqArbitraryGradient:
         last: yardl.Float64 = 0.0,
         shape_id: yardl.Int32 = 0,
         time_id: yardl.Int32 = 0,
-        delay: yardl.UInt64 = 0,
+        delay: yardl.Int64 = 0,
     ):
         self.id = id
         self.amp = amp
@@ -2459,7 +2459,7 @@ class PulseqTrapezoidalGradient:
     fall: yardl.UInt64
     """Fall time of the trapezoid in microseconds"""
 
-    delay: yardl.UInt64
+    delay: yardl.Int64
     """Delay before starting the gradient, specified in microseconds"""
 
 
@@ -2469,7 +2469,7 @@ class PulseqTrapezoidalGradient:
         rise: yardl.UInt64 = 0,
         flat: yardl.UInt64 = 0,
         fall: yardl.UInt64 = 0,
-        delay: yardl.UInt64 = 0,
+        delay: yardl.Int64 = 0,
     ):
         self.id = id
         self.amp = amp
@@ -2508,7 +2508,7 @@ class PulseqADCEvent:
     dwell: yardl.Float32
     """The ADC dwell time, specified in nanoseconds"""
 
-    delay: yardl.UInt64
+    delay: yardl.Int64
     """Delay between start of block and first sample, specified in microseconds"""
 
     freq_ppm: yardl.Float64
@@ -2535,7 +2535,7 @@ class PulseqADCEvent:
         id: yardl.Int32 = 0,
         num: yardl.UInt64 = 0,
         dwell: yardl.Float32 = 0.0,
-        delay: yardl.UInt64 = 0,
+        delay: yardl.Int64 = 0,
         freq_ppm: yardl.Float64 = 0.0,
         phase_ppm: yardl.Float64 = 0.0,
         freq: yardl.Float64 = 0.0,
@@ -2739,10 +2739,10 @@ def _mk_get_dtype():
     dtype_map.setdefault(PulseqDefinitions, np.dtype([('gradient_raster_time', np.dtype(np.float64)), ('radiofrequency_raster_time', np.dtype(np.float64)), ('adc_raster_time', np.dtype(np.float64)), ('block_duration_raster', np.dtype(np.float64)), ('name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('fov', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ThreeDimensionalFloat))], align=True)), ('total_duration', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float64))], align=True)), ('custom', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PulseqBlock, np.dtype([('id', np.dtype(np.int32)), ('duration', np.dtype(np.uint64)), ('rf', np.dtype(np.int32)), ('gx', np.dtype(np.int32)), ('gy', np.dtype(np.int32)), ('gz', np.dtype(np.int32)), ('adc', np.dtype(np.int32)), ('ext', np.dtype(np.int32))], align=True))
     dtype_map.setdefault(RFPulseUse, np.dtype(np.int32))
-    dtype_map.setdefault(PulseqRFEvent, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('mag_id', np.dtype(np.int32)), ('phase_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('center', np.dtype(np.float64)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq_offset', np.dtype(np.float64)), ('phase_offset', np.dtype(np.float64)), ('use', get_dtype(RFPulseUse))], align=True))
-    dtype_map.setdefault(PulseqArbitraryGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('first', np.dtype(np.float64)), ('last', np.dtype(np.float64)), ('shape_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('delay', np.dtype(np.uint64))], align=True))
-    dtype_map.setdefault(PulseqTrapezoidalGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('rise', np.dtype(np.uint64)), ('flat', np.dtype(np.uint64)), ('fall', np.dtype(np.uint64)), ('delay', np.dtype(np.uint64))], align=True))
-    dtype_map.setdefault(PulseqADCEvent, np.dtype([('id', np.dtype(np.int32)), ('num', np.dtype(np.uint64)), ('dwell', np.dtype(np.float32)), ('delay', np.dtype(np.uint64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq', np.dtype(np.float64)), ('phase', np.dtype(np.float64)), ('phase_shape_id', np.dtype(np.int32))], align=True))
+    dtype_map.setdefault(PulseqRFEvent, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('mag_id', np.dtype(np.int32)), ('phase_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('center', np.dtype(np.float64)), ('delay', np.dtype(np.int64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq_offset', np.dtype(np.float64)), ('phase_offset', np.dtype(np.float64)), ('use', get_dtype(RFPulseUse))], align=True))
+    dtype_map.setdefault(PulseqArbitraryGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('first', np.dtype(np.float64)), ('last', np.dtype(np.float64)), ('shape_id', np.dtype(np.int32)), ('time_id', np.dtype(np.int32)), ('delay', np.dtype(np.int64))], align=True))
+    dtype_map.setdefault(PulseqTrapezoidalGradient, np.dtype([('id', np.dtype(np.int32)), ('amp', np.dtype(np.float64)), ('rise', np.dtype(np.uint64)), ('flat', np.dtype(np.uint64)), ('fall', np.dtype(np.uint64)), ('delay', np.dtype(np.int64))], align=True))
+    dtype_map.setdefault(PulseqADCEvent, np.dtype([('id', np.dtype(np.int32)), ('num', np.dtype(np.uint64)), ('dwell', np.dtype(np.float32)), ('delay', np.dtype(np.int64)), ('freq_ppm', np.dtype(np.float64)), ('phase_ppm', np.dtype(np.float64)), ('freq', np.dtype(np.float64)), ('phase', np.dtype(np.float64)), ('phase_shape_id', np.dtype(np.int32))], align=True))
     dtype_map.setdefault(PulseqShape, np.dtype([('id', np.dtype(np.int32)), ('num_samples', np.dtype(np.uint64)), ('data', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(StreamItem, np.dtype(np.object_))
 

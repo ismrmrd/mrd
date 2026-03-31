@@ -6,7 +6,7 @@ classdef PulseqADCEventSerializer < yardl.binary.RecordSerializer
       field_serializers{1} = yardl.binary.Int32Serializer;
       field_serializers{2} = yardl.binary.Uint64Serializer;
       field_serializers{3} = yardl.binary.Float32Serializer;
-      field_serializers{4} = yardl.binary.Uint64Serializer;
+      field_serializers{4} = yardl.binary.Int64Serializer;
       field_serializers{5} = yardl.binary.Float64Serializer;
       field_serializers{6} = yardl.binary.Float64Serializer;
       field_serializers{7} = yardl.binary.Float64Serializer;

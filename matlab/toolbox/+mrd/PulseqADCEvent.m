@@ -31,7 +31,7 @@ classdef PulseqADCEvent < handle
         kwargs.id = int32(0);
         kwargs.num = uint64(0);
         kwargs.dwell = single(0);
-        kwargs.delay = uint64(0);
+        kwargs.delay = int64(0);
         kwargs.freq_ppm = double(0);
         kwargs.phase_ppm = double(0);
         kwargs.freq = double(0);

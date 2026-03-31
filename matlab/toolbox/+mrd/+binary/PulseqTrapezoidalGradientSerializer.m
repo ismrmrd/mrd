@@ -8,7 +8,7 @@ classdef PulseqTrapezoidalGradientSerializer < yardl.binary.RecordSerializer
       field_serializers{3} = yardl.binary.Uint64Serializer;
       field_serializers{4} = yardl.binary.Uint64Serializer;
       field_serializers{5} = yardl.binary.Uint64Serializer;
-      field_serializers{6} = yardl.binary.Uint64Serializer;
+      field_serializers{6} = yardl.binary.Int64Serializer;
       self@yardl.binary.RecordSerializer('mrd.PulseqTrapezoidalGradient', field_serializers);
     end
 

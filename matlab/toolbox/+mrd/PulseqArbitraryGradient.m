@@ -29,7 +29,7 @@ classdef PulseqArbitraryGradient < handle
         kwargs.last = double(0);
         kwargs.shape_id = int32(0);
         kwargs.time_id = int32(0);
-        kwargs.delay = uint64(0);
+        kwargs.delay = int64(0);
       end
       self.id = kwargs.id;
       self.amp = kwargs.amp;
