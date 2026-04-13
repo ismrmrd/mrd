@@ -138,7 +138,7 @@ jobs:
         sha256sum mrd-cmake-src*.tar.gz >> sha256-checksums.txt
 
     - name: Publish Artifacts
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         files: |
           sha256-checksums.txt
