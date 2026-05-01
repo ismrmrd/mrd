@@ -9,7 +9,7 @@ ARG DEVCONTAINER_BASE=mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 # subsequent stage and normalize the permissions.
 #########################################################
 
-FROM mcr.microsoft.com/oss/busybox/busybox:1.33.1 as file-normalizer
+FROM mcr.microsoft.com/azurelinux/busybox:1.36 as file-normalizer
 
 COPY environment.yml \
      .devcontainer/devcontainer.bashrc  \
@@ -90,15 +90,16 @@ RUN . /opt/conda/etc/profile.d/conda.sh \
 
 
 # Install the yardl tool
-ARG YARDL_VERSION=0.6.6
-RUN wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz" \
-    && tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz" \
+ARG YARDL_VERSION=0.6.7
+RUN ARCH=$(uname -m | sed 's/aarch64/arm64/') \
+    && wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_${ARCH}.tar.gz" \
+    && tar -xzf "yardl_${YARDL_VERSION}_linux_${ARCH}.tar.gz" \
     && mv yardl "/opt/conda/envs/${CONDA_ENVIRONMENT_NAME}/bin/" \
-    && rm "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+    && rm "yardl_${YARDL_VERSION}_linux_${ARCH}.tar.gz"
 
 
 #########################################################
-# Install Matlab
+# Install Matlab (x86_64 only — not supported on ARM)
 #   Based on mathworks/{matlab-deps:r2023b,matlab:r2023b}
 #
 # Configure the Matlab License Server to use Matlab within the devcontainer (including VSCode extensions):
@@ -110,46 +111,38 @@ ENV DEBIAN_FRONTEND="noninteractive" TZ="Etc/UTC"
 
 COPY --from=file-normalizer /data/matlab-r2023b.ubuntu-24.04.dependencies.txt /tmp/matlab-dependencies.txt
 
-RUN export DEBIAN_FRONTEND=noninteractive \
-    && apt-get update \
-    && apt-get install --no-install-recommends --yes \
-    `cat /tmp/matlab-dependencies.txt` \
-    wget \
-    unzip \
-    ca-certificates \
-    && apt-get clean \
-    && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN [ -d /usr/share/X11/xkb ] || mkdir -p /usr/share/X11/xkb
-
 ARG MATLAB_RELEASE=r2023b
 ARG MATLAB_PRODUCT_LIST="MATLAB"
 ARG MATLAB_INSTALL_LOCATION="/opt/matlab/${MATLAB_RELEASE}"
 ARG LICENSE_SERVER=
 
-RUN adduser --shell /bin/bash --disabled-password --gecos "" matlab \
-    && echo "matlab ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/matlab \
-    && chmod 0440 /etc/sudoers.d/matlab
-
-USER matlab
-WORKDIR /home/matlab
-
-ENV MLM_LICENSE_FILE=${LICENSE_SERVER}
-
-RUN wget -q https://www.mathworks.com/mpm/glnxa64/mpm \
-    && chmod +x mpm \
-    && sudo HOME=${HOME} ./mpm install \
-    --release=${MATLAB_RELEASE} \
-    --destination=${MATLAB_INSTALL_LOCATION} \
-    --products ${MATLAB_PRODUCT_LIST} \
-    || (echo "MPM Installation Failure. See below for more information:" && cat /tmp/mathworks_root.log && false) \
-    && sudo rm -f mpm /tmp/mathworks_root.log \
-    && sudo ln -s ${MATLAB_INSTALL_LOCATION}/bin/matlab /usr/local/bin/matlab \
-    && sudo ln -s ${MATLAB_INSTALL_LOCATION} /opt/matlab/latest \
-    && sudo mkdir -p ${MATLAB_INSTALL_LOCATION}/licenses
-
-# Install workaround run-matlab-command script to unify local and CI invocations of `matlab -batch`
-# See https://github.com/matlab-actions/run-command/issues/53
-RUN sudo wget -O /usr/local/bin/run-matlab-command https://ssd.mathworks.com/supportfiles/ci/run-matlab-command/v2/glnxa64/run-matlab-command \
-    && sudo chmod +x /usr/local/bin/run-matlab-command
+RUN if [ "$(uname -m)" = "x86_64" ]; then \
+        export DEBIAN_FRONTEND=noninteractive \
+        && apt-get update \
+        && apt-get install --no-install-recommends --yes \
+        $(cat /tmp/matlab-dependencies.txt) \
+        wget \
+        unzip \
+        ca-certificates \
+        && apt-get clean \
+        && apt-get -y autoremove \
+        && rm -rf /var/lib/apt/lists/* \
+        && ( [ -d /usr/share/X11/xkb ] || mkdir -p /usr/share/X11/xkb ) \
+        && adduser --shell /bin/bash --disabled-password --gecos "" matlab \
+        && echo "matlab ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/matlab \
+        && chmod 0440 /etc/sudoers.d/matlab \
+        && su - matlab -c "\
+            wget -q https://www.mathworks.com/mpm/glnxa64/mpm \
+            && chmod +x mpm \
+            && sudo HOME=/home/matlab ./mpm install \
+                --release=${MATLAB_RELEASE} \
+                --destination=${MATLAB_INSTALL_LOCATION} \
+                --products ${MATLAB_PRODUCT_LIST} \
+            || (echo 'MPM Installation Failure. See below for more information:' && cat /tmp/mathworks_root.log && false) \
+            && sudo rm -f mpm /tmp/mathworks_root.log" \
+        && ln -s ${MATLAB_INSTALL_LOCATION}/bin/matlab /usr/local/bin/matlab \
+        && ln -s ${MATLAB_INSTALL_LOCATION} /opt/matlab/latest \
+        && mkdir -p ${MATLAB_INSTALL_LOCATION}/licenses \
+        && wget -O /usr/local/bin/run-matlab-command https://ssd.mathworks.com/supportfiles/ci/run-matlab-command/v2/glnxa64/run-matlab-command \
+        && chmod +x /usr/local/bin/run-matlab-command; \
+    fi

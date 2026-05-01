@@ -11,10 +11,11 @@ runs:
     - name: Install Yardl
       shell: bash
       run: |
-        mkdir -p "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
-        cd "/tmp/yardl_${YARDL_VERSION}_linux_x86_64"
-        wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
-        tar -xzf "yardl_${YARDL_VERSION}_linux_x86_64.tar.gz"
+        ARCH=$([ "${{ runner.arch }}" = "ARM64" ] && echo "arm64" || echo "x86_64")
+        mkdir -p "/tmp/yardl_${YARDL_VERSION}_linux_${ARCH}"
+        cd "/tmp/yardl_${YARDL_VERSION}_linux_${ARCH}"
+        wget --quiet "https://github.com/microsoft/yardl/releases/download/v${YARDL_VERSION}/yardl_${YARDL_VERSION}_linux_${ARCH}.tar.gz"
+        tar -xzf "yardl_${YARDL_VERSION}_linux_${ARCH}.tar.gz"
         pwd >> $GITHUB_PATH
 
     - name: Setup Miniforge
@@ -46,6 +47,7 @@ runs:
       if: steps.cache-conda.outputs.cache-hit != 'true'
 
     - name: Set up MATLAB
+      if: runner.arch == 'X64'
       uses: matlab-actions/setup-matlab@v2
       with:
         release: R2023b
@@ -54,6 +56,7 @@ runs:
     # Workaround to running `matlab -batch` from within justfile and Python
     # See: https://github.com/matlab-actions/run-command/issues/53
     - name: Get run-matlab-command
+      if: runner.arch == 'X64'
       shell: bash
       run: |
         wget -O /usr/local/bin/run-matlab-command https://ssd.mathworks.com/supportfiles/ci/run-matlab-command/v2/glnxa64/run-matlab-command

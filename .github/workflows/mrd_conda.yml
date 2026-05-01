@@ -13,7 +13,7 @@ jobs:
     name: Test and Build Conda Packages
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -38,7 +38,7 @@ jobs:
           just build-cpp-conda-package
 
       - name: Build Python conda package
-        if: startsWith(matrix.os, 'ubuntu')
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           just build-python-conda-package
 

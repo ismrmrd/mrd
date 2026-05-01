@@ -7,9 +7,9 @@ dependencies:
   - bash-completion=2.11
   - cmake=4.2.2
   - fftw=3.3.10
-  - gcc_linux-64=15.2.0
+  - c-compiler
+  - cxx-compiler
   - gdb=17.1 # local
-  - gxx_linux-64=15.2.0
   - h5py=3.15.1
   - hdf5=1.14.6
   - howardhinnant_date=3.0.3

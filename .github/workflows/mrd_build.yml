@@ -11,7 +11,7 @@ on:
 env:
   # Increase this to manually reset the conda environment cache
   CONDA_CACHE_NUMBER: 0
-  YARDL_VERSION: 0.6.6
+  YARDL_VERSION: 0.6.7
 
 defaults:
   run:
@@ -21,7 +21,7 @@ defaults:
 jobs:
   build:
     name: Build and Test C++, Python, MATLAB SDKs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v6
@@ -55,9 +55,25 @@ jobs:
         path: mrd-cmake-src*.tar.gz
         overwrite: true
 
+  build-arm:
+    name: Build and Test C++ SDK (ARM)
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Configure Build Environment
+      uses: ./.github/actions/configure-mrd-build-environment
+
+    - name: Build and Test with C++17
+      run: just cpp_version=17 validate-with-no-changes
+
+    - name: Build and Test with C++20
+      run: just cpp_version=20 validate-with-no-changes
+
   docker:
     name: Build and Test Docker images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v6
@@ -69,8 +85,8 @@ jobs:
   publishDocs:
     name: Publish Documentation
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'ismrmrd/mrd'
-    needs: [build, docker]
-    runs-on: ubuntu-latest
+    needs: [build, build-arm, docker]
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -112,8 +128,8 @@ jobs:
   release:
     name: Publish Release
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: [build, docker]
-    runs-on: ubuntu-latest
+    needs: [build, build-arm, docker]
+    runs-on: ubuntu-24.04
     environment:
       name: github-release
       url: https://github.com/ismrmrd/mrd/releases

@@ -10,8 +10,8 @@ echo 'Building mrd conda package using CMake...'
 cmake -GNinja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=20 \
-    -DCMAKE_INSTALL_PREFIX=${PREFIX} \
-    -DCMAKE_OSX_SYSROOT=${CONDA_BUILD_SYSROOT} \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    ${CONDA_BUILD_SYSROOT:+-DCMAKE_OSX_SYSROOT="${CONDA_BUILD_SYSROOT}"} \
     ../
 
 ninja install

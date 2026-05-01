@@ -16,20 +16,12 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     mkdir -p cpp/build; \
     cd cpp/build; \
     cmake -GNinja \
-        -D CMAKE_BUILD_TYPE={{ build_type }} \
-        -D CMAKE_CXX_STANDARD={{ cpp_version }} \
+        -D CMAKE_BUILD_TYPE:STRING={{ build_type }} \
+        -D CMAKE_CXX_STANDARD:STRING={{ cpp_version }} \
         -D CMAKE_INSTALL_PREFIX=$(conda info --json | jq -r .default_prefix) \
         ..
 
-@autoconfigure:
-    if [ ! -f "cpp/build/build.ninja" ]; then \
-        echo "Ninja file not found. Running cmake..."; \
-        just configure; \
-    else \
-        echo "Ninja file already exists. Skipping cmake."; \
-    fi
-
-@build: autoconfigure generate
+@build: configure generate
     cd cpp/build && ninja
 
 @install: test
