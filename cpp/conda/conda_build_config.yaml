@@ -2,4 +2,4 @@ cxx_compiler_version:         # [osx]
   - "19"                      # [osx]
 
 MACOSX_DEPLOYMENT_TARGET:     # [osx]
-  - "13.0"                    # [osx]
+  - "13.4"                    # [osx]
