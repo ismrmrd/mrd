@@ -44,5 +44,7 @@ runs:
 
     - name: Update Environment
       shell: bash -el {0}
-      run: conda env update -n mrd -f environment.yml
+      run: |
+        grep -v '# local' environment.yml > /tmp/environment-ci.yml
+        conda env update -n mrd -f /tmp/environment-ci.yml
       if: steps.cache-conda.outputs.cache-hit != 'true'
