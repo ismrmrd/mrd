@@ -175,3 +175,9 @@ for dir in test_data/pulseq/*/; do
 done
 
 echo Finished end-to-end tests
+
+####
+# Test mrd-upgrade (schema v2.2.0 → v2.2.1)
+echo Running upgrade tests...
+bash "$TESTDIR/upgrade/test-upgrade.sh"
+echo Finished upgrade tests

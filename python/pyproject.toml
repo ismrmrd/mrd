@@ -27,6 +27,9 @@ classifiers = [
 ]
 keywords = []
 
+[project.scripts]
+mrd-upgrade = "mrd.tools.upgrade:main"
+
 [project.urls]
 Homepage = "https://ismrmrd.github.io/mrd"
 Documentation = "https://ismrmrd.github.io/mrd"
