@@ -13,8 +13,6 @@ Changes from v2.2.0 → v2.2.1:
 import collections.abc
 import typing
 
-import numpy as np
-
 import mrd
 from mrd import _binary
 from mrd.binary import (
@@ -23,8 +21,6 @@ from mrd.binary import (
     WaveformSerializer,
     ImageSerializer,
     ImageArraySerializer,
-    AcquisitionBucketSerializer,
-    ReconDataSerializer,
     SamplingDescriptionSerializer,
     EncodingLimitsTypeSerializer,
 )
@@ -37,7 +33,6 @@ from mrd.types import (
     ReconData,
     StreamItem,
 )
-from ._schema_registry import _V220_SCHEMA
 
 
 # ---------------------------------------------------------------------------

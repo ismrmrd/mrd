@@ -1,15 +1,10 @@
 cmake_minimum_required(VERSION 3.19)
 
-if (DEFINED ENV{MRD_VERSION_STRING})
-  # Get the current version of MRD from the environment if possible
-  set(MRD_VERSION_STRING $ENV{MRD_VERSION_STRING})
-else ()
-  # Otherwise, try to read it from the VERSION file at the top of this repo
-  if (IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
-    file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
-  endif ()
+# Read version from the VERSION file at the top of this repo.
+if (NOT IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
+  message(FATAL_ERROR "Cannot read ${CMAKE_SOURCE_DIR}/../VERSION")
 endif ()
-
+file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
 string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
 
 project(mrd VERSION ${MRD_VERSION_STRING})

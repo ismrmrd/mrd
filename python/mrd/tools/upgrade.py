@@ -5,20 +5,55 @@ import argparse
 import os
 import sys
 import tempfile
+from collections.abc import Callable
 
 import mrd
 from mrd.binary import BinaryMrdWriter
 
-from ._schema_registry import identify_file_version, KNOWN_SCHEMAS
+from ._schema_registry import identify_file_version, KNOWN_SCHEMAS, _CURRENT_VERSION
 from ._v220_reader import V220MrdReader
+
+# ---------------------------------------------------------------------------
+# Upgrade graph
+#
+# _SUPPORTED_UPGRADES maps each source version to the next version in the
+# upgrade chain. upgrade_mrd_file follows the chain automatically, so a file
+# two or more steps behind the current version is upgraded in a single call.
+#
+# To add support for a new version X.Y.Z → X.Y.Z+1:
+#   1. Add "X.Y.Z": "X.Y.Z+1" to _SUPPORTED_UPGRADES.
+#   2. Implement _upgrade_XYZ_to_XYZ1 and add it to _UPGRADE_FUNCTIONS.
+# ---------------------------------------------------------------------------
 
 _SUPPORTED_UPGRADES: dict[str, str] = {
     "2.2.0": "2.2.1",
 }
 
 
+def _upgrade_220_to_221(src: str, dst: str) -> None:
+    with V220MrdReader(src) as reader:
+        header = reader.read_header()
+        with BinaryMrdWriter(dst) as writer:
+            writer.write_header(header)
+            writer.write_data(reader.read_data())
+
+
+# Maps each source version to the function that performs one upgrade step.
+_UPGRADE_FUNCTIONS: dict[str, Callable[[str, str], None]] = {
+    "2.2.0": _upgrade_220_to_221,
+}
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
 def upgrade_mrd_file(src: str, dst: str) -> None:
-    """Upgrade an MRD binary file from its detected schema version to v2.2.1.
+    """Upgrade an MRD binary file to the current schema version.
+
+    Follows the upgrade chain automatically: if the source file is more than
+    one version behind, intermediate steps are performed via temporary files
+    that are cleaned up on completion.
 
     Parameters
     ----------
@@ -34,8 +69,11 @@ def upgrade_mrd_file(src: str, dst: str) -> None:
             f"Known versions: {', '.join(sorted(KNOWN_SCHEMAS))}"
         )
 
-    if version == "2.2.1":
-        raise ValueError(f"{src!r} is already at schema version 2.2.1 — no upgrade needed.")
+    if version == _CURRENT_VERSION:
+        raise ValueError(
+            f"{src!r} is already at the current schema version ({_CURRENT_VERSION}) — "
+            "no upgrade needed."
+        )
 
     if version not in _SUPPORTED_UPGRADES:
         raise ValueError(
@@ -43,23 +81,56 @@ def upgrade_mrd_file(src: str, dst: str) -> None:
             f"Supported source versions: {', '.join(sorted(_SUPPORTED_UPGRADES))}"
         )
 
-    if version == "2.2.0":
-        _upgrade_220_to_221(src, dst)
+    # Build the ordered list of upgrade steps from the source version to the
+    # current version by following the chain in _SUPPORTED_UPGRADES.
+    steps: list[str] = []
+    v = version
+    while v != _CURRENT_VERSION:
+        if v not in _SUPPORTED_UPGRADES:
+            raise ValueError(
+                f"No complete upgrade path from {version!r} to {_CURRENT_VERSION!r}: "
+                f"chain is broken at {v!r}."
+            )
+        steps.append(v)
+        v = _SUPPORTED_UPGRADES[v]
+
+    if len(steps) == 1:
+        # Fast path: no intermediate files needed.
+        _UPGRADE_FUNCTIONS[steps[0]](src, dst)
+        return
+
+    # Multi-step path: write intermediates to temp files, then clean up.
+    current_src = src
+    tmp_files: list[str] = []
+    try:
+        for i, step_version in enumerate(steps):
+            is_final = (i == len(steps) - 1)
+            if is_final:
+                step_dst = dst
+            else:
+                fd, step_dst = tempfile.mkstemp(suffix=".mrd.tmp")
+                os.close(fd)
+                tmp_files.append(step_dst)
+            _UPGRADE_FUNCTIONS[step_version](current_src, step_dst)
+            current_src = step_dst
+    except Exception:
+        for t in tmp_files:
+            try:
+                os.unlink(t)
+            except OSError:
+                pass
+        raise
     else:
-        raise AssertionError(f"Unhandled version {version!r}")
-
-
-def _upgrade_220_to_221(src: str, dst: str) -> None:
-    with V220MrdReader(src) as reader:
-        header = reader.read_header()
-        with BinaryMrdWriter(dst) as writer:
-            writer.write_header(header)
-            writer.write_data(reader.read_data())
+        for t in tmp_files:
+            try:
+                os.unlink(t)
+            except OSError:
+                pass
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Upgrade an MRD binary file to the current schema version (v2.2.1).",
+        description=f"Upgrade an MRD binary file to the current schema version ({_CURRENT_VERSION}).",
     )
     parser.add_argument("input", help="Source MRD binary file to upgrade.")
     parser.add_argument("output", nargs="?", help="Destination file (default: <input>.upgraded).")

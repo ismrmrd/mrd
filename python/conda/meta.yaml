@@ -1,4 +1,4 @@
-{% set version = os.environ['MRD_VERSION_STRING'].replace('-', '') %}
+{% set version = open(os.path.join(os.environ['RECIPE_DIR'], '../../VERSION')).read().strip() %}
 
 package:
   name: mrd-python
@@ -9,8 +9,6 @@ source:
 
 build:
   noarch: python
-  script_env:
-    - MRD_VERSION_STRING
 
 requirements:
   build:

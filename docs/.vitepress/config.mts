@@ -24,6 +24,7 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: "Quick Start", link: "/python/quickstart" },
+            { text: "Upgrading MRD Files", link: "/python/upgrade" },
           ],
         },
         { text: "Reference", link: "/reference/model" },
