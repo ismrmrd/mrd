@@ -20,16 +20,8 @@ echo "  Building mrd v2.2.0 module from git tag ..."
 V220_MOD="$WORKDIR/mrd_v220/mrd"
 mkdir -p "$V220_MOD"
 
-# _binary.py and yardl_types.py are byte-for-byte identical between v2.2.0 and
-# v2.2.1 (confirmed via git diff).  Copy them from the current workspace so the
-# generator runs against the same codec as the upgrader.
-cp "$WORKSPACE/python/mrd/_binary.py"    "$V220_MOD/"
-cp "$WORKSPACE/python/mrd/yardl_types.py" "$V220_MOD/"
-
-# Extract the v2.2.0 generated files (schema + type definitions) from git.
-for f in __init__.py binary.py types.py protocols.py ndjson.py; do
-    git -C "$WORKSPACE" show "v2.2.0:python/mrd/$f" > "$V220_MOD/$f"
-done
+# Extract all v2.2.0 files from git.
+git -C "$WORKSPACE" archive v2.2.0 python/mrd/ | tar -x --strip-components=2 -C "$V220_MOD"
 
 echo "  Generating v2.2.0 stream ..."
 V220="$WORKDIR/test_v220.mrd"
@@ -50,14 +42,14 @@ echo "    Detected: $detected"
 
 echo "  Upgrading to v2.2.1 ..."
 V221="$WORKDIR/test_v221.mrd"
-mrd-upgrade "$V220" "$V221"
+python3 -m mrd.tools.upgrade "$V220" "$V221"
 
 echo "  Verifying upgraded file ..."
 python3 "$TESTDIR/verify_upgrade.py" "$V221"
 
 echo "  Testing --in-place upgrade ..."
 cp "$V220" "$WORKDIR/test_inplace.mrd"
-mrd-upgrade --in-place "$WORKDIR/test_inplace.mrd"
+python3 -m mrd.tools.upgrade --in-place "$WORKDIR/test_inplace.mrd"
 python3 "$TESTDIR/verify_upgrade.py" "$WORKDIR/test_inplace.mrd"
 
 echo "  Testing error cases ..."
