@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.19)
 
-# Read version from the VERSION file at the top of this repo.
-if (NOT IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
-  message(FATAL_ERROR "Cannot read ${CMAKE_SOURCE_DIR}/../VERSION")
+if (DEFINED ENV{PKG_VERSION})
+  # When building inside conda, PKG_VERSION is set automatically.
+  set(MRD_VERSION_STRING $ENV{PKG_VERSION})
+else ()
+  # Otherwise, read from the VERSION file at the repo root.
+  if (NOT IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
+    message(FATAL_ERROR "Cannot read ${CMAKE_SOURCE_DIR}/../VERSION")
+  endif ()
+  file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
+  string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
 endif ()
-file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
-string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
 
 project(mrd VERSION ${MRD_VERSION_STRING})
 
