@@ -49,7 +49,10 @@ cross-recon-test-cmd := if matlab != "disabled" { "MRD_MATLAB_ENABLED=true ./tes
     cd test; \
     {{ cross-recon-test-cmd }}
 
-@test: build conda-cpp-test conda-python-test matlab-test end-to-end-test
+@upgrade-test: generate
+    bash test/upgrade/test-upgrade.sh
+
+@test: build conda-cpp-test conda-python-test matlab-test end-to-end-test upgrade-test
 
 validate-with-no-changes: test
     #!/usr/bin/env bash
