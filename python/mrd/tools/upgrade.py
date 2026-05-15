@@ -55,12 +55,16 @@ def upgrade_mrd_file(src: str, dst: str) -> None:
     one version behind, intermediate steps are performed via temporary files
     that are cleaned up on completion.
 
+    The upgrade is written to a temporary file in the same directory as *dst*
+    and atomically renamed on success, so a failed upgrade never leaves *dst*
+    in a partial state. *src* and *dst* may refer to the same path.
+
     Parameters
     ----------
     src:
         Path to the source MRD file.
     dst:
-        Path to write the upgraded MRD file. Must differ from *src*.
+        Path to write the upgraded MRD file.
     """
     version = identify_file_version(src)
     if version is None:
@@ -94,38 +98,43 @@ def upgrade_mrd_file(src: str, dst: str) -> None:
         steps.append(v)
         v = _SUPPORTED_UPGRADES[v]
 
-    if len(steps) == 1:
-        # Fast path: no intermediate files needed.
-        _UPGRADE_FUNCTIONS[steps[0]](src, dst)
-        return
-
-    # Multi-step path: write intermediates to temp files, then clean up.
-    current_src = src
-    tmp_files: list[str] = []
+    # Always stage the final output in a temp file next to dst, then atomically
+    # rename it into place.  This ensures dst is never left in a partial state
+    # if the upgrade raises mid-stream, and also makes src == dst safe.
+    dst_dir = os.path.dirname(os.path.abspath(dst))
+    fd, tmp_dst = tempfile.mkstemp(dir=dst_dir, suffix=".mrd.tmp")
+    os.close(fd)
     try:
-        for i, step_version in enumerate(steps):
-            is_final = (i == len(steps) - 1)
-            if is_final:
-                step_dst = dst
-            else:
-                fd, step_dst = tempfile.mkstemp(suffix=".mrd.tmp")
-                os.close(fd)
-                tmp_files.append(step_dst)
-            _UPGRADE_FUNCTIONS[step_version](current_src, step_dst)
-            current_src = step_dst
+        if len(steps) == 1:
+            _UPGRADE_FUNCTIONS[steps[0]](src, tmp_dst)
+        else:
+            # Multi-step path: chain through additional intermediate temp files.
+            current_src = src
+            tmp_intermediates: list[str] = []
+            try:
+                for i, step_version in enumerate(steps):
+                    is_final = (i == len(steps) - 1)
+                    if is_final:
+                        step_dst = tmp_dst
+                    else:
+                        fd2, step_dst = tempfile.mkstemp(suffix=".mrd.tmp")
+                        os.close(fd2)
+                        tmp_intermediates.append(step_dst)
+                    _UPGRADE_FUNCTIONS[step_version](current_src, step_dst)
+                    current_src = step_dst
+            finally:
+                for t in tmp_intermediates:
+                    try:
+                        os.unlink(t)
+                    except OSError:
+                        pass
+        os.replace(tmp_dst, dst)
     except Exception:
-        for t in tmp_files:
-            try:
-                os.unlink(t)
-            except OSError:
-                pass
+        try:
+            os.unlink(tmp_dst)
+        except OSError:
+            pass
         raise
-    else:
-        for t in tmp_files:
-            try:
-                os.unlink(t)
-            except OSError:
-                pass
 
 
 def main() -> None:
@@ -149,25 +158,12 @@ def main() -> None:
     if args.in_place:
         if args.output:
             parser.error("Cannot specify both an output file and --in-place.")
-        # Write to a temp file next to the source, then atomically replace.
-        src_dir = os.path.dirname(os.path.abspath(src))
-        fd, tmp_path = tempfile.mkstemp(dir=src_dir, suffix=".tmp")
-        os.close(fd)
-        try:
-            upgrade_mrd_file(src, tmp_path)
-            os.replace(tmp_path, src)
-        except Exception:
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
-            raise
+        upgrade_mrd_file(src, src)
         print(f"Upgraded {src!r} in place.")
     else:
         dst = args.output if args.output else src + ".upgraded"
         upgrade_mrd_file(src, dst)
         print(f"Upgraded {src!r} → {dst!r}")
-
 
 if __name__ == "__main__":
     main()

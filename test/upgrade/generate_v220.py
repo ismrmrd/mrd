@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Generate a v2.2.0 MRD binary stream that exercises all 14 StreamItem variants.
 
-This script is intentionally run under mrd-python==2.2.0 (installed into an
-isolated --target directory by test-upgrade.sh) so the data it writes is
-guaranteed to use the old schema and binary layout.
+This script is intentionally run with the v2.2.0 mrd module on PYTHONPATH
+(extracted from the v2.2.0 git tag via `git archive` by test-upgrade.sh) so
+the data it writes is guaranteed to use the old schema and binary layout.
 
 Usage:
-    PYTHONPATH=<mrd-2.2.0-target> python3 generate_v220.py <output_file>
+    PYTHONPATH=<mrd-v2.2.0-dir> python3 generate_v220.py <output_file>
 """
 
 import sys

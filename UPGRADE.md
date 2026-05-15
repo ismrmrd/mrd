@@ -100,9 +100,9 @@ unknown/unsupported/already-current files, and dispatches to `_upgrade_220_to_22
 Tests in `test/upgrade/` are self-contained — no pre-existing MRD data files are required.
 `test-upgrade.sh`:
 
-1. Extracts the five Yardl-generated files from the `v2.2.0` git tag into a temp directory
-   and copies the current (identical) `_binary.py` alongside them. Setting `PYTHONPATH` to
-   that directory shadows the installed package — no separate virtualenv or PyPI install.
+1. Extracts the entire `python/mrd/` tree from the `v2.2.0` git tag via `git archive`
+   into a temp directory. Setting `PYTHONPATH` to that directory shadows the installed
+   package — no separate virtualenv or PyPI install.
 2. Runs `generate_v220.py` under those v2.2.0 codecs to produce a genuine v2.2.0 stream
    exercising 12 of the 14 `StreamItem` variants.
 3. Asserts `identify_file_version` returns `"2.2.0"`.
@@ -122,6 +122,6 @@ To add support for a future upgrade path (e.g. v2.2.1 → v2.2.2):
 1. Register the v2.2.1 schema in `_schema_registry.py`.
 2. Write layout serializers in a new `_v221_reader.py`.
 3. Add `"2.2.1": "2.2.2"` to `_SUPPORTED_UPGRADES` in `upgrade.py` and wire up the reader.
-4. Extract the v2.2.1 generated files from the git tag in `test-upgrade.sh`.
+4. Extract the `python/mrd/` tree from the v2.2.1 git tag via `git archive` in `test-upgrade.sh`.
 
 The version-detection and dispatch pipeline requires no other changes.
