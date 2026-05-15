@@ -18,6 +18,7 @@ from mrd import _binary
 from mrd.binary import (
     AcquisitionFlags,
     EncodingCountersSerializer,
+    HeaderSerializer,
     WaveformSerializer,
     ImageSerializer,
     ImageArraySerializer,
@@ -257,7 +258,13 @@ def _build_v220_stream_item_union() -> _binary.UnionSerializer:
 # ---------------------------------------------------------------------------
 
 class V220MrdReader(_binary.BinaryProtocolReader):
-    """Reads an MRD v2.2.0 binary file, yielding v2.2.1-compatible objects."""
+    """Reads an MRD v2.2.0 binary file, yielding v2.2.1-compatible objects.
+
+    Note: this class deliberately does *not* inherit from MrdReaderBase, so the
+    protocol state machine (call-order enforcement, close-completeness check) is
+    bypassed entirely.  It is only used internally by _upgrade_220_to_221, which
+    calls read_header() exactly once followed by read_data() exactly once.
+    """
 
     def __init__(self, stream: typing.Union[typing.BinaryIO, str]) -> None:
         # Pass None to skip schema validation — we deliberately accept v2.2.0.
@@ -271,7 +278,6 @@ class V220MrdReader(_binary.BinaryProtocolReader):
         self._close()
 
     def read_header(self) -> typing.Optional[mrd.Header]:
-        from mrd.binary import HeaderSerializer
         return _binary.OptionalSerializer(HeaderSerializer()).read(self._stream)
 
     def read_data(self) -> collections.abc.Iterable[StreamItem]:

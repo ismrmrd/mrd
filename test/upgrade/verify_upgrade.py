@@ -110,25 +110,40 @@ assert wf.waveform_id   == 7
 assert wf.sample_time_ns == 1000
 npt.assert_array_equal(wf.data, np.arange(2 * 16, dtype=np.uint32).reshape(2, 16))
 
-# ── 7. Image types: data shape + image_index ─────────────────────────────────
+# ── 7. Image types: data shape + dtype + image_index ─────────────────────────
 img_shape = (1, 1, MATRIX, MATRIX)
 for idx, img in enumerate(images_uint16):
     assert img.head.image_index == 1
-    assert img.data.shape == img_shape
+    assert img.data.shape == img_shape, f"images_uint16[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.uint16,  f"images_uint16[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_int16):
     assert img.head.image_index == 2
+    assert img.data.shape == img_shape, f"images_int16[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.int16,   f"images_int16[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_uint32):
     assert img.head.image_index == 3
+    assert img.data.shape == img_shape, f"images_uint32[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.uint32,  f"images_uint32[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_int32):
     assert img.head.image_index == 4
+    assert img.data.shape == img_shape, f"images_int32[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.int32,   f"images_int32[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_float):
     assert img.head.image_index == 5
+    assert img.data.shape == img_shape, f"images_float[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.float32, f"images_float[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_double):
     assert img.head.image_index == 6
+    assert img.data.shape == img_shape, f"images_double[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.float64, f"images_double[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_cf):
     assert img.head.image_index == 7
+    assert img.data.shape == img_shape,   f"images_cf[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.complex64, f"images_cf[{idx}].data.dtype mismatch"
 for idx, img in enumerate(images_cd):
     assert img.head.image_index == 8
+    assert img.data.shape == img_shape,    f"images_cd[{idx}].data.shape mismatch"
+    assert img.data.dtype == np.complex128, f"images_cd[{idx}].data.dtype mismatch"
 
 # ── 8. AcquisitionBucket ──────────────────────────────────────────────────────
 bucket = acq_buckets[0]

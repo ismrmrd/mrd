@@ -6,7 +6,7 @@
 #   3. Upgrade it to v2.2.1 with mrd-upgrade
 #   4. Verify the output with the current mrd-python install
 
-set -eo pipefail
+set -euo pipefail
 
 TESTDIR=$(dirname "$(realpath "$0")")
 WORKSPACE=$(dirname "$(dirname "$TESTDIR")")

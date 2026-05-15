@@ -9,8 +9,9 @@ else ()
     message(FATAL_ERROR "Cannot read ${CMAKE_SOURCE_DIR}/../VERSION")
   endif ()
   file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
-  string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
 endif ()
+# Strip any non-numeric suffix (e.g. "2.2.1.dev0" from conda/setuptools_scm).
+string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
 
 project(mrd VERSION ${MRD_VERSION_STRING})
 

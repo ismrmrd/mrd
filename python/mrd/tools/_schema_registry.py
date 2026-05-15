@@ -28,8 +28,9 @@ _V220_SCHEMA = r"""{"protocol":{"name":"Mrd","sequence":[{"name":"header","type"
 #   identifying files written by that library version.
 #
 # KNOWN_SCHEMAS: the union of past schemas and the current schema, used for
-#   error messages and version listing. The current entry is a live reference to
-#   MrdReaderBase.schema so it always reflects the installed library.
+#   error messages and version listing. The current entry is captured once at
+#   module-import time from MrdReaderBase.schema (itself a class attribute set
+#   at import time), so in practice it always reflects the installed library.
 # ---------------------------------------------------------------------------
 
 _PAST_SCHEMAS: dict[str, str] = {

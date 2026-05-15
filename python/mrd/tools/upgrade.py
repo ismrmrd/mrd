@@ -102,6 +102,10 @@ def upgrade_mrd_file(src: str, dst: str) -> None:
     # rename it into place.  This ensures dst is never left in a partial state
     # if the upgrade raises mid-stream, and also makes src == dst safe.
     dst_dir = os.path.dirname(os.path.abspath(dst))
+    if not os.path.isdir(dst_dir):
+        raise FileNotFoundError(
+            f"Destination directory does not exist: {dst_dir!r}"
+        )
     fd, tmp_dst = tempfile.mkstemp(dir=dst_dir, suffix=".mrd.tmp")
     os.close(fd)
     try:
@@ -117,7 +121,7 @@ def upgrade_mrd_file(src: str, dst: str) -> None:
                     if is_final:
                         step_dst = tmp_dst
                     else:
-                        fd2, step_dst = tempfile.mkstemp(suffix=".mrd.tmp")
+                        fd2, step_dst = tempfile.mkstemp(dir=dst_dir, suffix=".mrd.tmp")
                         os.close(fd2)
                         tmp_intermediates.append(step_dst)
                     _UPGRADE_FUNCTIONS[step_version](current_src, step_dst)
