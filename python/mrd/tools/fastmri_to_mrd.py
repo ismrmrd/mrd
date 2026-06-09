@@ -28,10 +28,10 @@ def extract_and_convert_header(dset: h5py.Dataset) -> mrd.Header:
 
 def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filename: str) -> None:
     """Extract k-space data from fastMRI dataset and write acquisitions to MRD file."""
-    num_channels = 1
+    header_channels = 1
     if mrd_header.acquisition_system_information is not None:
         if mrd_header.acquisition_system_information.receiver_channels is not None:
-            num_channels = mrd_header.acquisition_system_information.receiver_channels
+            header_channels = mrd_header.acquisition_system_information.receiver_channels
 
     if len(mrd_header.encoding) < 1:
         raise RuntimeError("MRD header must contain at least one encoding to convert k-space data")
@@ -43,25 +43,57 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
         raise RuntimeError("MRD header encoding must contain encoding_limits to convert k-space data")
     encoding_limits = encoding.encoding_limits
 
-    num_slices = 1
+    header_slices = 1
     if encoding_limits.slice is not None:
-        num_slices = encoding_limits.slice.maximum - encoding_limits.slice.minimum + 1
+        header_slices = encoding_limits.slice.maximum - encoding_limits.slice.minimum + 1
 
+    # The fastMRI spec stores k-space as (slices, [channels,] kx, ky) where kx == matrix_size.x
+    # (readout, often oversampled) and ky == matrix_size.y (phase encode). Trust the dataset
+    # shape for slice/channel counts (fastMRI brain files often contain only a subset of the
+    # slices advertised in the header) and accept files that swap the last two axes (Siemens
+    # twix dumps repackaged into the fastMRI layout).
+    if dset.ndim not in (3, 4):
+        raise RuntimeError(f"Expected k-space dataset to be 3D or 4D, but got shape {dset.shape}")
+
+    num_slices = dset.shape[0]
+    num_channels = dset.shape[1] if dset.ndim == 4 else 1
+    last_two = dset.shape[-2:]
+
+    if num_slices != header_slices:
+        logger.warning(
+            f"K-space dataset has {num_slices} slice(s) but header advertises {header_slices}; "
+            f"using the dataset count."
+        )
+    if dset.ndim == 4 and num_channels != header_channels:
+        logger.warning(
+            f"K-space dataset has {num_channels} channel(s) but header advertises {header_channels}; "
+            f"using the dataset count."
+        )
+
+    mx, my = encoded_space.matrix_size.x, encoded_space.matrix_size.y
+    if last_two == (mx, my):
+        axes_swapped = False
+    elif last_two == (my, mx):
+        axes_swapped = True
+        logger.warning(
+            f"K-space dataset shape {dset.shape} has readout/phase-encode axes swapped relative "
+            f"to the fastMRI spec (..., {mx}, {my}); reading with transposed indexing."
+        )
+    else:
+        raise RuntimeError(
+            f"K-space dataset spatial dims {last_two} do not match encoded matrix size "
+            f"({mx}, {my}) in either order."
+        )
+
+    # The fastMRI dataset is zero-padded along the phase-encode axis out to matrix_size.y;
+    # the actually-acquired lines occupy a central window described by encoding_limits.
+    num_kspace_lines = my
     e1_offset = 0
-    num_kspace_lines = encoded_space.matrix_size.y
     if encoding_limits.kspace_encoding_step_1 is not None:
         e1_count = encoding_limits.kspace_encoding_step_1.maximum - encoding_limits.kspace_encoding_step_1.minimum + 1
-        if e1_count < encoded_space.matrix_size.y:
-            e1_offset = num_kspace_lines // 2 - encoding_limits.kspace_encoding_step_1.center
+        if e1_count < my:
+            e1_offset = my // 2 - encoding_limits.kspace_encoding_step_1.center
             num_kspace_lines = e1_count
-
-    if dset.ndim == 4:
-        if dset.shape != (num_slices, num_channels, encoded_space.matrix_size.x, encoded_space.matrix_size.y):
-            raise RuntimeError(f"Expected k-space dataset shape {(num_slices, num_channels, encoded_space.matrix_size.x, encoded_space.matrix_size.y)}, but got {dset.shape}")
-    else:
-        num_channels = 1
-        if dset.shape != (num_slices, encoded_space.matrix_size.x, encoded_space.matrix_size.y):
-            raise RuntimeError(f"Expected k-space dataset shape {(num_slices, encoded_space.matrix_size.x, encoded_space.matrix_size.y)}, but got {dset.shape}")
 
     with mrd.BinaryMrdWriter(output_data_filename) as writer:
         writer.write_header(mrd_header)
@@ -87,9 +119,17 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
 
             e1 = line + e1_offset
             if dset.ndim == 4:
-                data = dset[slice, :, :, e1]
+                if axes_swapped:
+                    # Dataset axes are (slices, channels, ky, kx)
+                    data = dset[slice, :, e1, :]
+                else:
+                    data = dset[slice, :, :, e1]
             else:
-                data = dset[slice, :, e1]
+                if axes_swapped:
+                    # Dataset axes are (slices, ky, kx)
+                    data = dset[slice, e1, :]
+                else:
+                    data = dset[slice, :, e1]
                 data = np.expand_dims(data, axis=0)  # add channel dimension
 
             acq = mrd.Acquisition(head=head, data=data)
@@ -136,12 +176,35 @@ def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filen
         raise RuntimeError("MRD header encoding must contain encoding_limits to convert images")
     encoding_limits = encoding.encoding_limits
 
-    num_slices = 1
+    header_slices = 1
     if encoding_limits.slice is not None:
-        num_slices = encoding_limits.slice.maximum - encoding_limits.slice.minimum + 1
+        header_slices = encoding_limits.slice.maximum - encoding_limits.slice.minimum + 1
 
-    if dset.shape != (num_slices, recon_space.matrix_size.x, recon_space.matrix_size.y):
-        raise RuntimeError(f"Expected image dataset shape {(num_slices, recon_space.matrix_size.x, recon_space.matrix_size.y)}, but got {dset.shape}")
+    if dset.ndim != 3:
+        raise RuntimeError(f"Expected image dataset to be 3D, but got shape {dset.shape}")
+
+    num_slices = dset.shape[0]
+    if num_slices != header_slices:
+        logger.warning(
+            f"Image dataset has {num_slices} slice(s) but header advertises {header_slices}; "
+            f"using the dataset count."
+        )
+
+    rx, ry = recon_space.matrix_size.x, recon_space.matrix_size.y
+    last_two = dset.shape[-2:]
+    if last_two == (rx, ry):
+        axes_swapped = False
+    elif last_two == (ry, rx):
+        axes_swapped = True
+        logger.warning(
+            f"Image dataset shape {dset.shape} has row/column axes swapped relative to the "
+            f"fastMRI spec (..., {rx}, {ry}); reading with transposed indexing."
+        )
+    else:
+        raise RuntimeError(
+            f"Image dataset spatial dims {last_two} do not match recon matrix size "
+            f"({rx}, {ry}) in either order."
+        )
 
     with mrd.BinaryMrdWriter(output_images_filename) as writer:
         writer.write_header(mrd_header)
@@ -162,8 +225,12 @@ def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filen
             head.image_series_index = 1
 
             # MRD images are of shape (channels, slices, rows, cols)
-            # So we need to transpose X/Y, and add empty channel and slice dimensions
-            data = np.transpose(dset[slice, :, :], (1, 0))
+            # In the fastMRI spec axes are (slice, x, y); rows/cols are (y, x), so transpose.
+            # If the input file already stores (slice, y, x), no transpose is needed.
+            if axes_swapped:
+                data = dset[slice, :, :]
+            else:
+                data = np.transpose(dset[slice, :, :], (1, 0))
             data = np.expand_dims(data, axis=(0, 1))
             data = np.ascontiguousarray(data)
             img = mrd.Image(head=head, data=data)
