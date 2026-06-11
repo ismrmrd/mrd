@@ -11,7 +11,13 @@ When a new MRD version is released, update this file as follows:
      to _UPGRADE_FUNCTIONS. MrdReaderBase.schema and KNOWN_SCHEMAS update
      automatically.
 """
-from mrd._binary import string_serializer, MAGIC_BYTES, CodedInputStream
+from mrd._binary import (
+    string_serializer,
+    MAGIC_BYTES,
+    CURRENT_BINARY_FORMAT_VERSION,
+    CodedInputStream,
+    read_fixed_int32,
+)
 from mrd._version import __version__ as _CURRENT_VERSION
 from mrd.protocols import MrdReaderBase
 
@@ -57,7 +63,12 @@ def identify_file_version(path: str) -> str | None:
         magic = bytes(stream.read_view(len(MAGIC_BYTES)))
         if magic != MAGIC_BYTES:
             raise ValueError(f"{path!r} is not a Yardl binary file (bad magic bytes)")
-        _fmt_version = stream.read_view(4)
+        fmt_version = read_fixed_int32(stream)
+        if fmt_version != CURRENT_BINARY_FORMAT_VERSION:
+            raise ValueError(
+                f"{path!r} has unsupported Yardl binary format version {fmt_version} "
+                f"(expected {CURRENT_BINARY_FORMAT_VERSION})"
+            )
         schema = string_serializer.read(stream)
     if schema == MrdReaderBase.schema:
         return _CURRENT_VERSION
