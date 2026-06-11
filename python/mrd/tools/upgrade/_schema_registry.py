@@ -7,7 +7,9 @@ When a new MRD version is released, update this file as follows:
   3. Update the VERSION file at the top-level of this repository, then
      run `just generate` to update python/mrd/_version.py.
   4. Add the corresponding upgrade function in _v<xyz>_reader.py and register it
-     in upgrade.py. MrdReaderBase.schema and KNOWN_SCHEMAS update automatically.
+     in __init__.py: add an entry to _SUPPORTED_UPGRADES and the matching entry
+     to _UPGRADE_FUNCTIONS. MrdReaderBase.schema and KNOWN_SCHEMAS update
+     automatically.
 """
 from mrd._binary import string_serializer, MAGIC_BYTES, CodedInputStream
 from mrd._version import __version__ as _CURRENT_VERSION

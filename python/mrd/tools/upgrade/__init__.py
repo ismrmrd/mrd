@@ -168,6 +168,3 @@ def main() -> None:
         dst = args.output if args.output else src + ".upgraded"
         upgrade_mrd_file(src, dst)
         print(f"Upgraded {src!r} → {dst!r}")
-
-if __name__ == "__main__":
-    main()

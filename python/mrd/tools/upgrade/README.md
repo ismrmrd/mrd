@@ -79,7 +79,7 @@ Two relevant Yardl internals make this clean:
 
 ## Implementation
 
-All upgrade logic lives in `python/mrd/tools/` across three new files:
+All upgrade logic lives in this directory (`python/mrd/tools/upgrade/`):
 
 **`_schema_registry.py`** — embeds the v2.2.0 schema string as a raw literal alongside a
 reference to the current v2.2.1 schema. `identify_file_version(path)` reads the
@@ -90,10 +90,15 @@ produce v2.2.1 objects, injecting `None` for the two new optional fields.
 `_build_v220_stream_item_union()` constructs the 14-case union with v2.2.0 tag ordering.
 `V220MrdReader` wraps these with `expected_schema=None`.
 
-**`upgrade.py`** — CLI entry point (`mrd-upgrade`) and public API
+**`__init__.py`** — CLI entry point (`mrd-upgrade`) and public API
 (`upgrade_mrd_file(src, dst)`). Detects the source version, raises `ValueError` for
-unknown/unsupported/already-current files, and dispatches to `_upgrade_220_to_221`. The
-`--in-place` flag uses `tempfile.mkstemp` + `os.replace()` for an atomic swap.
+unknown/unsupported/already-current files, then walks the chain in `_SUPPORTED_UPGRADES`
+step-by-step (with intermediate temp files when more than one step is needed). The final
+result is always staged in a sibling `tempfile.mkstemp` and atomically `os.replace`d
+into `dst`, so partial output is never observable — this also makes `src == dst` safe and
+is what `--in-place` relies on.
+
+**`__main__.py`** — thin shim so `python -m mrd.tools.upgrade` invokes `main()`.
 
 ## Testing
 
@@ -111,17 +116,27 @@ Tests in `test/upgrade/` are self-contained — no pre-existing MRD data files a
    asserts item counts, data values, and that new optional fields are `None`.
 6. Asserts that upgrading an already-current file raises `ValueError`.
 
-`ReconData` and `ImageArray` are omitted from the generator due to a v2.2.0 write-path
-limitation (structured numpy array fields raise `AttributeError` on `EnumSerializer.write`);
-both are covered by existing fixture files in `data/`.
+`ReconData` and `ImageArray` are intentionally omitted from `generate_v220.py` because
+writing them under the v2.2.0 codec hits a Yardl bug (structured-numpy-array fields
+containing records with `Enum` fields raise `AttributeError` on `EnumSerializer.write` —
+see <https://github.com/microsoft/yardl/issues/284>). `verify_upgrade.py` asserts their
+counts are `0` accordingly, so the v2.2.0 code paths for those two variants are exercised
+for structural correctness only (via `_V220ReconBufferSerializer` and friends being
+constructed and registered in `_build_v220_stream_item_union()`) but not round-tripped
+end-to-end.
 
 ## Extending for future versions
 
 To add support for a future upgrade path (e.g. v2.2.1 → v2.2.2):
 
-1. Register the v2.2.1 schema in `_schema_registry.py`.
-2. Write layout serializers in a new `_v221_reader.py`.
-3. Add `"2.2.1": "2.2.2"` to `_SUPPORTED_UPGRADES` in `upgrade.py` and wire up the reader.
-4. Extract the `python/mrd/` tree from the v2.2.1 git tag via `git archive` in `test-upgrade.sh`.
+1. Register the v2.2.1 schema in `_schema_registry.py` (add a frozen `_V221_SCHEMA`
+   literal copied from `MrdReaderBase.schema` *before* bumping the library, and add an
+   entry to `_PAST_SCHEMAS`).
+2. Write layout serializers in a new `_v221_reader.py` exposing a `V221MrdReader`.
+3. In `__init__.py`, add `"2.2.1": "2.2.2"` to `_SUPPORTED_UPGRADES` **and** add the
+   corresponding `_upgrade_221_to_222` function to `_UPGRADE_FUNCTIONS`. Multi-step
+   chaining (e.g. v2.2.0 → v2.2.2) is handled automatically by `upgrade_mrd_file`.
+4. Extract the `python/mrd/` tree from the v2.2.1 git tag via `git archive` in
+   `test-upgrade.sh` and add a v2.2.1 generator/verifier pair.
 
 The version-detection and dispatch pipeline requires no other changes.

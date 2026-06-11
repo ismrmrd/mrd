@@ -16,7 +16,7 @@ import sys
 import numpy as np
 import numpy.testing as npt
 import mrd
-from mrd.tools import identify_file_version
+from mrd.tools.upgrade import identify_file_version
 
 COILS   = 4
 SAMPLES = 32

@@ -31,7 +31,7 @@ PYTHONPATH="$WORKDIR/mrd_v220:${PYTHONPATH:-}" python3 "$TESTDIR/generate_v220.p
 echo "  Verifying source file is detected as v2.2.0 ..."
 detected=$(python3 - "$V220" <<'EOF'
 import sys
-from mrd.tools import identify_file_version
+from mrd.tools.upgrade import identify_file_version
 v = identify_file_version(sys.argv[1])
 if v != "2.2.0":
     raise RuntimeError(f"Expected 2.2.0, got {v!r}")

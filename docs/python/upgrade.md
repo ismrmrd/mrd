@@ -59,7 +59,7 @@ All other data is preserved exactly.
 You can check the schema version of any MRD binary file from Python:
 
 ```python
-from mrd.tools import identify_file_version
+from mrd.tools.upgrade import identify_file_version
 
 version = identify_file_version("scan.mrd")
 print(version)  # e.g. "2.2.0" or "2.2.1", or None if unrecognised
