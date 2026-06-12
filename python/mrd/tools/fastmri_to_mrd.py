@@ -55,6 +55,8 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
     if dset.ndim not in (3, 4):
         raise RuntimeError(f"Expected k-space dataset to be 3D or 4D, but got shape {dset.shape}")
 
+    # fastMRI axis layout: 4-D = (slice, channel, kx, ky); 3-D = (slice, kx, ky) for single-coil
+    # "esc" files. Slice is always axis 0; the spatial (kx, ky) pair is always the trailing two.
     num_slices = dset.shape[0]
     num_channels = dset.shape[1] if dset.ndim == 4 else 1
     last_two = dset.shape[-2:]
@@ -62,13 +64,27 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
     if num_slices != header_slices:
         logger.warning(
             f"K-space dataset has {num_slices} slice(s) but header advertises {header_slices}; "
-            f"using the dataset count."
+            f"using the dataset count and correcting encoding_limits.slice in the output header."
         )
+        old_min = encoding_limits.slice.minimum if encoding_limits.slice is not None else 0
+        old_center = encoding_limits.slice.center if encoding_limits.slice is not None else old_min + num_slices // 2
+        new_max = old_min + num_slices - 1
+        new_center = max(old_min, min(old_center, new_max))
+        encoding_limits.slice = mrd.LimitType(minimum=old_min, maximum=new_max, center=new_center)
     if dset.ndim == 4 and num_channels != header_channels:
         logger.warning(
             f"K-space dataset has {num_channels} channel(s) but header advertises {header_channels}; "
-            f"using the dataset count."
+            f"using the dataset count and correcting acquisition_system_information.receiver_channels "
+            f"in the output header."
         )
+        if mrd_header.acquisition_system_information is None:
+            mrd_header.acquisition_system_information = mrd.AcquisitionSystemInformationType()
+        mrd_header.acquisition_system_information.receiver_channels = num_channels
+        # Trim coil labels if the header advertised more coils than the data contains; leave
+        # alone if shorter, since we have no label information to fabricate.
+        coil_labels = mrd_header.acquisition_system_information.coil_label
+        if coil_labels is not None and len(coil_labels) > num_channels:
+            mrd_header.acquisition_system_information.coil_label = coil_labels[:num_channels]
 
     mx, my = encoded_space.matrix_size.x, encoded_space.matrix_size.y
     if last_two == (mx, my):
@@ -187,8 +203,13 @@ def write_images(dset: h5py.Dataset, mrd_header: mrd.Header, output_images_filen
     if num_slices != header_slices:
         logger.warning(
             f"Image dataset has {num_slices} slice(s) but header advertises {header_slices}; "
-            f"using the dataset count."
+            f"using the dataset count and correcting encoding_limits.slice in the output header."
         )
+        old_min = encoding_limits.slice.minimum if encoding_limits.slice is not None else 0
+        old_center = encoding_limits.slice.center if encoding_limits.slice is not None else old_min + num_slices // 2
+        new_max = old_min + num_slices - 1
+        new_center = max(old_min, min(old_center, new_max))
+        encoding_limits.slice = mrd.LimitType(minimum=old_min, maximum=new_max, center=new_center)
 
     rx, ry = recon_space.matrix_size.x, recon_space.matrix_size.y
     last_two = dset.shape[-2:]
