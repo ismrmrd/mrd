@@ -15,6 +15,7 @@ dependencies:
   - howardhinnant_date=3.0.3
   - imagemagick=7.1.2_8
   - ismrmrd>=1.15.0
+  - ismrmrd-python>=1.15.0
   - ipykernel=7.1.0
   - just=1.46.0
   - ninja=1.13.2
@@ -28,5 +29,4 @@ dependencies:
   - xtensor=0.27.1
   - pip
   - pip:
-    - ismrmrd==1.14.2
     - pypulseq==1.5.0.post1

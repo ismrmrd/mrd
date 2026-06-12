@@ -11,7 +11,9 @@ function buildToolbox(outdir)
     opts.ToolboxName = "MRD";
 
     disallowedPattern = "-" | lettersPattern;
-    version = replace(string(getenv("MRD_VERSION_STRING")), disallowedPattern, "");
+    versionFile = fullfile(fileparts(mfilename('fullpath')), '..', 'VERSION');
+    version = strtrim(fileread(versionFile));
+    version = replace(version, disallowedPattern, "");
 
     opts.ToolboxVersion = version;
     opts.OutputFile = fullfile(outdir, sprintf("mrd-%s.mltbx", version));

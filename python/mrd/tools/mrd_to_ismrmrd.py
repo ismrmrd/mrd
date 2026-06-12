@@ -34,7 +34,8 @@ def yardl_time_to_time(yardl_time) -> datetime.time:
 
 def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
     """Convert MRD header to ISMRMRD header."""
-    header = ismrmrd.xsd.ismrmrdHeader()
+    exp = ismrmrd.xsd.experimentalConditionsType(H1resonanceFrequency_Hz=mrd_header.experimental_conditions.h1resonance_frequency_hz)
+    header = ismrmrd.xsd.ismrmrdHeader(experimentalConditions=exp)
 
     # Version
     if mrd_header.version:
@@ -88,15 +89,7 @@ def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
 
     # Measurement information
     if mrd_header.measurement_information:
-        meas = ismrmrd.xsd.measurementInformationType()
         meas_info = mrd_header.measurement_information
-
-        if meas_info.measurement_id:
-            meas.measurementID = meas_info.measurement_id
-        if meas_info.series_date:
-            meas.seriesDate = XmlDate.from_date(meas_info.series_date)
-        if meas_info.series_time:
-            meas.seriesTime = XmlTime.from_time(yardl_time_to_time(meas_info.series_time))
 
         # Patient position
         pos_map = {
@@ -109,8 +102,16 @@ def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
             mrd.PatientPosition.F_FP: ismrmrd.xsd.patientPositionType.FFP,
             mrd.PatientPosition.F_FS: ismrmrd.xsd.patientPositionType.FFS
         }
-        if meas_info.patient_position in pos_map:
-            meas.patientPosition = pos_map[meas_info.patient_position]
+        meas = ismrmrd.xsd.measurementInformationType(
+            patientPosition=pos_map[meas_info.patient_position]
+        )
+
+        if meas_info.measurement_id:
+            meas.measurementID = meas_info.measurement_id
+        if meas_info.series_date:
+            meas.seriesDate = XmlDate.from_date(meas_info.series_date)
+        if meas_info.series_time:
+            meas.seriesTime = XmlTime.from_time(yardl_time_to_time(meas_info.series_time))
 
         if meas_info.initial_series_number is not None:
             meas.initialSeriesNumber = meas_info.initial_series_number
@@ -149,11 +150,10 @@ def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
 
         if acq_sys.coil_label:
             for label in acq_sys.coil_label:
-                coil = ismrmrd.xsd.coilLabelType()
-                if label.coil_number is not None:
-                    coil.coilNumber = label.coil_number
-                if label.coil_name:
-                    coil.coilName = label.coil_name
+                coil = ismrmrd.xsd.coilLabelType(
+                    coilNumber=label.coil_number,
+                    coilName=label.coil_name
+                )
                 sys_info.coilLabel.append(coil)
 
         if acq_sys.institution_name:
@@ -167,50 +167,42 @@ def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
 
         header.acquisitionSystemInformation = sys_info
 
-    # Experimental conditions
-    exp = ismrmrd.xsd.experimentalConditionsType()
-    exp.H1resonanceFrequency_Hz = mrd_header.experimental_conditions.h1resonance_frequency_hz
-    header.experimentalConditions = exp
-
     # Encoding
     if not mrd_header.encoding:
         raise ValueError("No encoding found in MRD header")
 
     for enc_mrd in mrd_header.encoding:
-        enc = ismrmrd.xsd.encodingType()
-
         # Encoded space
-        enc_space = ismrmrd.xsd.encodingSpaceType()
-        enc_space.matrixSize = ismrmrd.xsd.matrixSizeType(
-            x=enc_mrd.encoded_space.matrix_size.x,
-            y=enc_mrd.encoded_space.matrix_size.y,
-            z=enc_mrd.encoded_space.matrix_size.z
+        enc_space = ismrmrd.xsd.encodingSpaceType(
+            matrixSize=ismrmrd.xsd.matrixSizeType(
+                x=enc_mrd.encoded_space.matrix_size.x,
+                y=enc_mrd.encoded_space.matrix_size.y,
+                z=enc_mrd.encoded_space.matrix_size.z
+            ),
+            fieldOfView_mm=ismrmrd.xsd.fieldOfViewMm(
+                x=enc_mrd.encoded_space.field_of_view_mm.x,
+                y=enc_mrd.encoded_space.field_of_view_mm.y,
+                z=enc_mrd.encoded_space.field_of_view_mm.z
+            )
         )
-        enc_space.fieldOfView_mm = ismrmrd.xsd.fieldOfViewMm(
-            x=enc_mrd.encoded_space.field_of_view_mm.x,
-            y=enc_mrd.encoded_space.field_of_view_mm.y,
-            z=enc_mrd.encoded_space.field_of_view_mm.z
-        )
-        enc.encodedSpace = enc_space
 
         # Recon space
-        recon_space = ismrmrd.xsd.encodingSpaceType()
-        recon_space.matrixSize = ismrmrd.xsd.matrixSizeType(
-            x=enc_mrd.recon_space.matrix_size.x,
-            y=enc_mrd.recon_space.matrix_size.y,
-            z=enc_mrd.recon_space.matrix_size.z
+        recon_space = ismrmrd.xsd.encodingSpaceType(
+            matrixSize=ismrmrd.xsd.matrixSizeType(
+                x=enc_mrd.recon_space.matrix_size.x,
+                y=enc_mrd.recon_space.matrix_size.y,
+                z=enc_mrd.recon_space.matrix_size.z
+            ),
+            fieldOfView_mm=ismrmrd.xsd.fieldOfViewMm(
+                x=enc_mrd.recon_space.field_of_view_mm.x,
+                y=enc_mrd.recon_space.field_of_view_mm.y,
+                z=enc_mrd.recon_space.field_of_view_mm.z
+            )
         )
-        recon_space.fieldOfView_mm = ismrmrd.xsd.fieldOfViewMm(
-            x=enc_mrd.recon_space.field_of_view_mm.x,
-            y=enc_mrd.recon_space.field_of_view_mm.y,
-            z=enc_mrd.recon_space.field_of_view_mm.z
-        )
-        enc.reconSpace = recon_space
 
         # Encoding limits
+        limits = ismrmrd.xsd.encodingLimitsType()
         if enc_mrd.encoding_limits:
-            limits = ismrmrd.xsd.encodingLimitsType()
-
             if enc_mrd.encoding_limits.kspace_encoding_step_0:
                 lim = enc_mrd.encoding_limits.kspace_encoding_step_0
                 limits.kspace_encoding_step_0 = ismrmrd.xsd.limitType(
@@ -262,40 +254,40 @@ def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
                     minimum=lim.minimum, maximum=lim.maximum, center=lim.center
                 )
 
-            enc.encodingLimits = limits
-
         # Trajectory
-        if enc_mrd.trajectory:
-            traj_map = {
-                mrd.Trajectory.CARTESIAN: ismrmrd.xsd.trajectoryType.CARTESIAN,
-                mrd.Trajectory.EPI: ismrmrd.xsd.trajectoryType.EPI,
-                mrd.Trajectory.RADIAL: ismrmrd.xsd.trajectoryType.RADIAL,
-                mrd.Trajectory.GOLDENANGLE: ismrmrd.xsd.trajectoryType.GOLDENANGLE,
-                mrd.Trajectory.SPIRAL: ismrmrd.xsd.trajectoryType.SPIRAL,
-                mrd.Trajectory.OTHER: ismrmrd.xsd.trajectoryType.OTHER
-            }
-            if enc_mrd.trajectory in traj_map:
-                enc.trajectory = traj_map[enc_mrd.trajectory]
+        traj_map = {
+            mrd.Trajectory.CARTESIAN: ismrmrd.xsd.trajectoryType.CARTESIAN,
+            mrd.Trajectory.EPI: ismrmrd.xsd.trajectoryType.EPI,
+            mrd.Trajectory.RADIAL: ismrmrd.xsd.trajectoryType.RADIAL,
+            mrd.Trajectory.GOLDENANGLE: ismrmrd.xsd.trajectoryType.GOLDENANGLE,
+            mrd.Trajectory.SPIRAL: ismrmrd.xsd.trajectoryType.SPIRAL,
+            mrd.Trajectory.OTHER: ismrmrd.xsd.trajectoryType.OTHER
+        }
+        trajectory = traj_map.get(enc_mrd.trajectory, ismrmrd.xsd.trajectoryType.OTHER)
+
+        enc = ismrmrd.xsd.encodingType(
+            encodedSpace=enc_space,
+            reconSpace=recon_space,
+            encodingLimits=limits,
+            trajectory=trajectory
+        )
 
         # Trajectory description (if present)
         if enc_mrd.trajectory_description:
-            traj_desc = ismrmrd.xsd.trajectoryDescriptionType()
-            if enc_mrd.trajectory_description.identifier:
-                traj_desc.identifier = enc_mrd.trajectory_description.identifier
+            traj_desc = ismrmrd.xsd.trajectoryDescriptionType(
+                identifier=enc_mrd.trajectory_description.identifier
+            )
             enc.trajectoryDescription = traj_desc
 
         # Parallel imaging
         if enc_mrd.parallel_imaging:
-            parallel = ismrmrd.xsd.parallelImagingType()
             par_img = enc_mrd.parallel_imaging
 
-            if par_img.acceleration_factor:
-                acc = ismrmrd.xsd.accelerationFactorType()
-                if par_img.acceleration_factor.kspace_encoding_step_1 is not None:
-                    acc.kspace_encoding_step_1 = par_img.acceleration_factor.kspace_encoding_step_1
-                if par_img.acceleration_factor.kspace_encoding_step_2 is not None:
-                    acc.kspace_encoding_step_2 = par_img.acceleration_factor.kspace_encoding_step_2
-                parallel.accelerationFactor = acc
+            acc = ismrmrd.xsd.accelerationFactorType(
+                kspace_encoding_step_1=par_img.acceleration_factor.kspace_encoding_step_1,
+                kspace_encoding_step_2=par_img.acceleration_factor.kspace_encoding_step_2
+            )
+            parallel = ismrmrd.xsd.parallelImagingType(accelerationFactor=acc)
 
             if par_img.calibration_mode:
                 calib_map = {
@@ -352,28 +344,24 @@ def convert_header(mrd_header: mrd.Header) -> ismrmrd.xsd.ismrmrdHeader:
         user_params = ismrmrd.xsd.userParametersType()
 
         for param in mrd_header.user_parameters.user_parameter_long:
-            up = ismrmrd.xsd.userParameterLongType()
-            up.name = param.name
-            up.value = param.value
-            user_params.userParameterLong.append(up)
+            user_params.userParameterLong.append(
+                ismrmrd.xsd.userParameterLongType(name=param.name, value=param.value)
+            )
 
         for param in mrd_header.user_parameters.user_parameter_double:
-            up = ismrmrd.xsd.userParameterDoubleType()
-            up.name = param.name
-            up.value = param.value
-            user_params.userParameterDouble.append(up)
+            user_params.userParameterDouble.append(
+                ismrmrd.xsd.userParameterDoubleType(name=param.name, value=param.value)
+            )
 
         for param in mrd_header.user_parameters.user_parameter_string:
-            up = ismrmrd.xsd.userParameterStringType()
-            up.name = param.name
-            up.value = param.value
-            user_params.userParameterString.append(up)
+            user_params.userParameterString.append(
+                ismrmrd.xsd.userParameterStringType(name=param.name, value=param.value)
+            )
 
         for param in mrd_header.user_parameters.user_parameter_base64:
-            up = ismrmrd.xsd.userParameterBase64Type()
-            up.name = param.name
-            up.value = bytes(param.value, 'utf-8')
-            user_params.userParameterBase64.append(up)
+            user_params.userParameterBase64.append(
+                ismrmrd.xsd.userParameterBase64Type(name=param.name, value=bytes(param.value, 'utf-8'))
+            )
 
         header.userParameters = user_params
 
