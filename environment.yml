@@ -7,14 +7,15 @@ dependencies:
   - bash-completion=2.11
   - cmake=4.2.2
   - fftw=3.3.10
-  - gcc_linux-64=15.2.0
+  - c-compiler
+  - cxx-compiler
   - gdb=17.1 # local
-  - gxx_linux-64=15.2.0
   - h5py=3.15.1
   - hdf5=1.14.6
   - howardhinnant_date=3.0.3
   - imagemagick=7.1.2_8
   - ismrmrd>=1.15.0
+  - ismrmrd-python>=1.15.0
   - ipykernel=7.1.0
   - just=1.46.0
   - ninja=1.13.2
@@ -28,5 +29,4 @@ dependencies:
   - xtensor=0.27.1
   - pip
   - pip:
-    - ismrmrd==1.14.2
-    - pypulseq==1.4.2.post1
+    - pypulseq==1.5.0.post1

@@ -39,17 +39,17 @@ RUN umask 0002 \
     && ${CONDA_DIR}/bin/conda clean -fy \
     && chown -R :conda ${CONDA_DIR}/envs
 
-ARG MRD_VERSION_STRING
-
 # Build mrd C++ tools
+# VERSION is copied alongside cpp/ so CMakeLists.txt can read it via ../VERSION
 COPY ./cpp /opt/code/mrd
+COPY VERSION /opt/code/VERSION
 RUN . ${CONDA_DIR}/etc/profile.d/conda.sh && umask 0002 && conda activate mrd && \
     cd /opt/code/mrd && \
     rm -rf ./build && \
     mkdir ./build && \
     cd ./build && \
     cmake -G Ninja -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_CXX_STANDARD=17 \
-            -D CMAKE_INSTALL_PREFIX=${CONDA_DIR}/envs/mrd .. -D MRD_VERSION_STRING=${MRD_VERSION_STRING} && \
+            -D CMAKE_INSTALL_PREFIX=${CONDA_DIR}/envs/mrd .. && \
     ninja install
 
 COPY docker/entrypoint.sh /opt/

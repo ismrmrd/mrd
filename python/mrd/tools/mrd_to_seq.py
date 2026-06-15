@@ -53,17 +53,17 @@ def stream_items_to_pulseq_text(
             # If this is not the first occurrence of a Definition,
             # should we merge instead of replacing? Raise an error or warning?
             definitions = item.value
-        elif isinstance(item, mrd.StreamItem.Blocks):
+        elif isinstance(item, mrd.StreamItem.PulseqBlocks):
             blocks.extend(item.value)
-        elif isinstance(item, mrd.StreamItem.Rf):
+        elif isinstance(item, mrd.StreamItem.PulseqRfEvent):
             rf_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.Adc):
+        elif isinstance(item, mrd.StreamItem.PulseqAdcEvent):
             adc_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.TrapezoidalGradient):
+        elif isinstance(item, mrd.StreamItem.PulseqTrapezoidalGradient):
             trap_grad_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.ArbitraryGradient):
+        elif isinstance(item, mrd.StreamItem.PulseqArbitraryGradient):
             arb_grad_events.append(item.value)
-        elif isinstance(item, mrd.StreamItem.Shape):
+        elif isinstance(item, mrd.StreamItem.PulseqShape):
             shapes.append(item.value)
 
     write_header(file)
@@ -111,7 +111,7 @@ def write_definitions(file: TextIO, definitions: Union[mrd.PulseqDefinitions, No
     file.write("\n")
 
 
-def write_blocks(file, blocks: list[mrd.Block]) -> None:
+def write_blocks(file, blocks: list[mrd.PulseqBlock]) -> None:
     file.write("# Format of blocks:\n")
     file.write("# NUM DUR RF  GX  GY  GZ  ADC  EXT\n")
     file.write("[BLOCKS]\n")
@@ -127,7 +127,7 @@ def write_blocks(file, blocks: list[mrd.Block]) -> None:
 
 
 def write_arbitrary_grad_events(
-    file, arb_grad_events: list[mrd.ArbitraryGradient], version
+    file, arb_grad_events: list[mrd.PulseqArbitraryGradient], version
 ) -> None:
     if len(arb_grad_events) == 0:
         return
@@ -168,7 +168,7 @@ def write_arbitrary_grad_events(
 
 
 def write_trap_grad_events(
-    file, trap_grad_events: list[mrd.TrapezoidalGradient]
+    file, trap_grad_events: list[mrd.PulseqTrapezoidalGradient]
 ) -> None:
     if len(trap_grad_events) == 0:
         return
@@ -187,7 +187,7 @@ def write_trap_grad_events(
     file.write("\n")
 
 
-def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
+def write_rf_events(file, rf_events: list[mrd.PulseqRFEvent], version):
     if len(rf_events) == 0:
         return
 
@@ -204,7 +204,7 @@ def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
         for rf in rf_events:
             file.write(
                 f"{rf.id:.0f} {rf.amp:12g} {rf.mag_id:.0f} {rf.phase_id:.0f} {rf.time_id:.0f} "
-                f"{rf.center:.0f} {rf.delay:g} {rf.freq_ppm:g} {rf.phase_ppm:g} "
+                f"{rf.center:g} {rf.delay:g} {rf.freq_ppm:g} {rf.phase_ppm:g} "
                 f"{rf.freq_offset:g} {rf.phase_offset:g} {_get_abbreviation_for_rf_use(rf.use)}\n"
             )
     else:
@@ -225,7 +225,7 @@ def write_rf_events(file, rf_events: list[mrd.RFEvent], version):
     file.write("\n")
 
 
-def write_adc_events(file, adc_events: list[mrd.ADCEvent], version) -> None:
+def write_adc_events(file, adc_events: list[mrd.PulseqADCEvent], version) -> None:
     if len(adc_events) == 0:
         return
 
@@ -258,7 +258,7 @@ def write_adc_events(file, adc_events: list[mrd.ADCEvent], version) -> None:
     file.write("\n")
 
 
-def write_shapes(file, shapes: list[mrd.Shape]) -> None:
+def write_shapes(file, shapes: list[mrd.PulseqShape]) -> None:
     if len(shapes) == 0:
         return
 

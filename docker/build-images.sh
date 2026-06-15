@@ -41,7 +41,7 @@ for target in "${targets[@]}"; do
     echo "Building ${target}..."
 
     tag_name="${image_base_name}/${target}"
-    build_args="-f $dockerfile --target $target --build-arg MRD_VERSION_STRING=${MRD_VERSION_STRING} $context"
+    build_args="-f $dockerfile --target $target $context"
 
     docker build -t "${tag_name}:${tag}" ${build_args}
     if [[ " ${push_targets[@]} " =~ " ${target} " ]] && [ "$push" = true ]; then

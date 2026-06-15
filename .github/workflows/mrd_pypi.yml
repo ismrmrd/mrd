@@ -22,13 +22,13 @@ jobs:
           python-version: "3.x"
 
       - name: Set up just command runner
-        uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
+        uses: extractions/setup-just@v4
 
       - name: Build PyPI package
         run: just build-pypi-package
 
       - name: Store Python package distributions
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: python-package-distributions
           path: python/dist/
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Download stored package distributions
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: python-package-distributions
           path: dist/

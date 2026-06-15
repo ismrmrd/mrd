@@ -6,7 +6,7 @@ classdef Acquisition < handle
     head
     % Raw k-space samples array
     data
-    % Phase offset array
+    % Phase offset array as optional field
     phase
     % Trajectory array
     trajectory

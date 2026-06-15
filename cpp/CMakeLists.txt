@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 3.19)
 
-if (DEFINED ENV{MRD_VERSION_STRING})
-  # Get the current version of MRD from the environment if possible
-  set(MRD_VERSION_STRING $ENV{MRD_VERSION_STRING})
+if (DEFINED ENV{PKG_VERSION})
+  # When building inside conda, PKG_VERSION is set automatically.
+  set(MRD_VERSION_STRING $ENV{PKG_VERSION})
 else ()
-  # Otherwise, try to read it from the VERSION file at the top of this repo
-  if (IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
-    file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
+  # Otherwise, read from the VERSION file at the repo root.
+  if (NOT IS_READABLE "${CMAKE_SOURCE_DIR}/../VERSION")
+    message(FATAL_ERROR "Cannot read ${CMAKE_SOURCE_DIR}/../VERSION")
   endif ()
+  file(STRINGS "${CMAKE_SOURCE_DIR}/../VERSION" MRD_VERSION_STRING)
 endif ()
-
-string(REGEX MATCH "[0-9]+\.[0-9]+\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
+# Strip any non-numeric suffix (e.g. "2.2.1.dev0" from conda/setuptools_scm).
+string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" MRD_VERSION_STRING ${MRD_VERSION_STRING})
 
 project(mrd VERSION ${MRD_VERSION_STRING})
 

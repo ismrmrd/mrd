@@ -851,26 +851,15 @@ ISMRMRD::Acquisition convert(mrd::Acquisition& acq) {
   hdr.flags = head.flags.Value();
   hdr.measurement_uid = head.measurement_uid;
   hdr.scan_counter = head.scan_counter.value_or(0);
-<<<<<<< HEAD
-  hdr.acquisition_time_stamp = head.acquisition_time_stamp.value_or(0);
-
-  if (head.physiology_time_stamp.size() > 3) {
-=======
   hdr.acquisition_time_stamp = head.acquisition_time_stamp_ns.value_or(0) / 1e6; // ns to ms
 
   if (head.physiology_time_stamp_ns.size() > 3) {
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
     throw std::runtime_error("Too many physiology time stamps");
   }
 
   for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++) {
-<<<<<<< HEAD
-    if (head.physiology_time_stamp.size() > i) {
-      hdr.physiology_time_stamp[i] = head.physiology_time_stamp[i];
-=======
     if (head.physiology_time_stamp_ns.size() > i) {
       hdr.physiology_time_stamp[i] = head.physiology_time_stamp_ns[i] / 1e6; // ns to ms
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
     }
   }
 
@@ -882,11 +871,7 @@ ISMRMRD::Acquisition convert(mrd::Acquisition& acq) {
   hdr.encoding_space_ref = head.encoding_space_ref.value_or(0);
   hdr.center_sample = head.center_sample.value_or(0);
   hdr.trajectory_dimensions = acq.trajectory.shape()[0];
-<<<<<<< HEAD
-  hdr.sample_time_us = head.sample_time_us.value_or(0);
-=======
   hdr.sample_time_us = static_cast<float>(head.sample_time_ns.value_or(0) / 1e3); // ns to us as float
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
   hdr.position[0] = head.position[0];
   hdr.position[1] = head.position[1];
   hdr.position[2] = head.position[2];
@@ -961,13 +946,8 @@ ISMRMRD::Waveform convert(mrd::Waveform<uint32_t>& wfm) {
   waveform.head.flags = wfm.flags;
   waveform.head.measurement_uid = wfm.measurement_uid;
   waveform.head.scan_counter = wfm.scan_counter;
-<<<<<<< HEAD
-  waveform.head.time_stamp = wfm.time_stamp;
-  waveform.head.sample_time_us = wfm.sample_time_us;
-=======
   waveform.head.time_stamp = wfm.time_stamp_ns / 1e6;      // ns to ms
   waveform.head.sample_time_us = wfm.sample_time_ns / 1e3; // ns to us
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
 
   waveform.head.channels = wfm.data.shape()[0];
   waveform.head.number_of_samples = wfm.data.shape()[1];
@@ -1001,17 +981,10 @@ ISMRMRD::Image<T> convert(mrd::Image<T>& image) {
   im.setPhase(head.phase.value_or(0));
   im.setRepetition(head.repetition.value_or(0));
   im.setSet(head.set.value_or(0));
-<<<<<<< HEAD
-  im.setAcquisitionTimeStamp(head.acquisition_time_stamp.value_or(0));
-  for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++) {
-    if (i < head.physiology_time_stamp.size()) {
-      im.setPhysiologyTimeStamp(i, head.physiology_time_stamp[i]);
-=======
   im.setAcquisitionTimeStamp(head.acquisition_time_stamp_ns.value_or(0) / 1e6); // ns to ms
   for (size_t i = 0; i < ISMRMRD::ISMRMRD_PHYS_STAMPS; i++) {
     if (i < head.physiology_time_stamp_ns.size()) {
       im.setPhysiologyTimeStamp(i, head.physiology_time_stamp_ns[i] / 1e6); // ns to ms
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
     } else {
       im.setPhysiologyTimeStamp(i, 0);
     }
@@ -1114,6 +1087,11 @@ ISMRMRD::Image<std::complex<double>> convert(Image<std::complex<double>>& im) {
   return convert<std::complex<double>>(im);
 }
 
+// Convert mrd::AcquisitionPrototype - no equivalent in ISMRMRD::
+int convert(AcquisitionPrototype&) {
+  return 0;
+}
+
 // Convert mrd::AcquisitionBucket - no equivalent in ISMRMRD::
 int convert(AcquisitionBucket&) {
   return 0;
@@ -1152,6 +1130,41 @@ int convert(NdArray<std::complex<float>>&) {
   return 0;
 }
 int convert(NdArray<std::complex<double>>&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqDefinitions&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(std::vector<PulseqBlock>&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD:://
+int convert(PulseqRFEvent&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqArbitraryGradient&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqTrapezoidalGradient&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqADCEvent&) {
+  return 0;
+}
+
+// no equivalent in ISMRMRD::
+int convert(PulseqShape&) {
   return 0;
 }
 
@@ -1969,15 +1982,9 @@ mrd::Acquisition convert(ISMRMRD::Acquisition& acq) {
   acquisition.head.idx = convert(acq.idx());
   acquisition.head.measurement_uid = acq.measurement_uid();
   acquisition.head.scan_counter = acq.scan_counter();
-<<<<<<< HEAD
-  acquisition.head.acquisition_time_stamp = acq.acquisition_time_stamp();
-  for (auto& p : acq.physiology_time_stamp()) {
-    acquisition.head.physiology_time_stamp.push_back(p);
-=======
   acquisition.head.acquisition_time_stamp_ns = acq.acquisition_time_stamp() * 1e6; // ms to ns
   for (auto& p : acq.physiology_time_stamp()) {
     acquisition.head.physiology_time_stamp_ns.push_back(p * 1e6); // ms to ns
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
   }
 
   for (size_t i = 0; i < acq.active_channels(); i++) {
@@ -1988,11 +1995,7 @@ mrd::Acquisition convert(ISMRMRD::Acquisition& acq) {
   acquisition.head.discard_post = acq.discard_post();
   acquisition.head.center_sample = acq.center_sample();
   acquisition.head.encoding_space_ref = acq.encoding_space_ref();
-<<<<<<< HEAD
-  acquisition.head.sample_time_us = acq.sample_time_us();
-=======
   acquisition.head.sample_time_ns = acq.sample_time_us() * 1e3; // us to ns
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
 
   acquisition.head.position[0] = acq.position()[0];
   acquisition.head.position[1] = acq.position()[1];
@@ -2046,13 +2049,8 @@ mrd::Waveform<uint32_t> convert(ISMRMRD::Waveform& wfm) {
   waveform.flags = wfm.head.flags;
   waveform.measurement_uid = wfm.head.measurement_uid;
   waveform.scan_counter = wfm.head.scan_counter;
-<<<<<<< HEAD
-  waveform.time_stamp = wfm.head.time_stamp;
-  waveform.sample_time_us = wfm.head.sample_time_us;
-=======
   waveform.time_stamp_ns = wfm.head.time_stamp * 1e6;      // ms to ns
   waveform.sample_time_ns = wfm.head.sample_time_us * 1e3; // us to ns
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
 
   mrd::WaveformSamples<uint32_t> data({wfm.head.channels, wfm.head.number_of_samples});
   for (uint16_t c = 0; c < wfm.head.channels; c++) {
@@ -2095,17 +2093,10 @@ mrd::Image<T> convert(ISMRMRD::Image<T>& im) {
   image.head.phase = im.getPhase();
   image.head.repetition = im.getRepetition();
   image.head.set = im.getSet();
-<<<<<<< HEAD
-  image.head.acquisition_time_stamp = im.getAcquisitionTimeStamp();
-  image.head.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(0));
-  image.head.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(1));
-  image.head.physiology_time_stamp.push_back(im.getPhysiologyTimeStamp(2));
-=======
   image.head.acquisition_time_stamp_ns = im.getAcquisitionTimeStamp() * 1e6;         // ms to ns
   image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(0) * 1e6); // ms to ns
   image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(1) * 1e6); // ms to ns
   image.head.physiology_time_stamp_ns.push_back(im.getPhysiologyTimeStamp(2) * 1e6); // ms to ns
->>>>>>> 34594f0a430fc035361e38f998636583f38fc1fe
 
   if (im.getImageType() == ISMRMRD::ISMRMRD_ImageTypes::ISMRMRD_IMTYPE_COMPLEX) {
     image.head.image_type = mrd::ImageType::kComplex;
@@ -2183,4 +2174,4 @@ Image<std::complex<double>> convert(ISMRMRD::Image<std::complex<double>>& im) {
   return convert<std::complex<double>>(im);
 }
 
-}
+} // namespace mrd::converters

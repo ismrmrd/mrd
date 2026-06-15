@@ -1,6 +1,7 @@
 # Union of all primary types that can be streamed in the MRD Protocol
 StreamItem: !union
   acquisition: Acquisition
+  acquisitionPrototype: AcquisitionPrototype
   waveformUint32: WaveformUint32
   imageUint16: ImageUint16
   imageInt16: ImageInt16
@@ -14,12 +15,12 @@ StreamItem: !union
   reconData: ReconData
   imageArray: ImageArray
   pulseqDefinitions: PulseqDefinitions
-  blocks: SequenceBlock*
-  rfEvent: RFEvent
-  arbitraryGradient: ArbitraryGradient
-  trapezoidalGradient: TrapezoidalGradient
-  adcEvent: ADCEvent
-  shape: SequenceShape
+  pulseqBlocks: PulseqBlock*
+  pulseqRfEvent: PulseqRFEvent
+  pulseqArbitraryGradient: PulseqArbitraryGradient
+  pulseqTrapezoidalGradient: PulseqTrapezoidalGradient
+  pulseqAdcEvent: PulseqADCEvent
+  pulseqShape: PulseqShape
   ndArrayUint16: NdArrayUint16
   ndArrayInt16: NdArrayInt16
   ndArrayUint32: NdArrayUint32

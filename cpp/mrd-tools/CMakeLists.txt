@@ -12,7 +12,9 @@ target_link_libraries(mrd_stream_to_hdf5 mrd_generated)
 add_executable(mrd_stream_recon mrd_stream_recon.cc)
 target_link_libraries(mrd_stream_recon mrd_generated fftw3f)
 # Suppress false positive warnings from GCC 15+ with xtensor complex operations
-target_compile_options(mrd_stream_recon PRIVATE "-Wno-array-bounds" "-Wno-stringop-overflow")
+target_compile_options(mrd_stream_recon PRIVATE
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-array-bounds>
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-stringop-overflow>)
 
 install(TARGETS
     mrd_hdf5_to_stream
