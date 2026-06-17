@@ -18,6 +18,31 @@ FASTMRI_DATASET_NAME_RECON_ESC = "reconstruction_esc"
 logger = logging.getLogger(__name__)
 
 
+def _reconcile_coil_count(dset: h5py.Dataset, mrd_header: mrd.Header) -> int:
+    """Derive channel count from the k-space dataset shape and update the MRD header to match.
+
+    fastMRI k-space is either 4D (slices, channels, ...) or 3D (slices, ...) for single-coil
+    data. The dataset is the source of truth: if the header disagrees on ``receiver_channels``
+    or carries a longer ``coil_label`` list, normalize the header so the written MRD is
+    internally consistent.
+    """
+    num_channels = dset.shape[1] if dset.ndim == 4 else 1
+
+    asi = mrd_header.acquisition_system_information
+    if asi is None:
+        return num_channels
+
+    if asi.receiver_channels is not None and asi.receiver_channels != num_channels:
+        logger.warning(
+            f"Header receiver_channels={asi.receiver_channels} does not match k-space channel axis "
+            f"({num_channels}); updating header to match the data."
+        )
+    asi.receiver_channels = num_channels
+    if len(asi.coil_label) > num_channels:
+        asi.coil_label = asi.coil_label[:num_channels]
+    return num_channels
+
+
 def _reconcile_slice_count(encoding_limits: mrd.EncodingLimitsType, num_slices: int, kind: str) -> None:
     """Warn and rewrite ``encoding_limits.slice`` when it disagrees with the dataset."""
     header_slices = 1
@@ -76,11 +101,6 @@ def extract_and_convert_header(dset: h5py.Dataset) -> mrd.Header:
 
 def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filename: str) -> None:
     """Extract k-space data from fastMRI dataset and write acquisitions to MRD file."""
-    header_channels = 1
-    if mrd_header.acquisition_system_information is not None:
-        if mrd_header.acquisition_system_information.receiver_channels is not None:
-            header_channels = mrd_header.acquisition_system_information.receiver_channels
-
     if len(mrd_header.encoding) < 1:
         raise RuntimeError("MRD header must contain at least one encoding to convert k-space data")
     encoding: mrd.EncodingType = mrd_header.encoding[0]
@@ -102,23 +122,9 @@ def convert_kspace(dset: h5py.Dataset, mrd_header: mrd.Header, output_data_filen
     # fastMRI axis layout: 4-D = (slice, channel, kx, ky); 3-D = (slice, kx, ky) for single-coil
     # "esc" files. Slice is always axis 0; the spatial (kx, ky) pair is always the trailing two.
     num_slices = dset.shape[0]
-    num_channels = dset.shape[1] if dset.ndim == 4 else 1
+    num_channels = _reconcile_coil_count(dset, mrd_header)
 
     _reconcile_slice_count(encoding_limits, num_slices, "K-space")
-    if dset.ndim == 4 and num_channels != header_channels:
-        logger.warning(
-            f"K-space dataset has {num_channels} channel(s) but header advertises {header_channels}; "
-            f"using the dataset count and correcting acquisition_system_information.receiver_channels "
-            f"in the output header."
-        )
-        if mrd_header.acquisition_system_information is None:
-            mrd_header.acquisition_system_information = mrd.AcquisitionSystemInformationType()
-        mrd_header.acquisition_system_information.receiver_channels = num_channels
-        # Trim coil labels if the header advertised more coils than the data contains; leave
-        # alone if shorter, since we have no label information to fabricate.
-        coil_labels = mrd_header.acquisition_system_information.coil_label
-        if coil_labels is not None and len(coil_labels) > num_channels:
-            mrd_header.acquisition_system_information.coil_label = coil_labels[:num_channels]
 
     mx, my = encoded_space.matrix_size.x, encoded_space.matrix_size.y
     axes_swapped = _detect_spatial_axes_swap(dset.shape[-2:], (mx, my), "K-space", "readout/phase-encode")
