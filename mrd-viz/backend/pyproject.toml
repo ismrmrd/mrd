@@ -1,0 +1,29 @@
+[project]
+name = "mrd-viz"
+version = "0.1.0"
+description = "MRD inspection and preview tooling"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mrd-python==2.2.1",
+    "numpy>=2.2.6",
+    "pillow>=11.1.0",
+]
+
+[project.optional-dependencies]
+plots = [
+    "matplotlib>=3.10.6",
+]
+
+[project.scripts]
+mrd-viz = "mrd_viz.cli:main"
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

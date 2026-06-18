@@ -4,3 +4,12 @@ cpp/build/
 
 *.bin
 *.png
+
+# mrd-viz local/generated files
+mrd-viz/backend/.venv/
+mrd-viz/backend/src/*.egg-info/
+mrd-viz/backend/src/**/__pycache__/
+mrd-viz/extension/mrd-viz/node_modules/
+mrd-viz/extension/mrd-viz/out/
+*.pyc
+*.vsix
