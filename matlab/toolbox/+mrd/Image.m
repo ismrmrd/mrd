@@ -48,6 +48,11 @@ classdef Image < handle
       return
     end
 
+    function res = frequencies(self)
+      res = size(self.data, ndims(self.data)-(4));
+      return
+    end
+
 
     function res = eq(self, other)
       res = ...
