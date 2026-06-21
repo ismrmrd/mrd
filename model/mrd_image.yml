@@ -16,6 +16,7 @@ ImageFlags: !flags
     lastInSet: 0x8000
 
 ImageType: !enum
+  base: uint64
   values:
     magnitude: 1
     phase: 2
@@ -61,7 +62,7 @@ ImageHeader: !record
     repetition: uint?
     # Sets of different preparation, e.g. flow encoding, diffusion weighting
     set: uint?
-    # Clock time stamp (e.g. nanoseconds since midnight) 
+    # Clock time stamp (e.g. nanoseconds since midnight)
     acquisitionTimeStampNs: uint64?
     # Time stamps relative to physiological triggering in nanoseconds, e.g. ECG, pulse oximetry, respiratory
     physiologyTimeStampNs: uint64*

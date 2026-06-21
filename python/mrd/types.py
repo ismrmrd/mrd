@@ -1790,7 +1790,7 @@ class NoiseCovariance:
     """Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth"""
 
     noise_dwell_time_ns: yardl.UInt64
-    """Comes from Acquisition.sampleTimeNs"""
+    """Comes from Acquisition.sampleTimeUs"""
 
     sample_count: yardl.Size
     """Number of samples used to compute matrix"""
@@ -2129,9 +2129,322 @@ class ImageArray:
         return f"ImageArray(data={repr(self.data)}, headers={repr(self.headers)}, meta={repr(self.meta)}, waveforms={repr(self.waveforms)})"
 
 
+class ArrayFlags(enum.IntFlag):
+    IS_NAVIGATION_DATA = 1
+    FIRST_IN_AVERAGE = 16
+    LAST_IN_AVERAGE = 32
+    FIRST_IN_SLICE = 64
+    LAST_IN_SLICE = 128
+    FIRST_IN_CONTRAST = 256
+    LAST_IN_CONTRAST = 512
+    FIRST_IN_PHASE = 1024
+    LAST_IN_PHASE = 2048
+    FIRST_IN_REPETITION = 4096
+    LAST_IN_REPETITION = 8192
+    FIRST_IN_SET = 16384
+    LAST_IN_SET = 32768
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, ArrayFlags) and self.value == other.value
+
+    def __hash__(self) -> int:
+        return hash(self.value)
+
+    __str__ = enum.Flag.__str__ # type: ignore
+
 Array = npt.NDArray[T_NP]
 
-ArrayComplexFloat = Array[np.complex64]
+class ArrayType(yardl.OutOfRangeEnum):
+    SPIN_DENSITY_MAP = 1
+    T1_MAP = 2
+    T2_MAP = 3
+    T2STAR_MAP = 4
+    ADC_MAP = 5
+    B0_MAP = 6
+    B1_MAP = 7
+    SENSITIVITY_MAP = 8
+    GFACTOR_MAP = 9
+    RGBA_MAP = 10
+    NOISE = 11
+    PHANTOM = 12
+    USER_MAP = 13
+
+class ArrayImageType(yardl.OutOfRangeEnum):
+    MAGNITUDE = 1
+    PHASE = 2
+    REAL = 3
+    IMAG = 4
+    COMPLEX = 5
+
+class ArrayDimension(yardl.OutOfRangeEnum):
+    CHANNEL = 1
+    Z = 2
+    Y = 3
+    X = 4
+    FREQUENCY = 5
+    COILS = 6
+    SAMPLES = 7
+    BASIS = 8
+    AVERAGE = 9
+    SLICE = 10
+    CONTRAST = 11
+    PHASE = 12
+    REPETITION = 13
+    SET = 14
+    SEGMENT = 15
+    E2 = 16
+    E1 = 17
+    E0 = 18
+    RGBA = 19
+    TIME_NS = 20
+
+class NdArrayHeader:
+    flags: ArrayFlags
+    """A bit mask of common attributes applicable to individual images"""
+
+    measurement_uid: yardl.UInt32
+    """Unique ID corresponding to the image"""
+
+    measurement_frequency: typing.Optional[npt.NDArray[np.uint32]]
+    """NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension"""
+
+    measurement_frequency_label: typing.Optional[npt.NDArray[np.object_]]
+    """NMR label of the measurementFrequency. Same size as measurementFrequency"""
+
+    field_of_view: npt.NDArray[np.float32]
+    """Physical size (in mm) in each of the 3 dimensions in the image"""
+
+    position: npt.NDArray[np.float32]
+    """Center of the excited volume, in LPS coordinates relative to isocenter in millimeters"""
+
+    col_dir: npt.NDArray[np.float32]
+    """Directional cosine of readout/frequency encoding"""
+
+    line_dir: npt.NDArray[np.float32]
+    """Directional cosine of phase encoding (2D)"""
+
+    slice_dir: npt.NDArray[np.float32]
+    """Directional cosine of 3D phase encoding direction"""
+
+    patient_table_position: npt.NDArray[np.float32]
+    """Offset position of the patient table, in LPS coordinates"""
+
+    average: typing.Optional[yardl.UInt32]
+    """Signal average"""
+
+    slice: typing.Optional[yardl.UInt32]
+    """Slice number (multi-slice 2D)"""
+
+    contrast: typing.Optional[yardl.UInt32]
+    """Echo number in multi-echo"""
+
+    phase: typing.Optional[yardl.UInt32]
+    """Cardiac phase"""
+
+    repetition: typing.Optional[yardl.UInt32]
+    """Counter in repeated/dynamic acquisitions"""
+
+    set: typing.Optional[yardl.UInt32]
+    """Sets of different preparation, e.g. flow encoding, diffusion weighting"""
+
+    acquisition_time_stamp_ns: typing.Optional[yardl.UInt64]
+    """Clock time stamp (e.g. nanoseconds since midnight)"""
+
+    physiology_time_stamp_ns: list[yardl.UInt64]
+    """Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory"""
+
+    array_type: typing.Optional[ArrayType]
+    """Interpretation type of the image"""
+
+    image_type: typing.Optional[ArrayImageType]
+    image_index: typing.Optional[yardl.UInt32]
+    """Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)"""
+
+    image_series_index: typing.Optional[yardl.UInt32]
+    """Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)"""
+
+    user_int: list[yardl.Int32]
+    """User-defined int parameters"""
+
+    user_float: list[yardl.Float32]
+    """User-defined float parameters"""
+
+    dimension_labels: list[ArrayDimension]
+    """optional ordered vector of dimension labels"""
+
+
+    def __init__(self, *,
+        flags: ArrayFlags = ArrayFlags(0),
+        measurement_uid: yardl.UInt32 = 0,
+        measurement_frequency: typing.Optional[npt.NDArray[np.uint32]] = None,
+        measurement_frequency_label: typing.Optional[npt.NDArray[np.object_]] = None,
+        field_of_view: typing.Optional[npt.NDArray[np.float32]] = None,
+        position: typing.Optional[npt.NDArray[np.float32]] = None,
+        col_dir: typing.Optional[npt.NDArray[np.float32]] = None,
+        line_dir: typing.Optional[npt.NDArray[np.float32]] = None,
+        slice_dir: typing.Optional[npt.NDArray[np.float32]] = None,
+        patient_table_position: typing.Optional[npt.NDArray[np.float32]] = None,
+        average: typing.Optional[yardl.UInt32] = None,
+        slice: typing.Optional[yardl.UInt32] = None,
+        contrast: typing.Optional[yardl.UInt32] = None,
+        phase: typing.Optional[yardl.UInt32] = None,
+        repetition: typing.Optional[yardl.UInt32] = None,
+        set: typing.Optional[yardl.UInt32] = None,
+        acquisition_time_stamp_ns: typing.Optional[yardl.UInt64] = None,
+        physiology_time_stamp_ns: typing.Optional[list[yardl.UInt64]] = None,
+        array_type: typing.Optional[ArrayType] = None,
+        image_type: typing.Optional[ArrayImageType] = None,
+        image_index: typing.Optional[yardl.UInt32] = None,
+        image_series_index: typing.Optional[yardl.UInt32] = None,
+        user_int: typing.Optional[list[yardl.Int32]] = None,
+        user_float: typing.Optional[list[yardl.Float32]] = None,
+        dimension_labels: typing.Optional[list[ArrayDimension]] = None,
+    ):
+        self.flags = flags
+        self.measurement_uid = measurement_uid
+        self.measurement_frequency = measurement_frequency
+        self.measurement_frequency_label = measurement_frequency_label
+        self.field_of_view = field_of_view if field_of_view is not None else np.zeros((3,), dtype=np.dtype(np.float32))
+        self.position = position if position is not None else np.zeros((3,), dtype=np.dtype(np.float32))
+        self.col_dir = col_dir if col_dir is not None else np.zeros((3,), dtype=np.dtype(np.float32))
+        self.line_dir = line_dir if line_dir is not None else np.zeros((3,), dtype=np.dtype(np.float32))
+        self.slice_dir = slice_dir if slice_dir is not None else np.zeros((3,), dtype=np.dtype(np.float32))
+        self.patient_table_position = patient_table_position if patient_table_position is not None else np.zeros((3,), dtype=np.dtype(np.float32))
+        self.average = average
+        self.slice = slice
+        self.contrast = contrast
+        self.phase = phase
+        self.repetition = repetition
+        self.set = set
+        self.acquisition_time_stamp_ns = acquisition_time_stamp_ns
+        self.physiology_time_stamp_ns = physiology_time_stamp_ns if physiology_time_stamp_ns is not None else []
+        self.array_type = array_type
+        self.image_type = image_type
+        self.image_index = image_index
+        self.image_series_index = image_series_index
+        self.user_int = user_int if user_int is not None else []
+        self.user_float = user_float if user_float is not None else []
+        self.dimension_labels = dimension_labels if dimension_labels is not None else []
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, NdArrayHeader)
+            and self.flags == other.flags
+            and self.measurement_uid == other.measurement_uid
+            and (other.measurement_frequency is None if self.measurement_frequency is None else (other.measurement_frequency is not None and yardl.structural_equal(self.measurement_frequency, other.measurement_frequency)))
+            and (other.measurement_frequency_label is None if self.measurement_frequency_label is None else (other.measurement_frequency_label is not None and yardl.structural_equal(self.measurement_frequency_label, other.measurement_frequency_label)))
+            and yardl.structural_equal(self.field_of_view, other.field_of_view)
+            and yardl.structural_equal(self.position, other.position)
+            and yardl.structural_equal(self.col_dir, other.col_dir)
+            and yardl.structural_equal(self.line_dir, other.line_dir)
+            and yardl.structural_equal(self.slice_dir, other.slice_dir)
+            and yardl.structural_equal(self.patient_table_position, other.patient_table_position)
+            and self.average == other.average
+            and self.slice == other.slice
+            and self.contrast == other.contrast
+            and self.phase == other.phase
+            and self.repetition == other.repetition
+            and self.set == other.set
+            and self.acquisition_time_stamp_ns == other.acquisition_time_stamp_ns
+            and self.physiology_time_stamp_ns == other.physiology_time_stamp_ns
+            and self.array_type == other.array_type
+            and self.image_type == other.image_type
+            and self.image_index == other.image_index
+            and self.image_series_index == other.image_series_index
+            and self.user_int == other.user_int
+            and self.user_float == other.user_float
+            and self.dimension_labels == other.dimension_labels
+        )
+
+    def __str__(self) -> str:
+        return f"NdArrayHeader(flags={self.flags}, measurement_uid={self.measurement_uid}, measurement_frequency={self.measurement_frequency}, measurement_frequency_label={self.measurement_frequency_label}, field_of_view={self.field_of_view}, position={self.position}, col_dir={self.col_dir}, line_dir={self.line_dir}, slice_dir={self.slice_dir}, patient_table_position={self.patient_table_position}, average={self.average}, slice={self.slice}, contrast={self.contrast}, phase={self.phase}, repetition={self.repetition}, set={self.set}, acquisition_time_stamp_ns={self.acquisition_time_stamp_ns}, physiology_time_stamp_ns={self.physiology_time_stamp_ns}, array_type={self.array_type}, image_type={self.image_type}, image_index={self.image_index}, image_series_index={self.image_series_index}, user_int={self.user_int}, user_float={self.user_float}, dimension_labels={self.dimension_labels})"
+
+    def __repr__(self) -> str:
+        return f"NdArrayHeader(flags={repr(self.flags)}, measurement_uid={repr(self.measurement_uid)}, measurement_frequency={repr(self.measurement_frequency)}, measurement_frequency_label={repr(self.measurement_frequency_label)}, field_of_view={repr(self.field_of_view)}, position={repr(self.position)}, col_dir={repr(self.col_dir)}, line_dir={repr(self.line_dir)}, slice_dir={repr(self.slice_dir)}, patient_table_position={repr(self.patient_table_position)}, average={repr(self.average)}, slice={repr(self.slice)}, contrast={repr(self.contrast)}, phase={repr(self.phase)}, repetition={repr(self.repetition)}, set={repr(self.set)}, acquisition_time_stamp_ns={repr(self.acquisition_time_stamp_ns)}, physiology_time_stamp_ns={repr(self.physiology_time_stamp_ns)}, array_type={repr(self.array_type)}, image_type={repr(self.image_type)}, image_index={repr(self.image_index)}, image_series_index={repr(self.image_series_index)}, user_int={repr(self.user_int)}, user_float={repr(self.user_float)}, dimension_labels={repr(self.dimension_labels)})"
+
+
+class ArrayMetaValue:
+    String: typing.ClassVar[type["ArrayMetaValueUnionCase[str]"]]
+    Int64: typing.ClassVar[type["ArrayMetaValueUnionCase[yardl.Int64]"]]
+    Float64: typing.ClassVar[type["ArrayMetaValueUnionCase[yardl.Float64]"]]
+
+class ArrayMetaValueUnionCase(ArrayMetaValue, yardl.UnionCase[_T]):
+    pass
+
+ArrayMetaValue.String = type("ArrayMetaValue.String", (ArrayMetaValueUnionCase,), {"index": 0, "tag": "string"})
+ArrayMetaValue.Int64 = type("ArrayMetaValue.Int64", (ArrayMetaValueUnionCase,), {"index": 1, "tag": "int64"})
+ArrayMetaValue.Float64 = type("ArrayMetaValue.Float64", (ArrayMetaValueUnionCase,), {"index": 2, "tag": "float64"})
+del ArrayMetaValueUnionCase
+
+ArrayMeta = dict[str, list[ArrayMetaValue]]
+
+class NdArray(typing.Generic[T_NP]):
+    head: NdArrayHeader
+    data: Array[T_NP]
+    meta: ArrayMeta
+
+    def __init__(self, *,
+        head: typing.Optional[NdArrayHeader] = None,
+        data: Array[T_NP],
+        meta: typing.Optional[ArrayMeta] = None,
+    ):
+        self.head = head if head is not None else NdArrayHeader()
+        self.data = data
+        self.meta = meta if meta is not None else {}
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, NdArray)
+            and self.head == other.head
+            and yardl.structural_equal(self.data, other.data)
+            and self.meta == other.meta
+        )
+
+    def __str__(self) -> str:
+        return f"NdArray(head={self.head}, data={self.data}, meta={self.meta})"
+
+    def __repr__(self) -> str:
+        return f"NdArray(head={repr(self.head)}, data={repr(self.data)}, meta={repr(self.meta)})"
+
+
+NdArrayUint16 = NdArray[np.uint16]
+
+NdArrayInt16 = NdArray[np.int16]
+
+NdArrayUint32 = NdArray[np.uint32]
+
+NdArrayInt32 = NdArray[np.int32]
+
+NdArrayFloat = NdArray[np.float32]
+
+NdArrayDouble = NdArray[np.float64]
+
+NdArrayComplexFloat = NdArray[np.complex64]
+
+NdArrayComplexDouble = NdArray[np.complex128]
+
+class AnyNdArray:
+    NdArrayUint16: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayUint16]"]]
+    NdArrayInt16: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayInt16]"]]
+    NdArrayUint32: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayUint32]"]]
+    NdArrayInt32: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayInt32]"]]
+    NdArrayFloat: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayFloat]"]]
+    NdArrayDouble: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayDouble]"]]
+    NdArrayComplexFloat: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayComplexFloat]"]]
+    NdArrayComplexDouble: typing.ClassVar[type["AnyNdArrayUnionCase[NdArrayComplexDouble]"]]
+
+class AnyNdArrayUnionCase(AnyNdArray, yardl.UnionCase[_T]):
+    pass
+
+AnyNdArray.NdArrayUint16 = type("AnyNdArray.NdArrayUint16", (AnyNdArrayUnionCase,), {"index": 0, "tag": "NdArrayUint16"})
+AnyNdArray.NdArrayInt16 = type("AnyNdArray.NdArrayInt16", (AnyNdArrayUnionCase,), {"index": 1, "tag": "NdArrayInt16"})
+AnyNdArray.NdArrayUint32 = type("AnyNdArray.NdArrayUint32", (AnyNdArrayUnionCase,), {"index": 2, "tag": "NdArrayUint32"})
+AnyNdArray.NdArrayInt32 = type("AnyNdArray.NdArrayInt32", (AnyNdArrayUnionCase,), {"index": 3, "tag": "NdArrayInt32"})
+AnyNdArray.NdArrayFloat = type("AnyNdArray.NdArrayFloat", (AnyNdArrayUnionCase,), {"index": 4, "tag": "NdArrayFloat"})
+AnyNdArray.NdArrayDouble = type("AnyNdArray.NdArrayDouble", (AnyNdArrayUnionCase,), {"index": 5, "tag": "NdArrayDouble"})
+AnyNdArray.NdArrayComplexFloat = type("AnyNdArray.NdArrayComplexFloat", (AnyNdArrayUnionCase,), {"index": 6, "tag": "NdArrayComplexFloat"})
+AnyNdArray.NdArrayComplexDouble = type("AnyNdArray.NdArrayComplexDouble", (AnyNdArrayUnionCase,), {"index": 7, "tag": "NdArrayComplexDouble"})
+del AnyNdArrayUnionCase
 
 class PulseqDefinitions:
     """Pulseq definitions"""
@@ -2628,8 +2941,15 @@ class StreamItem:
     ImageComplexDouble: typing.ClassVar[type["StreamItemUnionCase[ImageComplexDouble]"]]
     AcquisitionBucket: typing.ClassVar[type["StreamItemUnionCase[AcquisitionBucket]"]]
     ReconData: typing.ClassVar[type["StreamItemUnionCase[ReconData]"]]
-    ArrayComplexFloat: typing.ClassVar[type["StreamItemUnionCase[ArrayComplexFloat]"]]
     ImageArray: typing.ClassVar[type["StreamItemUnionCase[ImageArray]"]]
+    NdArrayUint16: typing.ClassVar[type["StreamItemUnionCase[NdArrayUint16]"]]
+    NdArrayInt16: typing.ClassVar[type["StreamItemUnionCase[NdArrayInt16]"]]
+    NdArrayUint32: typing.ClassVar[type["StreamItemUnionCase[NdArrayUint32]"]]
+    NdArrayInt32: typing.ClassVar[type["StreamItemUnionCase[NdArrayInt32]"]]
+    NdArrayFloat: typing.ClassVar[type["StreamItemUnionCase[NdArrayFloat]"]]
+    NdArrayDouble: typing.ClassVar[type["StreamItemUnionCase[NdArrayDouble]"]]
+    NdArrayComplexFloat: typing.ClassVar[type["StreamItemUnionCase[NdArrayComplexFloat]"]]
+    NdArrayComplexDouble: typing.ClassVar[type["StreamItemUnionCase[NdArrayComplexDouble]"]]
     PulseqDefinitions: typing.ClassVar[type["StreamItemUnionCase[PulseqDefinitions]"]]
     PulseqBlocks: typing.ClassVar[type["StreamItemUnionCase[list[PulseqBlock]]"]]
     PulseqRfEvent: typing.ClassVar[type["StreamItemUnionCase[PulseqRFEvent]"]]
@@ -2654,15 +2974,22 @@ StreamItem.ImageComplexFloat = type("StreamItem.ImageComplexFloat", (StreamItemU
 StreamItem.ImageComplexDouble = type("StreamItem.ImageComplexDouble", (StreamItemUnionCase,), {"index": 10, "tag": "imageComplexDouble"})
 StreamItem.AcquisitionBucket = type("StreamItem.AcquisitionBucket", (StreamItemUnionCase,), {"index": 11, "tag": "acquisitionBucket"})
 StreamItem.ReconData = type("StreamItem.ReconData", (StreamItemUnionCase,), {"index": 12, "tag": "reconData"})
-StreamItem.ArrayComplexFloat = type("StreamItem.ArrayComplexFloat", (StreamItemUnionCase,), {"index": 13, "tag": "arrayComplexFloat"})
-StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 14, "tag": "imageArray"})
-StreamItem.PulseqDefinitions = type("StreamItem.PulseqDefinitions", (StreamItemUnionCase,), {"index": 15, "tag": "pulseqDefinitions"})
-StreamItem.PulseqBlocks = type("StreamItem.PulseqBlocks", (StreamItemUnionCase,), {"index": 16, "tag": "pulseqBlocks"})
-StreamItem.PulseqRfEvent = type("StreamItem.PulseqRfEvent", (StreamItemUnionCase,), {"index": 17, "tag": "pulseqRfEvent"})
-StreamItem.PulseqArbitraryGradient = type("StreamItem.PulseqArbitraryGradient", (StreamItemUnionCase,), {"index": 18, "tag": "pulseqArbitraryGradient"})
-StreamItem.PulseqTrapezoidalGradient = type("StreamItem.PulseqTrapezoidalGradient", (StreamItemUnionCase,), {"index": 19, "tag": "pulseqTrapezoidalGradient"})
-StreamItem.PulseqAdcEvent = type("StreamItem.PulseqAdcEvent", (StreamItemUnionCase,), {"index": 20, "tag": "pulseqAdcEvent"})
-StreamItem.PulseqShape = type("StreamItem.PulseqShape", (StreamItemUnionCase,), {"index": 21, "tag": "pulseqShape"})
+StreamItem.ImageArray = type("StreamItem.ImageArray", (StreamItemUnionCase,), {"index": 13, "tag": "imageArray"})
+StreamItem.NdArrayUint16 = type("StreamItem.NdArrayUint16", (StreamItemUnionCase,), {"index": 14, "tag": "ndArrayUint16"})
+StreamItem.NdArrayInt16 = type("StreamItem.NdArrayInt16", (StreamItemUnionCase,), {"index": 15, "tag": "ndArrayInt16"})
+StreamItem.NdArrayUint32 = type("StreamItem.NdArrayUint32", (StreamItemUnionCase,), {"index": 16, "tag": "ndArrayUint32"})
+StreamItem.NdArrayInt32 = type("StreamItem.NdArrayInt32", (StreamItemUnionCase,), {"index": 17, "tag": "ndArrayInt32"})
+StreamItem.NdArrayFloat = type("StreamItem.NdArrayFloat", (StreamItemUnionCase,), {"index": 18, "tag": "ndArrayFloat"})
+StreamItem.NdArrayDouble = type("StreamItem.NdArrayDouble", (StreamItemUnionCase,), {"index": 19, "tag": "ndArrayDouble"})
+StreamItem.NdArrayComplexFloat = type("StreamItem.NdArrayComplexFloat", (StreamItemUnionCase,), {"index": 20, "tag": "ndArrayComplexFloat"})
+StreamItem.NdArrayComplexDouble = type("StreamItem.NdArrayComplexDouble", (StreamItemUnionCase,), {"index": 21, "tag": "ndArrayComplexDouble"})
+StreamItem.PulseqDefinitions = type("StreamItem.PulseqDefinitions", (StreamItemUnionCase,), {"index": 22, "tag": "pulseqDefinitions"})
+StreamItem.PulseqBlocks = type("StreamItem.PulseqBlocks", (StreamItemUnionCase,), {"index": 23, "tag": "pulseqBlocks"})
+StreamItem.PulseqRfEvent = type("StreamItem.PulseqRfEvent", (StreamItemUnionCase,), {"index": 24, "tag": "pulseqRfEvent"})
+StreamItem.PulseqArbitraryGradient = type("StreamItem.PulseqArbitraryGradient", (StreamItemUnionCase,), {"index": 25, "tag": "pulseqArbitraryGradient"})
+StreamItem.PulseqTrapezoidalGradient = type("StreamItem.PulseqTrapezoidalGradient", (StreamItemUnionCase,), {"index": 26, "tag": "pulseqTrapezoidalGradient"})
+StreamItem.PulseqAdcEvent = type("StreamItem.PulseqAdcEvent", (StreamItemUnionCase,), {"index": 27, "tag": "pulseqAdcEvent"})
+StreamItem.PulseqShape = type("StreamItem.PulseqShape", (StreamItemUnionCase,), {"index": 28, "tag": "pulseqShape"})
 del StreamItemUnionCase
 
 def _mk_get_dtype():
@@ -2713,7 +3040,7 @@ def _mk_get_dtype():
     dtype_map.setdefault(WaveformInformationType, np.dtype([('waveform_name', np.dtype(np.object_)), ('waveform_type', get_dtype(WaveformType)), ('user_parameters', get_dtype(UserParametersType))], align=True))
     dtype_map.setdefault(Header, np.dtype([('version', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.int64))], align=True)), ('subject_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(SubjectInformationType))], align=True)), ('study_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(StudyInformationType))], align=True)), ('measurement_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(MeasurementInformationType))], align=True)), ('acquisition_system_information', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(AcquisitionSystemInformationType))], align=True)), ('experimental_conditions', get_dtype(ExperimentalConditionsType)), ('encoding', np.dtype(np.object_)), ('sequence_parameters', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(SequenceParametersType))], align=True)), ('user_parameters', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(UserParametersType))], align=True)), ('waveform_information', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageFlags, np.dtype(np.uint64))
-    dtype_map.setdefault(ImageType, np.dtype(np.int32))
+    dtype_map.setdefault(ImageType, np.dtype(np.uint64))
     dtype_map.setdefault(ImageHeader, np.dtype([('flags', get_dtype(ImageFlags)), ('measurement_uid', np.dtype(np.uint32)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('image_type', get_dtype(ImageType)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageMetaValue, np.dtype(np.object_))
     dtype_map.setdefault(Image, lambda type_args: np.dtype([('head', get_dtype(ImageHeader)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
@@ -2736,6 +3063,22 @@ def _mk_get_dtype():
     dtype_map.setdefault(ReconAssembly, np.dtype([('data', get_dtype(ReconBuffer)), ('ref', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ReconBuffer))], align=True))], align=True))
     dtype_map.setdefault(ReconData, np.dtype([('buffers', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(ImageArray, np.dtype([('data', np.dtype(np.object_)), ('headers', np.dtype(np.object_)), ('meta', np.dtype(np.object_)), ('waveforms', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(ArrayFlags, np.dtype(np.uint64))
+    dtype_map.setdefault(ArrayType, np.dtype(np.int32))
+    dtype_map.setdefault(ArrayImageType, np.dtype(np.uint64))
+    dtype_map.setdefault(ArrayDimension, np.dtype(np.int32))
+    dtype_map.setdefault(NdArrayHeader, np.dtype([('flags', get_dtype(ArrayFlags)), ('measurement_uid', np.dtype(np.uint32)), ('measurement_frequency', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('measurement_frequency_label', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('field_of_view', np.dtype(np.float32), (3,)), ('position', np.dtype(np.float32), (3,)), ('col_dir', np.dtype(np.float32), (3,)), ('line_dir', np.dtype(np.float32), (3,)), ('slice_dir', np.dtype(np.float32), (3,)), ('patient_table_position', np.dtype(np.float32), (3,)), ('average', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('slice', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('contrast', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('phase', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('repetition', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('set', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('acquisition_time_stamp_ns', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint64))], align=True)), ('physiology_time_stamp_ns', np.dtype(np.object_)), ('array_type', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ArrayType))], align=True)), ('image_type', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ArrayImageType))], align=True)), ('image_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('image_series_index', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.uint32))], align=True)), ('user_int', np.dtype(np.object_)), ('user_float', np.dtype(np.object_)), ('dimension_labels', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(ArrayMetaValue, np.dtype(np.object_))
+    dtype_map.setdefault(NdArray, lambda type_args: np.dtype([('head', get_dtype(NdArrayHeader)), ('data', np.dtype(np.object_)), ('meta', np.dtype(np.object_))], align=True))
+    dtype_map.setdefault(NdArrayUint16, get_dtype(types.GenericAlias(NdArray, (yardl.UInt16,))))
+    dtype_map.setdefault(NdArrayInt16, get_dtype(types.GenericAlias(NdArray, (yardl.Int16,))))
+    dtype_map.setdefault(NdArrayUint32, get_dtype(types.GenericAlias(NdArray, (yardl.UInt32,))))
+    dtype_map.setdefault(NdArrayInt32, get_dtype(types.GenericAlias(NdArray, (yardl.Int32,))))
+    dtype_map.setdefault(NdArrayFloat, get_dtype(types.GenericAlias(NdArray, (yardl.Float32,))))
+    dtype_map.setdefault(NdArrayDouble, get_dtype(types.GenericAlias(NdArray, (yardl.Float64,))))
+    dtype_map.setdefault(NdArrayComplexFloat, get_dtype(types.GenericAlias(NdArray, (yardl.ComplexFloat,))))
+    dtype_map.setdefault(NdArrayComplexDouble, get_dtype(types.GenericAlias(NdArray, (yardl.ComplexDouble,))))
+    dtype_map.setdefault(AnyNdArray, np.dtype(np.object_))
     dtype_map.setdefault(PulseqDefinitions, np.dtype([('gradient_raster_time', np.dtype(np.float64)), ('radiofrequency_raster_time', np.dtype(np.float64)), ('adc_raster_time', np.dtype(np.float64)), ('block_duration_raster', np.dtype(np.float64)), ('name', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.object_))], align=True)), ('fov', np.dtype([('has_value', np.dtype(np.bool_)), ('value', get_dtype(ThreeDimensionalFloat))], align=True)), ('total_duration', np.dtype([('has_value', np.dtype(np.bool_)), ('value', np.dtype(np.float64))], align=True)), ('custom', np.dtype(np.object_))], align=True))
     dtype_map.setdefault(PulseqBlock, np.dtype([('id', np.dtype(np.int32)), ('duration', np.dtype(np.uint64)), ('rf', np.dtype(np.int32)), ('gx', np.dtype(np.int32)), ('gy', np.dtype(np.int32)), ('gz', np.dtype(np.int32)), ('adc', np.dtype(np.int32)), ('ext', np.dtype(np.int32))], align=True))
     dtype_map.setdefault(RFPulseUse, np.dtype(np.int32))

@@ -114,13 +114,32 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
     if output_phantom is not None:
         with mrd.BinaryMrdWriter(output_phantom) as w:
             w.write_header(h)
-            w.write_data([mrd.StreamItem.ArrayComplexFloat(phan)])
+            # save custom array as NdArrayComplexFloat
+            arr_head = mrd.NdArrayHeader()
+            arr_head.dimension_labels = [
+                mrd.ArrayDimension.CHANNEL,
+                mrd.ArrayDimension.Z,
+                mrd.ArrayDimension.Y,
+                mrd.ArrayDimension.X
+            ]
+            arr_head.array_type = mrd.ArrayType.PHANTOM
+            arr_meta = mrd.ArrayMeta({"description": [mrd.ArrayMetaValue.String("shepp-logan phantom")]})
+            w.write_data([mrd.StreamItem.NdArrayComplexFloat(mrd.NdArray(head=arr_head, data=phan, meta=arr_meta))])
 
     csm = simulation.generate_birdcage_sensitivities(ny, ncoils, 1.5)
     if output_csm is not None:
         with mrd.BinaryMrdWriter(output_csm) as w:
             w.write_header(h)
-            w.write_data([mrd.StreamItem.ArrayComplexFloat(csm)])
+            arr_head = mrd.NdArrayHeader()
+            arr_head.dimension_labels = [
+                mrd.ArrayDimension.CHANNEL,
+                mrd.ArrayDimension.Z,
+                mrd.ArrayDimension.Y,
+                mrd.ArrayDimension.X
+            ]
+            arr_head.array_type = mrd.ArrayType.SENSITIVITY_MAP
+            arr_meta = mrd.ArrayMeta({"description": [mrd.ArrayMetaValue.String("birdcage coil sensitivities")]})
+            w.write_data([mrd.StreamItem.NdArrayComplexFloat(mrd.NdArray(head=arr_head, data=csm, meta=arr_meta))])
 
     coil_images = phan * csm
     if oversampling > 1:
@@ -129,9 +148,19 @@ def generate_cartesian_phantom(output_file: Optional[str] = PhantomDefaults.outp
         coil_images = np.pad(coil_images, (c, c, c, (padding,padding)), mode='constant')
 
     if output_coils is not None:
+        # save coil_images as NdArrayComplexFloat instead of ArrayComplexFloat
         with mrd.BinaryMrdWriter(output_coils) as w:
             w.write_header(h)
-            w.write_data([mrd.StreamItem.ArrayComplexFloat(coil_images)])
+            arr_head = mrd.NdArrayHeader()
+            arr_head.dimension_labels = [
+                mrd.ArrayDimension.CHANNEL,
+                mrd.ArrayDimension.Z,
+                mrd.ArrayDimension.Y,
+                mrd.ArrayDimension.X
+            ]
+            arr_head.array_type = mrd.ArrayType.USER_MAP
+            arr_meta = mrd.ArrayMeta({"description": [mrd.ArrayMetaValue.String("coil images")]})
+            w.write_data([mrd.StreamItem.NdArrayComplexFloat(mrd.NdArray(head=arr_head, data=coil_images, meta=arr_meta))])
 
     coil_images = image_to_kspace(coil_images, dim=(-1, -2)).astype(np.complex64)
 

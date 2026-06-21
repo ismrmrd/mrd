@@ -891,12 +891,12 @@ struct ImageFlags : yardl::BaseFlags<uint64_t, ImageFlags> {
   static const ImageFlags kLastInSet;
 };
 
-enum class ImageType {
-  kMagnitude = 1,
-  kPhase = 2,
-  kReal = 3,
-  kImag = 4,
-  kComplex = 5,
+enum class ImageType : uint64_t {
+  kMagnitude = 1ULL,
+  kPhase = 2ULL,
+  kReal = 3ULL,
+  kImag = 4ULL,
+  kComplex = 5ULL,
 };
 
 template <typename Y>
@@ -1039,7 +1039,7 @@ struct NoiseCovariance {
   std::vector<mrd::CoilLabelType> coil_labels{};
   // Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
   float receiver_noise_bandwidth{};
-  // Comes from Acquisition.sampleTimeNs
+  // Comes from Acquisition.sampleTimeUs
   uint64_t noise_dwell_time_ns{};
   // Number of samples used to compute matrix
   yardl::Size sample_count{};
@@ -1230,10 +1230,196 @@ struct ImageArray {
   }
 };
 
+struct ArrayFlags : yardl::BaseFlags<uint64_t, ArrayFlags> {
+  using BaseFlags::BaseFlags;
+  static const ArrayFlags kIsNavigationData;
+  static const ArrayFlags kFirstInAverage;
+  static const ArrayFlags kLastInAverage;
+  static const ArrayFlags kFirstInSlice;
+  static const ArrayFlags kLastInSlice;
+  static const ArrayFlags kFirstInContrast;
+  static const ArrayFlags kLastInContrast;
+  static const ArrayFlags kFirstInPhase;
+  static const ArrayFlags kLastInPhase;
+  static const ArrayFlags kFirstInRepetition;
+  static const ArrayFlags kLastInRepetition;
+  static const ArrayFlags kFirstInSet;
+  static const ArrayFlags kLastInSet;
+};
+
 template <typename T>
 using Array = yardl::DynamicNDArray<T>;
 
-using ArrayComplexFloat = mrd::Array<std::complex<float>>;
+enum class ArrayType {
+  kSpinDensityMap = 1,
+  kT1Map = 2,
+  kT2Map = 3,
+  kT2starMap = 4,
+  kAdcMap = 5,
+  kB0Map = 6,
+  kB1Map = 7,
+  kSensitivityMap = 8,
+  kGfactorMap = 9,
+  kRgbaMap = 10,
+  kNoise = 11,
+  kPhantom = 12,
+  kUserMap = 13,
+};
+
+enum class ArrayImageType : uint64_t {
+  kMagnitude = 1ULL,
+  kPhase = 2ULL,
+  kReal = 3ULL,
+  kImag = 4ULL,
+  kComplex = 5ULL,
+};
+
+enum class ArrayDimension {
+  kChannel = 1,
+  kZ = 2,
+  kY = 3,
+  kX = 4,
+  kFrequency = 5,
+  kCoils = 6,
+  kSamples = 7,
+  kBasis = 8,
+  kAverage = 9,
+  kSlice = 10,
+  kContrast = 11,
+  kPhase = 12,
+  kRepetition = 13,
+  kSet = 14,
+  kSegment = 15,
+  kE2 = 16,
+  kE1 = 17,
+  kE0 = 18,
+  kRgba = 19,
+  kTimeNs = 20,
+};
+
+struct NdArrayHeader {
+  // A bit mask of common attributes applicable to individual images
+  mrd::ArrayFlags flags{};
+  // Unique ID corresponding to the image
+  uint32_t measurement_uid{};
+  // NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension
+  std::optional<yardl::DynamicNDArray<uint32_t>> measurement_frequency{};
+  // NMR label of the measurementFrequency. Same size as measurementFrequency
+  std::optional<yardl::DynamicNDArray<std::string>> measurement_frequency_label{};
+  // Physical size (in mm) in each of the 3 dimensions in the image
+  yardl::FixedNDArray<float, 3> field_of_view{};
+  // Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
+  yardl::FixedNDArray<float, 3> position{};
+  // Directional cosine of readout/frequency encoding
+  yardl::FixedNDArray<float, 3> col_dir{};
+  // Directional cosine of phase encoding (2D)
+  yardl::FixedNDArray<float, 3> line_dir{};
+  // Directional cosine of 3D phase encoding direction
+  yardl::FixedNDArray<float, 3> slice_dir{};
+  // Offset position of the patient table, in LPS coordinates
+  yardl::FixedNDArray<float, 3> patient_table_position{};
+  // Signal average
+  std::optional<uint32_t> average{};
+  // Slice number (multi-slice 2D)
+  std::optional<uint32_t> slice{};
+  // Echo number in multi-echo
+  std::optional<uint32_t> contrast{};
+  // Cardiac phase
+  std::optional<uint32_t> phase{};
+  // Counter in repeated/dynamic acquisitions
+  std::optional<uint32_t> repetition{};
+  // Sets of different preparation, e.g. flow encoding, diffusion weighting
+  std::optional<uint32_t> set{};
+  // Clock time stamp (e.g. nanoseconds since midnight)
+  std::optional<uint64_t> acquisition_time_stamp_ns{};
+  // Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+  std::vector<uint64_t> physiology_time_stamp_ns{};
+  // Interpretation type of the image
+  std::optional<mrd::ArrayType> array_type{};
+  std::optional<mrd::ArrayImageType> image_type{};
+  // Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
+  std::optional<uint32_t> image_index{};
+  // Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
+  std::optional<uint32_t> image_series_index{};
+  // User-defined int parameters
+  std::vector<int32_t> user_int{};
+  // User-defined float parameters
+  std::vector<float> user_float{};
+  // optional ordered vector of dimension labels
+  std::vector<mrd::ArrayDimension> dimension_labels{};
+
+  bool operator==(const NdArrayHeader& other) const {
+    return flags == other.flags &&
+      measurement_uid == other.measurement_uid &&
+      measurement_frequency == other.measurement_frequency &&
+      measurement_frequency_label == other.measurement_frequency_label &&
+      field_of_view == other.field_of_view &&
+      position == other.position &&
+      col_dir == other.col_dir &&
+      line_dir == other.line_dir &&
+      slice_dir == other.slice_dir &&
+      patient_table_position == other.patient_table_position &&
+      average == other.average &&
+      slice == other.slice &&
+      contrast == other.contrast &&
+      phase == other.phase &&
+      repetition == other.repetition &&
+      set == other.set &&
+      acquisition_time_stamp_ns == other.acquisition_time_stamp_ns &&
+      physiology_time_stamp_ns == other.physiology_time_stamp_ns &&
+      array_type == other.array_type &&
+      image_type == other.image_type &&
+      image_index == other.image_index &&
+      image_series_index == other.image_series_index &&
+      user_int == other.user_int &&
+      user_float == other.user_float &&
+      dimension_labels == other.dimension_labels;
+  }
+
+  bool operator!=(const NdArrayHeader& other) const {
+    return !(*this == other);
+  }
+};
+
+using ArrayMetaValue = std::variant<std::string, int64_t, double>;
+
+using ArrayMeta = std::unordered_map<std::string, std::vector<mrd::ArrayMetaValue>>;
+
+template <typename T>
+struct NdArray {
+  mrd::NdArrayHeader head{};
+  mrd::Array<T> data{};
+  mrd::ArrayMeta meta{};
+
+  bool operator==(const NdArray& other) const {
+    return head == other.head &&
+      data == other.data &&
+      meta == other.meta;
+  }
+
+  bool operator!=(const NdArray& other) const {
+    return !(*this == other);
+  }
+};
+
+using NdArrayUint16 = mrd::NdArray<uint16_t>;
+
+using NdArrayInt16 = mrd::NdArray<int16_t>;
+
+using NdArrayUint32 = mrd::NdArray<uint32_t>;
+
+using NdArrayInt32 = mrd::NdArray<int32_t>;
+
+using NdArrayFloat = mrd::NdArray<float>;
+
+using NdArrayDouble = mrd::NdArray<double>;
+
+using NdArrayComplexFloat = mrd::NdArray<std::complex<float>>;
+
+using NdArrayComplexDouble = mrd::NdArray<std::complex<double>>;
+
+// Union of all MRD NDArray types
+using AnyNdArray = std::variant<mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble>;
 
 // Pulseq definitions
 struct PulseqDefinitions {
@@ -1494,7 +1680,7 @@ struct PulseqShape {
 };
 
 // Union of all primary types that can be streamed in the MRD Protocol
-using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ArrayComplexFloat, mrd::ImageArray, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>;
+using StreamItem = std::variant<mrd::Acquisition, mrd::AcquisitionPrototype, mrd::WaveformUint32, mrd::ImageUint16, mrd::ImageInt16, mrd::ImageUint32, mrd::ImageInt32, mrd::ImageFloat, mrd::ImageDouble, mrd::ImageComplexFloat, mrd::ImageComplexDouble, mrd::AcquisitionBucket, mrd::ReconData, mrd::ImageArray, mrd::NdArrayUint16, mrd::NdArrayInt16, mrd::NdArrayUint32, mrd::NdArrayInt32, mrd::NdArrayFloat, mrd::NdArrayDouble, mrd::NdArrayComplexFloat, mrd::NdArrayComplexDouble, mrd::PulseqDefinitions, std::vector<mrd::PulseqBlock>, mrd::PulseqRFEvent, mrd::PulseqArbitraryGradient, mrd::PulseqTrapezoidalGradient, mrd::PulseqADCEvent, mrd::PulseqShape>;
 
 } // namespace mrd
 

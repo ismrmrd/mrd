@@ -4,7 +4,7 @@ NoiseCovariance: !record
     coilLabels: CoilLabelType*
     # Comes from Header.acquisitionSystemInformation.relativeReceiverNoiseBandwidth
     receiverNoiseBandwidth: float
-    # Comes from Acquisition.sampleTimeNs
+    # Comes from Acquisition.sampleTimeUs
     noiseDwellTimeNs: uint64
     # Number of samples used to compute matrix
     sampleCount: size
@@ -64,8 +64,152 @@ ImageArray: !record
     meta: ImageMeta[loc, s, n]
     waveforms: WaveformUint32*
 
+ArrayFlags: !flags
+  base: uint64
+  values:
+    isNavigationData: 0x1
+    firstInAverage: 0x10
+    lastInAverage: 0x20
+    firstInSlice: 0x40
+    lastInSlice: 0x80
+    firstInContrast: 0x100
+    lastInContrast: 0x200
+    firstInPhase: 0x400
+    lastInPhase: 0x800
+    firstInRepetition: 0x1000
+    lastInRepetition: 0x2000
+    firstInSet: 0x4000
+    lastInSet: 0x8000
 
-Array<T>: !array
+Array<T>: !array       # configurable n-dimension array
   items: T
 
-ArrayComplexFloat: Array<complexfloat>
+ArrayType: !enum       # array type for description
+  values:
+    spinDensityMap: 1  # in mol/m^3
+    t1Map: 2           # in s
+    t2Map: 3           # in s
+    t2starMap: 4       # in s
+    adcMap: 5          # in s/m^2
+    b0Map: 6           # in Hz (offset from Image.head.measurementFreq[0])
+    b1Map: 7           # in rad/s/V, channel dimension is transmit channels
+    sensitivityMap: 8  # in Vm^3/mol, channel dimension is receive channels
+    gfactorMap: 9      # unaccelerated SNR/(accelerated SNR * sqrt of acceleration factor)
+    rgbaMap: 10        # rgba image with rgba dimension label
+    noise: 11
+    phantom: 12
+    userMap: 13        # custom image type with description at ImageMeta
+
+ArrayImageType: !enum  # Duplicated from mrd_image.yml
+  base: uint64
+  values:
+    magnitude: 1
+    phase: 2
+    real: 3
+    imag: 4
+    complex: 5
+
+ArrayDimension: !enum   # labels for each dimension of NDArray in the order
+  values:
+    channel: 1
+    z: 2
+    y: 3
+    x: 4
+    frequency: 5
+    coils: 6
+    samples: 7
+    basis: 8
+    average: 9
+    slice: 10
+    contrast: 11
+    phase: 12
+    repetition: 13
+    set: 14
+    segment: 15
+    e2: 16
+    e1: 17
+    e0: 18
+    rgba: 19
+    timeNs: 20
+
+NdArrayHeader: !record
+  fields:
+    # A bit mask of common attributes applicable to individual images
+    flags: ArrayFlags
+    # Unique ID corresponding to the image
+    measurementUid: uint
+    # NMR frequencies of the measurement in Hz for each entries of ImageData frequency dimension
+    measurementFrequency: uint[]?
+    # NMR label of the measurementFrequency. Same size as measurementFrequency
+    measurementFrequencyLabel: string[]?
+    # Physical size (in mm) in each of the 3 dimensions in the image
+    fieldOfView: float[3]
+    # Center of the excited volume, in LPS coordinates relative to isocenter in millimeters
+    position: float[3]
+    # Directional cosine of readout/frequency encoding
+    colDir: float[3]
+    # Directional cosine of phase encoding (2D)
+    lineDir: float[3]
+    # Directional cosine of 3D phase encoding direction
+    sliceDir: float[3]
+    # Offset position of the patient table, in LPS coordinates
+    patientTablePosition: float[3]
+    # Signal average
+    average: uint?
+    # Slice number (multi-slice 2D)
+    slice: uint?
+    # Echo number in multi-echo
+    contrast: uint?
+    # Cardiac phase
+    phase: uint?
+    # Counter in repeated/dynamic acquisitions
+    repetition: uint?
+    # Sets of different preparation, e.g. flow encoding, diffusion weighting
+    set: uint?
+    # Clock time stamp (e.g. nanoseconds since midnight)
+    acquisitionTimeStampNs: uint64?
+    # Time stamp ns relative to physiological triggering, e.g. ECG, pulse oximetry, respiratory
+    physiologyTimeStampNs: uint64*
+    # Interpretation type of the image
+    arrayType: ArrayType?
+    imageType: ArrayImageType?
+    # Image index number within a series of images, corresponding to DICOM InstanceNumber (0020,0013)
+    imageIndex: uint?
+    # Series index, used to separate images into different series, corresponding to DICOM SeriesNumber (0020,0011)
+    imageSeriesIndex: uint?
+    # User-defined int parameters
+    userInt: int*
+    # User-defined float parameters
+    userFloat: float*
+    # optional ordered vector of dimension labels
+    dimensionLabels: ArrayDimension*  # optional ordered vector of dimension labels
+
+ArrayMetaValue: [string, long, double]
+
+ArrayMeta: string->ArrayMetaValue*
+
+NdArray<T>: !record                   # custom NDarray field with header
+  fields:
+    head: NdArrayHeader
+    data: Array<T>
+    meta: ArrayMeta
+
+NdArrayUint16: NdArray<uint16>
+NdArrayInt16: NdArray<int16>
+NdArrayUint32: NdArray<uint>
+NdArrayInt32: NdArray<int>
+NdArrayFloat: NdArray<float>
+NdArrayDouble: NdArray<double>
+NdArrayComplexFloat: NdArray<complexfloat>
+NdArrayComplexDouble: NdArray<complexdouble>
+
+# Union of all MRD NDArray types
+AnyNdArray:
+  - NdArrayUint16
+  - NdArrayInt16
+  - NdArrayUint32
+  - NdArrayInt32
+  - NdArrayFloat
+  - NdArrayDouble
+  - NdArrayComplexFloat
+  - NdArrayComplexDouble

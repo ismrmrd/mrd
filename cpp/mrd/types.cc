@@ -46,5 +46,18 @@ const ImageFlags ImageFlags::kFirstInRepetition = ImageFlags(4096ULL);
 const ImageFlags ImageFlags::kLastInRepetition = ImageFlags(8192ULL);
 const ImageFlags ImageFlags::kFirstInSet = ImageFlags(16384ULL);
 const ImageFlags ImageFlags::kLastInSet = ImageFlags(32768ULL);
+const ArrayFlags ArrayFlags::kIsNavigationData = ArrayFlags(1ULL);
+const ArrayFlags ArrayFlags::kFirstInAverage = ArrayFlags(16ULL);
+const ArrayFlags ArrayFlags::kLastInAverage = ArrayFlags(32ULL);
+const ArrayFlags ArrayFlags::kFirstInSlice = ArrayFlags(64ULL);
+const ArrayFlags ArrayFlags::kLastInSlice = ArrayFlags(128ULL);
+const ArrayFlags ArrayFlags::kFirstInContrast = ArrayFlags(256ULL);
+const ArrayFlags ArrayFlags::kLastInContrast = ArrayFlags(512ULL);
+const ArrayFlags ArrayFlags::kFirstInPhase = ArrayFlags(1024ULL);
+const ArrayFlags ArrayFlags::kLastInPhase = ArrayFlags(2048ULL);
+const ArrayFlags ArrayFlags::kFirstInRepetition = ArrayFlags(4096ULL);
+const ArrayFlags ArrayFlags::kLastInRepetition = ArrayFlags(8192ULL);
+const ArrayFlags ArrayFlags::kFirstInSet = ArrayFlags(16384ULL);
+const ArrayFlags ArrayFlags::kLastInSet = ArrayFlags(32768ULL);
 } // namespace mrd
 
