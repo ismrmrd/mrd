@@ -246,8 +246,12 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 	<script id="mrd-payload" type="application/json">${payloadJson}</script>
 	<script nonce="${nonce}">
 		(function () {
+			const vscode = acquireVsCodeApi();
 			const payload = JSON.parse(document.getElementById('mrd-payload').textContent || '{}');
 			let selectedIndex = null;
+			let requestSequence = 0;
+			let pendingRequestId = null;
+			const imageCache = new Map();
 
 			function valueOrUnknown(value) {
 				return value === undefined || value === null || value === '' ? 'unknown' : String(value);
@@ -358,16 +362,43 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 					button.appendChild(meta);
 
 					button.addEventListener('click', function () {
-						renderSelectedTile(tile);
+						selectTile(tile);
 					});
 
 					root.appendChild(button);
 				});
 
-				renderSelectedTile(tiles[0]);
+				selectTile(tiles[0]);
 			}
 
-			function renderSelectedTile(tile) {
+			function selectTile(tile) {
+				if (!tile) {
+					renderSelectedTile(null);
+					return;
+				}
+
+				const imageIndex = Number(tile.image_index);
+				renderSelectedTile(tile, imageCache.has(imageIndex) ? null : 'Loading full-resolution image...');
+				if (!Number.isInteger(imageIndex) || imageIndex < 0 || !tile.renderable) {
+					return;
+				}
+
+				const cachedImage = imageCache.get(imageIndex);
+				if (cachedImage) {
+					renderSelectedTile(cachedImage, 'Loaded from selection cache.');
+					return;
+				}
+
+				const requestId = String(++requestSequence);
+				pendingRequestId = requestId;
+				vscode.postMessage({
+					type: 'loadImage',
+					requestId,
+					imageIndex
+				});
+			}
+
+			function renderSelectedTile(tile, statusText) {
 				selectedIndex = tile ? tile.image_index : null;
 				document.querySelectorAll('.tile').forEach(function (node) {
 					node.setAttribute('aria-selected', String(tile && String(tile.image_index) === node.dataset.imageIndex));
@@ -381,6 +412,10 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 					empty.textContent = 'No tile selected.';
 					root.appendChild(empty);
 					return;
+				}
+
+				if (statusText) {
+					root.appendChild(notice(statusText, 'warning'));
 				}
 
 				const frame = document.createElement('div');
@@ -405,6 +440,32 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				root.appendChild(fields);
 			}
 
+			function handleImageLoaded(message) {
+				if (message.requestId !== pendingRequestId) {
+					return;
+				}
+
+				const payload = message.payload || {};
+				if (!payload.ok || !payload.image) {
+					renderSelectedError(payload.error || 'Unable to load selected image.');
+					return;
+				}
+
+				const image = payload.image;
+				const imageIndex = Number(image.image_index);
+				if (Number.isInteger(imageIndex)) {
+					imageCache.set(imageIndex, image);
+				}
+
+				renderSelectedTile(image);
+			}
+
+			function renderSelectedError(error) {
+				const root = document.getElementById('detail');
+				root.textContent = '';
+				root.appendChild(notice(error, 'error'));
+			}
+
 			function addField(root, key, value) {
 				const dt = document.createElement('dt');
 				dt.textContent = key;
@@ -412,6 +473,15 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				dd.textContent = valueOrUnknown(value);
 				root.append(dt, dd);
 			}
+
+			window.addEventListener('message', function (event) {
+				const message = event.data || {};
+				if (message.type === 'imageLoaded') {
+					handleImageLoaded(message);
+				} else if (message.type === 'imageError' && message.requestId === pendingRequestId) {
+					renderSelectedError(message.error || 'Unable to load selected image.');
+				}
+			});
 
 			renderShell();
 			renderMosaic();

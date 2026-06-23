@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 
-import { isMrdOpenPayload, type MrdOpenPayload } from './contracts';
+import { isMrdImageResponsePayload, isMrdOpenPayload, type MrdImageResponsePayload, type MrdOpenPayload } from './contracts';
 
 export interface BackendRunnerOptions {
 	pythonPath: string;
@@ -32,6 +32,19 @@ export async function runOpenFile(filePath: string, options: BackendRunnerOption
 	return parseOpenPayload(result.stdout);
 }
 
+export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions): Promise<MrdImageResponsePayload> {
+	const commandArguments = [
+		'-m',
+		'mrd_viz.cli',
+		'image',
+		filePath,
+		'--index',
+		String(imageIndex),
+	];
+	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs);
+	return parseImagePayload(result.stdout);
+}
+
 function execPython(pythonPath: string, commandArguments: string[], timeoutMs: number): Promise<{ stdout: string; stderr: string }> {
 	return new Promise((resolve, reject) => {
 		execFile(
@@ -57,6 +70,14 @@ function execPython(pythonPath: string, commandArguments: string[], timeoutMs: n
 }
 
 function parseOpenPayload(stdout: string): MrdOpenPayload {
+	return parsePayload(stdout, isMrdOpenPayload, 'open-file');
+}
+
+function parseImagePayload(stdout: string): MrdImageResponsePayload {
+	return parsePayload(stdout, isMrdImageResponsePayload, 'selected-image');
+}
+
+function parsePayload<T>(stdout: string, predicate: (value: unknown) => value is T, label: string): T {
 	const trimmedStdout = stdout.trim();
 	if (!trimmedStdout) {
 		throw new MrdVizBackendError('The MRD Viz backend returned empty stdout.', stdout, '');
@@ -70,11 +91,11 @@ function parseOpenPayload(stdout: string): MrdOpenPayload {
 		throw new MrdVizBackendError(`The MRD Viz backend returned invalid JSON: ${message}`, stdout, '');
 	}
 
-	if (!isMrdOpenPayload(payload)) {
-		throw new MrdVizBackendError('The MRD Viz backend returned JSON that does not match the open-file payload shape.', stdout, '');
+	if (!predicate(payload)) {
+		throw new MrdVizBackendError(`The MRD Viz backend returned JSON that does not match the ${label} payload shape.`, stdout, '');
 	}
 
 	return payload;
 }
 
-export type { MrdOpenPayload };
+export type { MrdImageResponsePayload, MrdOpenPayload };

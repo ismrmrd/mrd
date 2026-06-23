@@ -2,8 +2,8 @@ import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
-import { MrdVizBackendError, runOpenFile, type BackendRunnerOptions } from './backendRunner';
-import { redactingPayloadReplacer, type MrdOpenPayload } from './contracts';
+import { MrdVizBackendError, runImage, runOpenFile, type BackendRunnerOptions } from './backendRunner';
+import { isViewerToExtensionMessage, redactingPayloadReplacer, type ExtensionToViewerMessage, type MrdOpenPayload } from './contracts';
 import { getMrdViewerHtml } from './webviewHtml';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 			outputChannel.appendLine('');
 			outputChannel.appendLine(JSON.stringify(payload, redactingPayloadReplacer, 2));
-			openViewerPanel(context, targetUri, payload);
+			openViewerPanel(context, targetUri, payload, options, outputChannel);
 			showOpenPayloadSummary(payload, outputChannel);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
@@ -122,7 +122,13 @@ function showOpenPayloadSummary(payload: MrdOpenPayload, outputChannel: vscode.O
 	);
 }
 
-function openViewerPanel(context: vscode.ExtensionContext, targetUri: vscode.Uri, payload: MrdOpenPayload): void {
+function openViewerPanel(
+	context: vscode.ExtensionContext,
+	targetUri: vscode.Uri,
+	payload: MrdOpenPayload,
+	options: BackendRunnerOptions,
+	outputChannel: vscode.OutputChannel,
+): void {
 	const panel = vscode.window.createWebviewPanel(
 		'mrd-viz.viewer',
 		`MRD Viz: ${payload.filename ?? targetUri.fsPath}`,
@@ -134,7 +140,50 @@ function openViewerPanel(context: vscode.ExtensionContext, targetUri: vscode.Uri
 	);
 	panel.iconPath = vscode.ThemeIcon.File;
 	panel.webview.html = getMrdViewerHtml(panel.webview, payload);
+	const messageSubscription = panel.webview.onDidReceiveMessage(message => {
+		void handleViewerMessage(panel, targetUri, options, outputChannel, message);
+	});
+	panel.onDidDispose(() => messageSubscription.dispose());
 	context.subscriptions.push(panel);
+}
+
+async function handleViewerMessage(
+	panel: vscode.WebviewPanel,
+	targetUri: vscode.Uri,
+	options: BackendRunnerOptions,
+	outputChannel: vscode.OutputChannel,
+	message: unknown,
+): Promise<void> {
+	if (!isViewerToExtensionMessage(message)) {
+		outputChannel.appendLine('Ignored malformed MRD Viz webview message.');
+		return;
+	}
+
+	try {
+		const payload = await runImage(targetUri.fsPath, message.imageIndex, options);
+		postViewerMessage(panel, {
+			type: 'imageLoaded',
+			requestId: message.requestId,
+			payload,
+		});
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		outputChannel.appendLine(`Selected image ${message.imageIndex} failed: ${errorMessage}`);
+		if (error instanceof MrdVizBackendError) {
+			appendIfPresent(outputChannel, 'stdout', error.stdout);
+			appendIfPresent(outputChannel, 'stderr', error.stderr);
+		}
+		postViewerMessage(panel, {
+			type: 'imageError',
+			requestId: message.requestId,
+			imageIndex: message.imageIndex,
+			error: errorMessage,
+		});
+	}
+}
+
+function postViewerMessage(panel: vscode.WebviewPanel, message: ExtensionToViewerMessage): void {
+	void panel.webview.postMessage(message);
 }
 
 function appendIfPresent(outputChannel: vscode.OutputChannel, label: string, value: string): void {

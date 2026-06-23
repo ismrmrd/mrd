@@ -66,3 +66,60 @@ export function redactingPayloadReplacer(key: string, value: unknown): unknown {
 
 	return value;
 }
+
+export type MrdImagePayload = MrdMosaicTile;
+
+export interface MrdImageResponsePayload {
+	ok: boolean;
+	path?: string;
+	filename?: string;
+	file_class?: string;
+	display_mode?: string;
+	image?: MrdImagePayload;
+	error?: unknown;
+	[key: string]: unknown;
+}
+
+export interface LoadImageRequestMessage {
+	type: 'loadImage';
+	requestId: string;
+	imageIndex: number;
+}
+
+export interface ImageLoadedMessage {
+	type: 'imageLoaded';
+	requestId: string;
+	payload: MrdImageResponsePayload;
+}
+
+export interface ImageErrorMessage {
+	type: 'imageError';
+	requestId: string;
+	imageIndex: number;
+	error: string;
+}
+
+export type ViewerToExtensionMessage = LoadImageRequestMessage;
+
+export type ExtensionToViewerMessage = ImageLoadedMessage | ImageErrorMessage;
+
+export function isMrdImageResponsePayload(value: unknown): value is MrdImageResponsePayload {
+	return typeof value === 'object'
+		&& value !== null
+		&& 'ok' in value
+		&& typeof (value as { ok: unknown }).ok === 'boolean';
+}
+
+export function isViewerToExtensionMessage(value: unknown): value is ViewerToExtensionMessage {
+	if (typeof value !== 'object' || value === null) {
+		return false;
+	}
+
+	const message = value as { type?: unknown; requestId?: unknown; imageIndex?: unknown };
+	const imageIndex = message.imageIndex;
+	return message.type === 'loadImage'
+		&& typeof message.requestId === 'string'
+		&& typeof imageIndex === 'number'
+		&& Number.isInteger(imageIndex)
+		&& imageIndex >= 0;
+}
