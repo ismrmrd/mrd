@@ -184,6 +184,8 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 		dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 10px; margin: 0; font-size: 12px; }
 		dt { color: var(--mrd-muted); }
 		dd { margin: 0; overflow-wrap: anywhere; }
+		ul { margin: 0; padding-left: 18px; }
+		li + li { margin-top: 4px; }
 
 		.notice {
 			margin: 11px;
@@ -196,6 +198,44 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 
 		.notice.error { border-color: var(--mrd-error-border); background: var(--mrd-error-bg); }
 		.empty { padding: 14px; color: var(--mrd-muted); }
+
+		.tabs {
+			display: flex;
+			gap: 2px;
+			padding: 8px 8px 0;
+			border-bottom: 1px solid var(--mrd-line);
+			overflow-x: auto;
+		}
+
+		.tab {
+			padding: 6px 8px;
+			border: 1px solid transparent;
+			border-bottom: none;
+			border-radius: 5px 5px 0 0;
+			color: var(--mrd-muted);
+			background: transparent;
+			cursor: pointer;
+			font-size: 12px;
+			white-space: nowrap;
+		}
+
+		.tab:hover, .tab:focus { color: var(--mrd-text); outline: none; }
+		.tab[aria-selected="true"] {
+			color: var(--mrd-text);
+			background: var(--mrd-panel-strong);
+			border-color: var(--mrd-line);
+		}
+
+		.tab-panel { display: none; padding: 11px; }
+		.tab-panel[aria-hidden="false"] { display: grid; gap: 12px; }
+
+		.metadata-section { display: grid; gap: 8px; }
+		.metadata-section h3 { margin: 0; font-size: 12px; font-weight: 650; }
+		.metadata-note { color: var(--mrd-muted); font-size: 12px; line-height: 1.4; }
+		.metadata-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+		.metadata-table th,
+		.metadata-table td { padding: 4px 6px; border-bottom: 1px solid var(--mrd-line); text-align: left; vertical-align: top; }
+		.metadata-table th { color: var(--mrd-muted); font-weight: 500; }
 
 		.json {
 			margin: 0;
@@ -237,8 +277,17 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 					<div class="detail" id="detail"></div>
 				</section>
 				<section class="panel">
-					<h2 class="panel-title">Payload Summary</h2>
-					<pre class="json" id="json"></pre>
+					<h2 class="panel-title">Metadata</h2>
+					<div class="tabs" role="tablist" aria-label="Metadata views">
+						<button class="tab" type="button" role="tab" aria-selected="true" aria-controls="metadata-summary" data-tab="summary">Summary</button>
+						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-organization" data-tab="organization">Organization</button>
+						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-stream" data-tab="stream">Raw Stream</button>
+						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-json" data-tab="json">Raw JSON</button>
+					</div>
+					<div class="tab-panel" id="metadata-summary" role="tabpanel" aria-hidden="false"></div>
+					<div class="tab-panel" id="metadata-organization" role="tabpanel" aria-hidden="true"></div>
+					<div class="tab-panel" id="metadata-stream" role="tabpanel" aria-hidden="true"></div>
+					<div class="tab-panel" id="metadata-json" role="tabpanel" aria-hidden="true"><pre class="json" id="json"></pre></div>
 				</section>
 			</aside>
 		</main>
@@ -261,6 +310,26 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				return Array.isArray(value) ? value.join('x') : '';
 			}
 
+			function metadata() {
+				return payload.metadata || {};
+			}
+
+			function images() {
+				return metadata().images || [];
+			}
+
+			function acquisitions() {
+				return metadata().acquisitions || [];
+			}
+
+			function waveforms() {
+				return metadata().waveforms || [];
+			}
+
+			function otherItems() {
+				return metadata().other_items || [];
+			}
+
 			function stat(label, value) {
 				const span = document.createElement('span');
 				span.className = 'stat';
@@ -273,6 +342,80 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				div.className = kind === 'error' ? 'notice error' : 'notice';
 				div.textContent = String(text);
 				return div;
+			}
+
+			function section(title) {
+				const root = document.createElement('section');
+				root.className = 'metadata-section';
+				const heading = document.createElement('h3');
+				heading.textContent = title;
+				root.appendChild(heading);
+				return root;
+			}
+
+			function definitionList(entries) {
+				const list = document.createElement('dl');
+				entries.forEach(function (entry) {
+					addField(list, entry[0], entry[1]);
+				});
+				return list;
+			}
+
+			function table(headers, rows) {
+				const tableRoot = document.createElement('table');
+				tableRoot.className = 'metadata-table';
+				const thead = document.createElement('thead');
+				const headerRow = document.createElement('tr');
+				headers.forEach(function (header) {
+					const th = document.createElement('th');
+					th.textContent = header;
+					headerRow.appendChild(th);
+				});
+				thead.appendChild(headerRow);
+				tableRoot.appendChild(thead);
+
+				const tbody = document.createElement('tbody');
+				rows.forEach(function (row) {
+					const tr = document.createElement('tr');
+					row.forEach(function (cell) {
+						const td = document.createElement('td');
+						td.textContent = valueOrUnknown(cell);
+						tr.appendChild(td);
+					});
+					tbody.appendChild(tr);
+				});
+				tableRoot.appendChild(tbody);
+				return tableRoot;
+			}
+
+			function distribution(values) {
+				const counts = new Map();
+				values.forEach(function (value) {
+					const key = valueOrUnknown(value);
+					counts.set(key, (counts.get(key) || 0) + 1);
+				});
+				return Array.from(counts.entries()).sort(function (left, right) {
+					return String(left[0]).localeCompare(String(right[0]), undefined, { numeric: true });
+				});
+			}
+
+			function headValue(image, key) {
+				return image && image.head ? image.head[key] : undefined;
+			}
+
+			function shapeKey(image) {
+				return formatList(image && image.data_shape) || 'unknown';
+			}
+
+			function uniqueCount(values) {
+				return distribution(values).length;
+			}
+
+			function appendEmpty(root, text) {
+				const empty = document.createElement('div');
+				empty.className = 'metadata-note';
+				empty.textContent = text;
+				root.appendChild(empty);
 			}
 
 			function redactPayload(key, value) {
@@ -308,6 +451,155 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 					notices.appendChild(notice('Thumbnail payload is truncated by the configured maximum.'));
 				}
 
+				renderMetadata();
+			}
+
+			function renderMetadata() {
+				renderSummaryMetadata();
+				renderOrganizationMetadata();
+				renderStreamMetadata();
+				renderRawJsonMetadata();
+				document.querySelectorAll('.tab').forEach(function (tab) {
+					tab.addEventListener('click', function () {
+						activateTab(tab.dataset.tab);
+					});
+				});
+			}
+
+			function activateTab(name) {
+				document.querySelectorAll('.tab').forEach(function (tab) {
+					tab.setAttribute('aria-selected', String(tab.dataset.tab === name));
+				});
+				document.querySelectorAll('.tab-panel').forEach(function (panel) {
+					panel.setAttribute('aria-hidden', String(panel.id !== 'metadata-' + name));
+				});
+			}
+
+			function renderSummaryMetadata() {
+				const root = document.getElementById('metadata-summary');
+				root.textContent = '';
+
+				const file = section('File');
+				file.appendChild(definitionList([
+					['class', payload.file_class],
+					['display mode', payload.display_mode],
+					['schema version', payload.schema_version],
+					['file size bytes', payload.file_size_bytes]
+				]));
+				root.appendChild(file);
+
+				const stream = payload.stream || {};
+				const counts = section('Counts');
+				counts.appendChild(definitionList([
+					['images', stream.image_count],
+					['acquisitions', stream.acquisition_count],
+					['waveforms', stream.waveform_count],
+					['other items', stream.other_count],
+					['returned thumbnails', payload.mosaic && payload.mosaic.thumbnails && payload.mosaic.thumbnails.length],
+					['thumbnail payload truncated', payload.mosaic && payload.mosaic.truncated]
+				]));
+				root.appendChild(counts);
+
+				const summary = payload.summary || {};
+				const header = section('Header Summary');
+				header.appendChild(definitionList([
+					['encoding count', summary.encoding_count],
+					['encoded matrix', formatList(summary.encoded_matrix)],
+					['recon matrix', formatList(summary.recon_matrix)],
+					['encoded FOV mm', formatList(summary.encoded_fov_mm)],
+					['recon FOV mm', formatList(summary.recon_fov_mm)]
+				]));
+				root.appendChild(header);
+
+				if ((payload.warnings || []).length) {
+					const warnings = section('Warnings');
+					const list = document.createElement('ul');
+					payload.warnings.forEach(function (warning) {
+						const item = document.createElement('li');
+						item.textContent = String(warning);
+						list.appendChild(item);
+					});
+					warnings.appendChild(list);
+					root.appendChild(warnings);
+				}
+			}
+
+			function renderOrganizationMetadata() {
+				const root = document.getElementById('metadata-organization');
+				root.textContent = '';
+				const imageItems = images();
+				if (!imageItems.length) {
+					appendEmpty(root, 'No image metadata is available for this file.');
+					return;
+				}
+
+				const overview = section('Image Set');
+				overview.appendChild(definitionList([
+					['images', imageItems.length],
+					['unique slices', uniqueCount(imageItems.map(function (image) { return headValue(image, 'slice'); }))],
+					['unique image types', uniqueCount(imageItems.map(function (image) { return headValue(image, 'image_type'); }))],
+					['unique series', uniqueCount(imageItems.map(function (image) { return headValue(image, 'image_series_index'); }))],
+					['unique shapes', uniqueCount(imageItems.map(shapeKey))],
+					['unique dtypes', uniqueCount(imageItems.map(function (image) { return image.dtype; }))]
+				]));
+				root.appendChild(overview);
+
+				const sliceRows = distribution(imageItems.map(function (image) { return headValue(image, 'slice'); }));
+				const slices = section('Slice Distribution');
+				slices.appendChild(table(['slice', 'image count'], sliceRows));
+				root.appendChild(slices);
+
+				const typeRows = distribution(imageItems.map(function (image) { return headValue(image, 'image_type'); }));
+				const types = section('Image Type Distribution');
+				types.appendChild(table(['image type', 'image count'], typeRows));
+				root.appendChild(types);
+
+				const shapeRows = distribution(imageItems.map(function (image) { return shapeKey(image) + ' / ' + valueOrUnknown(image.dtype); }));
+				const shapes = section('Shape / Dtype Consistency');
+				shapes.appendChild(table(['shape / dtype', 'image count'], shapeRows));
+				root.appendChild(shapes);
+			}
+
+			function renderStreamMetadata() {
+				const root = document.getElementById('metadata-stream');
+				root.textContent = '';
+				const stream = payload.stream || {};
+
+				const itemCounts = section('Stream Item Counts');
+				const rows = Object.entries(stream.item_counts || {}).sort(function (left, right) {
+					return left[0].localeCompare(right[0]);
+				});
+				if (rows.length) {
+					itemCounts.appendChild(table(['item type', 'count'], rows));
+				} else {
+					appendEmpty(itemCounts, 'No stream item counts were returned.');
+				}
+				root.appendChild(itemCounts);
+
+				const examples = section('Metadata Examples');
+				examples.appendChild(definitionList([
+					['image metadata entries', images().length],
+					['acquisition examples', acquisitions().length],
+					['waveform entries', waveforms().length],
+					['other item entries', otherItems().length]
+				]));
+				root.appendChild(examples);
+
+				if (acquisitions().length) {
+					const firstAcquisition = acquisitions()[0];
+					const acquisition = section('First Acquisition Example');
+					acquisition.appendChild(definitionList([
+						['stream index', firstAcquisition.stream_index],
+						['shape', formatList(firstAcquisition.data_shape)],
+						['dtype', firstAcquisition.dtype],
+						['flags', firstAcquisition.flags],
+						['scan counter', firstAcquisition.scan_counter]
+					]));
+					root.appendChild(acquisition);
+				}
+			}
+
+			function renderRawJsonMetadata() {
 				document.getElementById('json').textContent = JSON.stringify({
 					summary: payload.summary,
 					stream: payload.stream,
@@ -431,12 +723,21 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				root.appendChild(frame);
 
 				const fields = document.createElement('dl');
-				addField(fields, 'image_index', tile.image_index);
-				addField(fields, 'stream_index', tile.stream_index);
-				addField(fields, 'shape', formatList(tile.data_shape));
-				addField(fields, 'rendered', formatList(tile.rendered_shape));
+				const head = tile.head || {};
+				addField(fields, 'slice', head.slice);
+				addField(fields, 'phase', head.phase);
+				addField(fields, 'contrast', head.contrast);
+				addField(fields, 'repetition', head.repetition);
+				addField(fields, 'image type', head.image_type);
+				addField(fields, 'series', head.image_series_index);
+				addField(fields, 'field of view', formatList(head.field_of_view));
+				addField(fields, 'image index', tile.image_index);
+				addField(fields, 'stream index', tile.stream_index);
+				addField(fields, 'stream item type', tile.stream_item_type);
+				addField(fields, 'data shape', formatList(tile.data_shape));
+				addField(fields, 'rendered shape', formatList(tile.rendered_shape));
 				addField(fields, 'dtype', tile.dtype);
-				addField(fields, 'source_plane', JSON.stringify(tile.source_plane));
+				addField(fields, 'source plane', JSON.stringify(tile.source_plane));
 				root.appendChild(fields);
 			}
 
