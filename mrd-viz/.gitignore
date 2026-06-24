@@ -1,0 +1,7 @@
+# Local/generated files
+backend/.venv/
+backend/src/*.egg-info/
+backend/src/**/__pycache__/
+extension/mrd-viz/node_modules/
+extension/mrd-viz/out/
+*.vsix

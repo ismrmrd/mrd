@@ -4,3 +4,5 @@ cpp/build/
 
 *.bin
 *.png
+
+*.pyc
