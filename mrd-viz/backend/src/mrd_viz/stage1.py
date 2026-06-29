@@ -80,9 +80,10 @@ def extract_image(path: Path, image_index: int) -> dict[str, Any]:
     """Return one full-resolution image payload for lazy tile expansion."""
 
     path = Path(path)
+    if not path.exists():
+        return _error_payload(path, f"File not found: {path}")
     if image_index < 0:
         return _error_payload(path, "Image index must be non-negative")
-
     try:
         seen_images = 0
         selected_image: dict[str, Any] | None = None
