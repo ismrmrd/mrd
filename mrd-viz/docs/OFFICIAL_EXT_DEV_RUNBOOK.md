@@ -1,12 +1,12 @@
 # Official Extension Development Runbook
 
-Use these PowerShell steps from any local clone of the MRD repository to verify the MRD Viz backend, compile the VS Code extension, and launch an Extension Development Host.
+Use this runbook to verify the MRD Viz CLI and, when needed, launch the VS Code extension development host.
 
-These commands avoid machine-specific absolute paths. They derive paths from the Git repository root and use variables for local files such as sample MRD inputs.
-
-For a backend-only CLI PR, sections 1 through 4 are the required verification path. Sections 5 through 9 cover extension development and extension-to-backend integration checks.
+For a backend-only CLI PR, use sections 1 through 4. For extension development and extension-to-backend integration checks, continue through section 9.
 
 ## 1. Open a Shell at the Repository Root
+
+Windows PowerShell:
 
 ```powershell
 Set-Location "<path-to-your-mrd-clone>"
@@ -14,7 +14,17 @@ $repoRoot = git rev-parse --show-toplevel
 Set-Location $repoRoot
 ```
 
+Linux Bash:
+
+```bash
+cd "<path-to-your-mrd-clone>"
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+```
+
 ## 2. Create or Refresh the Backend Environment
+
+Windows PowerShell:
 
 ```powershell
 $backendRoot = Join-Path $repoRoot "mrd-viz/backend"
@@ -26,9 +36,23 @@ $python = Join-Path $backendRoot ".venv/Scripts/python.exe"
 & $python -m pip install -e .
 ```
 
+Linux Bash:
+
+```bash
+backend_root="$repo_root/mrd-viz/backend"
+cd "$backend_root"
+
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e .
+```
+
 Expected result: the editable install completes without errors.
 
 ## 3. Verify the Backend Import Path
+
+Windows PowerShell:
 
 ```powershell
 & $python -c "import sys, mrd_viz; print(sys.executable); print(mrd_viz.__file__)"
@@ -41,24 +65,60 @@ Expected output should point to the backend virtual environment and source packa
 <repo-root>\mrd-viz\backend\src\mrd_viz\__init__.py
 ```
 
+Linux Bash:
+
+```bash
+python -c "import sys, mrd_viz; print(sys.executable); print(mrd_viz.__file__)"
+```
+
+Expected output should point to the backend virtual environment and source package inside this clone:
+
+```text
+<repo-root>/mrd-viz/backend/.venv/bin/python
+<repo-root>/mrd-viz/backend/src/mrd_viz/__init__.py
+```
+
 A `ModuleNotFoundError: No module named 'mrd_viz'` means the command is not using the backend virtual environment interpreter or the package has not been installed into that environment.
 
 ## 4. Run the Backend CLI Directly
 
-Set `$sampleMrd` to a local MRD file that you want to inspect:
+Set the sample path to a local MRD file that you want to inspect:
+
+Windows PowerShell:
 
 ```powershell
+$mrdViz = Join-Path $backendRoot ".venv/Scripts/mrd-viz.exe"
 $sampleMrd = Resolve-Path "<path-to-sample-mrd-file>"
-& $python -m mrd_viz.cli open $sampleMrd --max-thumbnails 1
+& $mrdViz --help
+& $mrdViz open $sampleMrd --max-thumbnails 1
 ```
 
-Expected result: JSON output on stdout. A successful response should include fields such as `ok`, `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, and `mosaic`.
+Linux Bash:
+
+This example assumes `recon.mrd` is in the backend directory. Replace it with another local MRD path if needed.
+
+```bash
+mrd-viz --help
+mrd-viz open recon.mrd --max-thumbnails 128
+```
+
+Expected result: `mrd-viz --help` prints usage text. `mrd-viz open ...` prints JSON on stdout with fields such as `ok`, `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, and `mosaic`.
 
 Optional CLI checks:
 
+Windows PowerShell:
+
 ```powershell
-& $python -m mrd_viz.cli classify $sampleMrd
-& $python -m mrd_viz.cli image $sampleMrd --index 0
+& $mrdViz classify $sampleMrd
+& $mrdViz image $sampleMrd --index 0
+```
+
+Linux Bash:
+
+```bash
+sample_mrd=$(realpath "<path-to-sample-mrd-file>")
+mrd-viz classify "$sample_mrd"
+mrd-viz image "$sample_mrd" --index 0
 ```
 
 ## 5. Compile the Extension
