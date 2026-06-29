@@ -9,7 +9,6 @@ on demand.
 from __future__ import annotations
 
 import base64
-from collections import Counter
 from dataclasses import dataclass
 from enum import StrEnum
 from io import BytesIO
