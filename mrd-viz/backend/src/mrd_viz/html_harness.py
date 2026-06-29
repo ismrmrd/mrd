@@ -51,8 +51,8 @@ def _preload_full_images(path: Path, payload: dict[str, Any], count: int) -> dic
 
 
 def _build_html(payload: dict[str, Any], full_images: dict[str, Any]) -> str:
-    payload_json = json.dumps(payload, ensure_ascii=True)
-    full_images_json = json.dumps(full_images, ensure_ascii=True)
+    payload_json = json.dumps(payload, ensure_ascii=True).replace("<", "\\u003c")
+    full_images_json = json.dumps(full_images, ensure_ascii=True).replace("<", "\\u003c")
     title = html.escape(str(payload.get("filename", "MRD Mosaic")))
 
     return f"""<!doctype html>

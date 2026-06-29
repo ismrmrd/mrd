@@ -79,7 +79,6 @@ def main(argv: list[str] | None = None) -> int:
         return _run_html(args.path, args.output, args.max_thumbnails, args.thumbnail_size, args.preload_full_images)
 
     parser.error(f"Unknown command: {args.command}")
-    return 2
 
 
 if __name__ == "__main__":

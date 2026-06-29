@@ -9,7 +9,6 @@ on demand.
 from __future__ import annotations
 
 import base64
-from collections import Counter
 from dataclasses import dataclass
 from enum import StrEnum
 from io import BytesIO
@@ -80,9 +79,10 @@ def extract_image(path: Path, image_index: int) -> dict[str, Any]:
     """Return one full-resolution image payload for lazy tile expansion."""
 
     path = Path(path)
+    if not path.exists():
+        return _error_payload(path, f"File not found: {path}")
     if image_index < 0:
         return _error_payload(path, "Image index must be non-negative")
-
     try:
         seen_images = 0
         selected_image: dict[str, Any] | None = None
@@ -160,18 +160,16 @@ def _new_state(path: Path, header: mrd.Header) -> dict[str, Any]:
 
 def _consume_stream_item(state: dict[str, Any], item: Any, stream_index: int, options: Stage1Options) -> None:
     item_type = _stream_item_type_name(item)
-    item_counts = Counter(state["stream"]["item_counts"])
-    item_counts[item_type] += 1
-    state["stream"]["item_counts"] = dict(item_counts)
+    item_counts: dict[str, int] = state["stream"]["item_counts"]
+    item_counts[item_type] = int(item_counts.get(item_type, 0)) + 1
 
     image = _image_value(item)
     if image is not None:
         image_index = state["stream"]["image_count"]
         state["stream"]["image_count"] += 1
-        tile = _image_tile(image, item_type, stream_index, image_index, options)
         state["metadata"]["images"].append(_image_metadata(image, item_type, stream_index, image_index))
         if image_index < options.max_thumbnails:
-            state["mosaic"]["thumbnails"].append(tile)
+            state["mosaic"]["thumbnails"].append(_image_tile(image, item_type, stream_index, image_index, options))
         else:
             state["mosaic"]["truncated"] = True
         return
