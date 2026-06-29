@@ -161,18 +161,16 @@ def _new_state(path: Path, header: mrd.Header) -> dict[str, Any]:
 
 def _consume_stream_item(state: dict[str, Any], item: Any, stream_index: int, options: Stage1Options) -> None:
     item_type = _stream_item_type_name(item)
-    item_counts = Counter(state["stream"]["item_counts"])
-    item_counts[item_type] += 1
-    state["stream"]["item_counts"] = dict(item_counts)
+    item_counts: dict[str, int] = state["stream"]["item_counts"]
+    item_counts[item_type] = int(item_counts.get(item_type, 0)) + 1
 
     image = _image_value(item)
     if image is not None:
         image_index = state["stream"]["image_count"]
         state["stream"]["image_count"] += 1
-        tile = _image_tile(image, item_type, stream_index, image_index, options)
         state["metadata"]["images"].append(_image_metadata(image, item_type, stream_index, image_index))
         if image_index < options.max_thumbnails:
-            state["mosaic"]["thumbnails"].append(tile)
+            state["mosaic"]["thumbnails"].append(_image_tile(image, item_type, stream_index, image_index, options))
         else:
             state["mosaic"]["truncated"] = True
         return
