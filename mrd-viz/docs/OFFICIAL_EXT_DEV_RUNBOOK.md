@@ -2,7 +2,7 @@
 
 Use this runbook to verify the MRD Viz CLI and, when needed, launch the VS Code extension development host.
 
-For a backend-only CLI PR, use sections 1 through 4. For extension development and extension-to-backend integration checks, continue through section 9.
+For a backend-only CLI PR, use sections 1 through 5. For extension development and extension-to-backend integration checks, continue through section 10.
 
 ## 1. Open a Shell at the Repository Root
 
@@ -80,7 +80,33 @@ Expected output should point to the backend virtual environment and source packa
 
 A `ModuleNotFoundError: No module named 'mrd_viz'` means the command is not using the backend virtual environment interpreter or the package has not been installed into that environment.
 
-## 4. Run the Backend CLI Directly
+## 4. Generate Local Test MRD Files
+
+Use the MRD tools package to generate a raw phantom dataset and reconstruct it into an image dataset. This keeps CLI testing reproducible without checking sample MRD files into git.
+
+Windows PowerShell:
+
+```powershell
+$rawMrd = Join-Path $backendRoot "phantom.mrd"
+$reconMrd = Join-Path $backendRoot "recon.mrd"
+
+& $python -m mrd.tools.phantom --output $rawMrd --matrix 64 --coils 8 --repetitions 2
+& $python -m mrd.tools.stream_recon --input $rawMrd --output $reconMrd
+```
+
+Linux Bash:
+
+```bash
+raw_mrd="$backend_root/phantom.mrd"
+recon_mrd="$backend_root/recon.mrd"
+
+python -m mrd.tools.phantom --output "$raw_mrd" --matrix 64 --coils 8 --repetitions 2
+python -m mrd.tools.stream_recon --input "$raw_mrd" --output "$recon_mrd"
+```
+
+Expected result: `phantom.mrd` contains acquisitions, and `recon.mrd` contains reconstructed images that can be opened by MRD Viz.
+
+## 5. Run the Backend CLI Directly
 
 Set the sample path to a local MRD file that you want to inspect:
 
@@ -88,18 +114,19 @@ Windows PowerShell:
 
 ```powershell
 $mrdViz = Join-Path $backendRoot ".venv/Scripts/mrd-viz.exe"
-$sampleMrd = Resolve-Path "<path-to-sample-mrd-file>"
+$sampleMrd = $reconMrd
 & $mrdViz --help
-& $mrdViz open $sampleMrd --max-thumbnails 1
+& $mrdViz open $sampleMrd --max-thumbnails 128
 ```
 
 Linux Bash:
 
-This example assumes `recon.mrd` is in the backend directory. Replace it with another local MRD path if needed.
+This example uses the `recon.mrd` generated in section 4. Replace `$sample_mrd` with another local MRD path if needed.
 
 ```bash
+sample_mrd="$recon_mrd"
 mrd-viz --help
-mrd-viz open recon.mrd --max-thumbnails 128
+mrd-viz open "$sample_mrd" --max-thumbnails 128
 ```
 
 Expected result: `mrd-viz --help` prints usage text. `mrd-viz open ...` prints JSON on stdout with fields such as `ok`, `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, and `mosaic`.
@@ -116,12 +143,11 @@ Windows PowerShell:
 Linux Bash:
 
 ```bash
-sample_mrd=$(realpath "<path-to-sample-mrd-file>")
 mrd-viz classify "$sample_mrd"
 mrd-viz image "$sample_mrd" --index 0
 ```
 
-## 5. Compile the Extension
+## 6. Compile the Extension
 
 ```powershell
 $extensionRoot = Join-Path $repoRoot "mrd-viz/extension/mrd-viz"
@@ -133,13 +159,13 @@ npm run compile
 
 Expected result: `tsc -p ./` completes with no TypeScript errors.
 
-## 6. Close Stale Development Hosts
+## 7. Close Stale Development Hosts
 
 Before relaunching, close every existing VS Code window titled `[Extension Development Host]`.
 
 This matters because the extension JavaScript is loaded when the development host starts. If an old development host is still open, it can keep running stale compiled code.
 
-## 7. Launch the Extension Development Host
+## 8. Launch the Extension Development Host
 
 From the extension folder:
 
@@ -156,9 +182,9 @@ If the development host opens on the Welcome page, use `File > Open Folder...` i
 <repo-root>
 ```
 
-## 8. Test the MRD Viz Command After Integration
+## 9. Test the MRD Viz Command After Integration
 
-This section applies after the extension contributes the MRD Viz open command and wires it to the backend CLI. Backend-only CLI PRs should stop after the direct CLI verification in section 4.
+This section applies after the extension contributes the MRD Viz open command and wires it to the backend CLI. Backend-only CLI PRs should stop after the direct CLI verification in section 5.
 
 In the `[Extension Development Host]` window, run the MRD Viz command against the same sample MRD file used for backend CLI verification.
 
@@ -176,7 +202,7 @@ Running: python -m mrd_viz.cli open ...
 
 Fix that by closing all `[Extension Development Host]` windows, running `npm run compile` again from the extension folder, and relaunching the development host.
 
-## 9. Optional F5 Workflow
+## 10. Optional F5 Workflow
 
 Open this folder in the source VS Code window:
 

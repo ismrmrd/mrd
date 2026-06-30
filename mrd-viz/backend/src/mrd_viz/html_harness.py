@@ -1,8 +1,8 @@
-"""Static HTML harness for iterating on the Stage 1 mosaic UI.
+"""Static HTML harness for iterating on the MRD Viz mosaic UI.
 
-This is an experimental bridge between the Python backend contract and the
-future VS Code webview. It writes one standalone HTML file that can be opened in
-a browser, inspected, and iterated on without extension lifecycle complexity.
+This file is not referenced directly by the current VS Code extension code. It
+is kept as a useful reference for the webview shape and as a standalone way to
+exercise the CLI/backend contract while testing MRD files locally.
 """
 
 from __future__ import annotations
@@ -12,16 +12,16 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .stage1 import Stage1Options, extract_image, inspect_file
+from .main import DEFAULT_OPTIONS, PreviewOptions, extract_image, open_file
 
 
 def write_mosaic_html(
     path: Path,
     output_path: Path,
     *,
-    max_thumbnails: int = 512,
-    thumbnail_size: int = 128,
-    preload_full_images: int = 1,
+    max_thumbnails: int = DEFAULT_OPTIONS.max_thumbnails,
+    thumbnail_size: int = DEFAULT_OPTIONS.thumbnail_size,
+    preload_full_images: int = DEFAULT_OPTIONS.preload_full_images,
 ) -> Path:
     """Write a standalone HTML mosaic harness for one MRD file."""
 
@@ -29,7 +29,7 @@ def write_mosaic_html(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    payload = inspect_file(path, Stage1Options(max_thumbnails=max_thumbnails, thumbnail_size=thumbnail_size))
+    payload = open_file(path, PreviewOptions(max_thumbnails=max_thumbnails, thumbnail_size=thumbnail_size))
     full_images = _preload_full_images(path, payload, preload_full_images)
 
     output_path.write_text(_build_html(payload, full_images), encoding="utf-8")
