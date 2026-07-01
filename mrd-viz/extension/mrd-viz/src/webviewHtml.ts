@@ -450,6 +450,9 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				if (payload.mosaic && payload.mosaic.truncated) {
 					notices.appendChild(notice('Thumbnail payload is truncated by the configured maximum.'));
 				}
+				if (payload.file_class_reliable === false) {
+					notices.appendChild(notice('File classification is based on a partial stream read.', 'warning'));
+				}
 
 				renderMetadata();
 			}
@@ -482,6 +485,7 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				const file = section('File');
 				file.appendChild(definitionList([
 					['class', payload.file_class],
+					['classification reliable', payload.file_class_reliable],
 					['display mode', payload.display_mode],
 					['schema version', payload.schema_version],
 					['file size bytes', payload.file_size_bytes]

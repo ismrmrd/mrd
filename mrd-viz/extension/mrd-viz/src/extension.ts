@@ -132,7 +132,7 @@ function openViewerPanel(
 	const panel = vscode.window.createWebviewPanel(
 		'mrd-viz.viewer',
 		`MRD Viz: ${payload.filename ?? targetUri.fsPath}`,
-		vscode.ViewColumn.Beside,
+		vscode.ViewColumn.Active,
 		{
 			enableScripts: true,
 			retainContextWhenHidden: true,

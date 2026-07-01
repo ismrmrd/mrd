@@ -58,7 +58,7 @@ function execPython(pythonPath: string, commandArguments: string[], timeoutMs: n
 			(error, stdout, stderr) => {
 				const stdoutText = stdout.toString();
 				const stderrText = stderr.toString();
-				if (error) {
+				if (error && !stdoutText.trim()) {
 					reject(new MrdVizBackendError(error.message, stdoutText, stderrText));
 					return;
 				}

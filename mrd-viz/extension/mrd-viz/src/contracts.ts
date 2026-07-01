@@ -42,6 +42,7 @@ export interface MrdOpenPayload {
 	filename?: string;
 	file_size_bytes?: number | null;
 	file_class?: string;
+	file_class_reliable?: boolean;
 	display_mode?: string;
 	summary?: Record<string, unknown>;
 	stream?: MrdStreamSummary;
