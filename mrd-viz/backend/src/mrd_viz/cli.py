@@ -36,23 +36,29 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _emit_payload(payload: dict) -> int:
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0 if payload.get("ok", False) else 1
+
+
 def _run_classify(path: Path) -> int:
-    print(json.dumps(classify_file(path), indent=2, sort_keys=True))
-    return 0
+    return _emit_payload(classify_file(path))
 
 
 def _run_inspect(path: Path, max_thumbnails: int, thumbnail_size: int) -> int:
     options = PreviewOptions(max_thumbnails=max_thumbnails, thumbnail_size=thumbnail_size)
-    print(json.dumps(open_file(path, options), indent=2, sort_keys=True))
-    return 0
+    return _emit_payload(open_file(path, options))
 
 
 def _run_image(path: Path, index: int) -> int:
-    print(json.dumps(extract_image(path, index), indent=2, sort_keys=True))
-    return 0
+    return _emit_payload(extract_image(path, index))
 
 
 def _run_html(path: Path, output: Path, max_thumbnails: int, thumbnail_size: int, preload_full_images: int) -> int:
+    preflight = open_file(path, PreviewOptions(max_thumbnails=0, thumbnail_size=thumbnail_size))
+    if not preflight.get("ok", False):
+        return _emit_payload(preflight)
+
     written_path = write_mosaic_html(
         path,
         output,
@@ -60,8 +66,7 @@ def _run_html(path: Path, output: Path, max_thumbnails: int, thumbnail_size: int
         thumbnail_size=thumbnail_size,
         preload_full_images=preload_full_images,
     )
-    print(json.dumps({"ok": True, "output": str(written_path)}, indent=2, sort_keys=True))
-    return 0
+    return _emit_payload({"ok": True, "output": str(written_path)})
 
 
 def main(argv: list[str] | None = None) -> int:

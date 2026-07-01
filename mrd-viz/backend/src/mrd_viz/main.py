@@ -49,7 +49,7 @@ class PreviewOptions:
 
 
 DEFAULT_OPTIONS = PreviewOptions()
-# Version of the JSON payload contract emitted by this backend, not the MRD file format.
+# Version of the local backend-to-extension CLI JSON contract, not the Python package or MRD file format.
 PAYLOAD_SCHEMA_VERSION = 1
 
 
