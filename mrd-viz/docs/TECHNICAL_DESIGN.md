@@ -1,8 +1,8 @@
 # MRD Viz Technical Design
 
-Status: Draft
+Status: In Progress
 Owner: Carter Capetz
-Last updated: 2026-06-17
+Last updated: 2026-06-23
 
 ## Purpose
 
@@ -163,8 +163,6 @@ Reason: the first product goal is file-first preview on one machine. A short-liv
 
 ### Local setup and rollout
 
-Stage 1 setup should be Windows-first, with no architecture choices that prevent later macOS or Linux support.
-
 Python backend setup:
 
 ```powershell
@@ -198,9 +196,9 @@ The packaged extension must not contain hardcoded local paths. It should expose 
 
 ### Current backend state
 
-The original `src/mrd_viz/` package was rough generated scaffolding and should not be treated as ground truth. It has been simplified so the repo now contains one canonical Stage 1 backend module:
+The original `src/mrd_viz/` package was rough generated scaffolding and should not be treated as ground truth. It has been simplified so the repo now contains one canonical backend module:
 
-- `src/mrd_viz/stage1.py`: canonical Stage 1 backend contract.
+- `src/mrd_viz/main.py`: canonical backend contract.
 - `src/mrd_viz/cli.py`: subprocess entry point used by the extension and tests.
 - `src/mrd_viz/__init__.py`: small public export surface.
 
@@ -289,13 +287,13 @@ Installability matters for Stage 1, even before marketplace release. The extensi
 
 The subprocess boundary should be treated as a product API even though it is local. `mrd-viz` is the Python backend command surface that the extension calls; it is also useful for tests and manual debugging. Stage 1 uses these commands:
 
-- `mrd-viz open <path> --max-thumbnails 128`: return the initial open-file payload: classification, header summary, stream counts, metadata, warnings, and bounded mosaic thumbnails.
+- `mrd-viz open <path> --max-thumbnails 256`: return the initial open-file payload: classification, header summary, stream counts, metadata, warnings, and bounded mosaic thumbnails.
 - `mrd-viz image <path> --index <n>`: return one larger/full-resolution temporary PNG path and metadata for a selected mosaic tile.
 - `mrd-viz classify <path>`: return a lightweight classification payload for batch workflows.
 - `mrd-viz html <path> --output <html>`: write a static HTML mosaic harness for fast UI iteration before the VS Code frontend exists.
-- `mrd-viz inspect <path>`: supported as a temporary alias for `open` while naming settles.
+- `mrd-viz inspect <path>`: supported as a temporary alias for `open`.
 
-The initial open payload should remain small and stable. Thumbnail PNGs may be base64 because they are bounded; the default maximum is 128 thumbnails and should be configurable.
+The initial open payload should remain small and stable. Thumbnail PNGs may be base64 because they are bounded; the default maximum is 256 thumbnails and should be configurable.
 
 ```json
 {
@@ -404,16 +402,15 @@ This keeps the frontend insulated from raw MRD object internals and gives the Py
 
 Stage 1 should use external and existing logic carefully:
 
-- Use `file-format/mrd/python/mrd/tools/minimal_example.py` as the reference for basic MRD header and stream reading.
-- Use `file-format/mrd/python/mrd/tools/export_png_images.py` as a conceptual reference for converting reconstructed image data into PNG output.
-- Use `file-format/mrd/python/mrd/tools/ismrmrd_to_mrd.py` as the reference for any documented ISMRMRD-to-MRD conversion workflow outside the Stage 1 viewer.
-- Use `mrd-for-carter/mrd-for-carter/mrd-viewer/scripts/mrd_extract.py` as a loose reference for recursive metadata serialization and base64 image payload shape.
+- Use `mrd/python/mrd/tools/minimal_example.py` as the reference for basic MRD header and stream reading.
+- Use `mrd/python/mrd/tools/export_png_images.py` as a conceptual reference for converting reconstructed image data into PNG output.
+- Use `/mrd/python/mrd/tools/ismrmrd_to_mrd.py` as the reference for any documented ISMRMRD-to-MRD conversion workflow outside the Stage 1 viewer.
 - Do not import Tinker or Monarch at runtime for Stage 1 viewing.
 - Do not preserve rough scaffolding just because it exists. Keep the Stage 1 code path small enough that a prototype agent can reason about it in one pass.
 
 ### Loading and caching
 
-- Read eagerly: header, stream item counts, image metadata, acquisition examples, and up to 128 thumbnail PNGs for the image-item mosaic.
+- Read eagerly: header, image metadata, acquisition examples, and up to 128 thumbnail PNGs for the image-item mosaic.
 - Read lazily: larger/full-resolution temporary PNG for the selected mosaic tile.
 - Defer to later stages: raw acquisition visualization, channel/slice expansion inside one image item, batch comparison, and QC heuristics.
 - Cache for Stage 1: in-memory webview state, optional extension-side memoization of already requested tile images, and explicit cleanup of temp PNGs on document disposal.
@@ -461,10 +458,10 @@ Stage 1 needs tests at three levels: backend unit tests, backend sample-file int
 
 Add `pytest` tests for the Python package:
 
-- `inspect_file` returns the Stage 1 schema with `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, `mosaic`, `metadata`, and `warnings`.
-- `inspect_file` classifies reconstructed, raw-only, mixed, unknown, and invalid files correctly.
-- `inspect_file` returns one mosaic thumbnail per renderable MRD image item up to `max_thumbnails`.
-- `inspect_file` returns `display_mode: metadata_only` plus a warning for raw-only files.
+- `open_file` returns the backend schema with `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, `mosaic`, `metadata`, and `warnings`.
+- `open_file` classifies reconstructed, raw-only, mixed, unknown, and invalid files correctly.
+- `open_file` returns one mosaic thumbnail per renderable MRD image item up to `max_thumbnails`.
+- `open_file` returns `display_mode: metadata_only` plus a warning for raw-only files.
 - `extract_image` returns a larger/full-resolution temporary PNG path for a selected image index.
 - image normalization handles constant arrays, complex arrays, integer arrays, floating arrays, and expected min/max scaling.
 - unsupported image shapes are represented as non-renderable tile metadata rather than crashing the whole file open operation.
@@ -576,7 +573,7 @@ Mitigations:
 - Raw-only MRD files are unsupported for visualization in Stage 1, but they should still produce a useful metadata summary.
 - Stage 1 extension implementation should use TypeScript.
 - Stage 1 should call the installed `mrd-viz` Python CLI rather than bundling a separate extraction script.
-- Stage 1 should default to 128 thumbnails, with the limit configurable.
+- Stage 1 should default to 256 thumbnails, with the limit configurable.
 - Thumbnail images may be returned as base64 JSON; full-size lazy images should use temporary PNG paths.
 - Stage 1 local setup should use a project `.venv`, with Windows commands documented first and cross-platform support preserved as a packaging goal.
 

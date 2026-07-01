@@ -1,14 +1,16 @@
-"""Python backend for the Stage 1 MRD Viewer extension."""
+"""Python backend for the MRD Viz extension."""
 
 from .html_harness import write_mosaic_html
-from .stage1 import DisplayMode, MrdFileClass, Stage1Options, classify_file, extract_image, inspect_file
+from .main import DEFAULT_OPTIONS, PAYLOAD_SCHEMA_VERSION, DisplayMode, MrdFileClass, PreviewOptions, classify_file, extract_image, open_file
 
 __all__ = [
-	"DisplayMode",
-	"MrdFileClass",
-	"Stage1Options",
-	"classify_file",
-	"extract_image",
-	"inspect_file",
-	"write_mosaic_html",
+    "DEFAULT_OPTIONS",
+    "DisplayMode",
+    "MrdFileClass",
+    "PAYLOAD_SCHEMA_VERSION",
+    "PreviewOptions",
+    "classify_file",
+    "extract_image",
+    "open_file",
+    "write_mosaic_html",
 ]
