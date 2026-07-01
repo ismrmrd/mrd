@@ -196,9 +196,9 @@ The packaged extension must not contain hardcoded local paths. It should expose 
 
 ### Current backend state
 
-The original `src/mrd_viz/` package was rough generated scaffolding and should not be treated as ground truth. It has been simplified so the repo now contains one canonical Stage 1 backend module:
+The original `src/mrd_viz/` package was rough generated scaffolding and should not be treated as ground truth. It has been simplified so the repo now contains one canonical backend module:
 
-- `src/mrd_viz/stage1.py`: canonical Stage 1 backend contract.
+- `src/mrd_viz/main.py`: canonical backend contract.
 - `src/mrd_viz/cli.py`: subprocess entry point used by the extension and tests.
 - `src/mrd_viz/__init__.py`: small public export surface.
 
@@ -287,13 +287,13 @@ Installability matters for Stage 1, even before marketplace release. The extensi
 
 The subprocess boundary should be treated as a product API even though it is local. `mrd-viz` is the Python backend command surface that the extension calls; it is also useful for tests and manual debugging. Stage 1 uses these commands:
 
-- `mrd-viz open <path> --max-thumbnails 128`: return the initial open-file payload: classification, header summary, stream counts, metadata, warnings, and bounded mosaic thumbnails.
+- `mrd-viz open <path> --max-thumbnails 256`: return the initial open-file payload: classification, header summary, stream counts, metadata, warnings, and bounded mosaic thumbnails.
 - `mrd-viz image <path> --index <n>`: return one larger/full-resolution temporary PNG path and metadata for a selected mosaic tile.
 - `mrd-viz classify <path>`: return a lightweight classification payload for batch workflows.
 - `mrd-viz html <path> --output <html>`: write a static HTML mosaic harness for fast UI iteration before the VS Code frontend exists.
 - `mrd-viz inspect <path>`: supported as a temporary alias for `open`.
 
-The initial open payload should remain small and stable. Thumbnail PNGs may be base64 because they are bounded; the default maximum is 128 thumbnails and should be configurable.
+The initial open payload should remain small and stable. Thumbnail PNGs may be base64 because they are bounded; the default maximum is 256 thumbnails and should be configurable.
 
 ```json
 {
@@ -458,10 +458,10 @@ Stage 1 needs tests at three levels: backend unit tests, backend sample-file int
 
 Add `pytest` tests for the Python package:
 
-- `inspect_file` returns the Stage 1 schema with `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, `mosaic`, `metadata`, and `warnings`.
-- `inspect_file` classifies reconstructed, raw-only, mixed, unknown, and invalid files correctly.
-- `inspect_file` returns one mosaic thumbnail per renderable MRD image item up to `max_thumbnails`.
-- `inspect_file` returns `display_mode: metadata_only` plus a warning for raw-only files.
+- `open_file` returns the backend schema with `schema_version`, `file_class`, `display_mode`, `summary`, `stream`, `mosaic`, `metadata`, and `warnings`.
+- `open_file` classifies reconstructed, raw-only, mixed, unknown, and invalid files correctly.
+- `open_file` returns one mosaic thumbnail per renderable MRD image item up to `max_thumbnails`.
+- `open_file` returns `display_mode: metadata_only` plus a warning for raw-only files.
 - `extract_image` returns a larger/full-resolution temporary PNG path for a selected image index.
 - image normalization handles constant arrays, complex arrays, integer arrays, floating arrays, and expected min/max scaling.
 - unsupported image shapes are represented as non-renderable tile metadata rather than crashing the whole file open operation.
@@ -573,7 +573,7 @@ Mitigations:
 - Raw-only MRD files are unsupported for visualization in Stage 1, but they should still produce a useful metadata summary.
 - Stage 1 extension implementation should use TypeScript.
 - Stage 1 should call the installed `mrd-viz` Python CLI rather than bundling a separate extraction script.
-- Stage 1 should default to 128 thumbnails, with the limit configurable.
+- Stage 1 should default to 256 thumbnails, with the limit configurable.
 - Thumbnail images may be returned as base64 JSON; full-size lazy images should use temporary PNG paths.
 - Stage 1 local setup should use a project `.venv`, with Windows commands documented first and cross-platform support preserved as a packaging goal.
 

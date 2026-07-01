@@ -1,0 +1,25 @@
+@default: ci
+
+@backend-install:
+    cd backend && python -m pip install -e ".[test]"
+
+@backend-test: backend-install
+    cd backend && python -m pytest
+
+@extension-install:
+    cd extension/mrd-viz && npm ci
+
+@extension-lint: extension-install
+    cd extension/mrd-viz && npm run lint
+
+@extension-compile: extension-install
+    cd extension/mrd-viz && npm run compile
+
+@extension-test: extension-install
+    cd extension/mrd-viz && npm test
+
+@extension-check: extension-lint extension-compile
+
+@ci: backend-test extension-check
+
+@full-ci: backend-test extension-check extension-test
