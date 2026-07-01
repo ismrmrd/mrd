@@ -129,6 +129,7 @@ def classify_file(path: Path) -> dict[str, Any]:
         "ok": payload["ok"],
         "path": payload["path"],
         "file_class": payload["file_class"],
+        "file_class_reliable": payload["file_class_reliable"],
         "display_mode": payload["display_mode"],
         "item_counts": payload["stream"]["item_counts"],
         "warnings": payload["warnings"],
@@ -144,6 +145,7 @@ def _new_state(path: Path, header: mrd.Header) -> dict[str, Any]:
         "filename": path.name,
         "file_size_bytes": path.stat().st_size,
         "file_class": MrdFileClass.UNKNOWN.value,
+        "file_class_reliable": True,
         "display_mode": DisplayMode.METADATA_ONLY.value,
         "summary": _header_summary(header),
         "stream": {
@@ -228,8 +230,9 @@ def _finalize_state(state: dict[str, Any], options: PreviewOptions) -> None:
         if options.read_full_stream:
             state["warnings"].append(f"Showing first {options.max_thumbnails} thumbnails; load individual images on demand.")
         else:
+            state["file_class_reliable"] = False
             state["warnings"].append(
-                f"Stopped reading after reaching the thumbnail limit of {options.max_thumbnails}; stream counts may be partial."
+                f"Stopped reading after reaching the thumbnail limit of {options.max_thumbnails}; file_class and stream counts may be partial."
             )
 
 
@@ -439,6 +442,7 @@ def _error_payload(path: Path, message: str) -> dict[str, Any]:
         "filename": path.name,
         "file_size_bytes": path.stat().st_size if path.exists() else None,
         "file_class": MrdFileClass.INVALID.value,
+        "file_class_reliable": True,
         "display_mode": DisplayMode.ERROR.value,
         "summary": {},
         "stream": {"item_counts": {}, "image_count": 0, "acquisition_count": 0, "waveform_count": 0, "other_count": 0, "partial": False},

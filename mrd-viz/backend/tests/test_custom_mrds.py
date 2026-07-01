@@ -10,7 +10,7 @@ import numpy as np
 
 from mrd_viz.main import PreviewOptions, open_file
 
-from helpers import write_header_only_mrd, write_image_mrd
+from .helpers import write_header_only_mrd, write_image_mrd, write_images_then_acquisition_mrd
 
 
 def test_custom_multiplane_image_reports_shape_and_renders_first_plane(tmp_path: Path) -> None:
@@ -37,6 +37,25 @@ def test_custom_image_thumbnail_limit_marks_truncation(tmp_path: Path) -> None:
     assert len(payload["mosaic"]["thumbnails"]) == 1
     assert payload["mosaic"]["truncated"] is True
     assert payload["stream"]["partial"] is False
+    assert payload["file_class_reliable"] is True
+
+
+def test_default_partial_read_marks_file_class_unreliable(tmp_path: Path) -> None:
+    path = tmp_path / "images_then_acquisition.mrd"
+    write_images_then_acquisition_mrd(path, [np.ones((1, 1, 4, 4)), np.ones((1, 1, 4, 4)) * 2])
+
+    payload = open_file(path, PreviewOptions(max_thumbnails=1))
+
+    full_payload = open_file(path, PreviewOptions(max_thumbnails=1, read_full_stream=True))
+
+    assert payload["file_class"] == "reconstructed"
+    assert payload["file_class_reliable"] is False
+    assert payload["stream"]["partial"] is True
+    assert payload["stream"]["acquisition_count"] == 0
+    assert "file_class and stream counts may be partial" in payload["warnings"][-1]
+    assert full_payload["file_class"] == "mixed"
+    assert full_payload["file_class_reliable"] is True
+    assert full_payload["stream"]["acquisition_count"] == 1
 
 
 def test_custom_header_only_file_is_unknown(tmp_path: Path) -> None:
