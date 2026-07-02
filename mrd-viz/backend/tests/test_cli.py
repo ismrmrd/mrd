@@ -39,12 +39,16 @@ def test_cli_open_classify_image_and_inspect_emit_json(generated_mrd_pair: tuple
 
     assert open_result.returncode == 0
     assert open_payload["file_class"] == "reconstructed"
+    assert open_payload["file_class_reliable"] is False
+    assert open_payload["stream"]["partial"] is True
     assert classify_result.returncode == 0
     assert classify_payload["file_class"] == "raw"
+    assert classify_payload["file_class_reliable"] is True
     assert image_result.returncode == 0
     assert image_payload["image"]["renderable"] is True
     assert inspect_result.returncode == 0
     assert inspect_payload["schema_version"] == open_payload["schema_version"]
+    assert inspect_payload["file_class_reliable"] is False
 
 
 def test_cli_html_writes_output_for_valid_mrd(generated_mrd_pair: tuple[Path, Path], tmp_path: Path) -> None:
@@ -67,6 +71,7 @@ def test_cli_clean_file_errors_exit_one(tmp_path: Path) -> None:
         assert result.returncode == 1
         assert payload["ok"] is False
         assert payload["file_class"] == "invalid"
+        assert payload["file_class_reliable"] is True
         assert "File not found" in payload["error"]
 
 

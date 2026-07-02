@@ -2,13 +2,19 @@ import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
-import { MrdVizBackendError, runImage, runOpenFile, type BackendRunnerOptions } from './backendRunner';
-import { isViewerToExtensionMessage, redactingPayloadReplacer, type ExtensionToViewerMessage, type MrdOpenPayload } from './contracts';
-import { getMrdViewerHtml } from './webviewHtml';
+import type { BackendRunnerOptions } from './backendRunner';
+import { MrdEditorProvider, MRD_VIEW_TYPE } from './mrdEditorProvider';
 
 export function activate(context: vscode.ExtensionContext) {
 	const outputChannel = vscode.window.createOutputChannel('MRD Viz');
 	context.subscriptions.push(outputChannel);
+
+	const editorProvider = new MrdEditorProvider(() => getBackendRunnerOptions(context), outputChannel);
+	context.subscriptions.push(vscode.window.registerCustomEditorProvider(MRD_VIEW_TYPE, editorProvider, {
+		webviewOptions: {
+			retainContextWhenHidden: true,
+		},
+	}));
 
 	const disposable = vscode.commands.registerCommand('mrd-viz.openFile', async (resource?: vscode.Uri, selectedResources?: vscode.Uri[]) => {
 		const targetUri = await resolveTargetUri(resource, selectedResources);
@@ -16,35 +22,13 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		const options = getBackendRunnerOptions(context);
-		const backendCommand = `${options.pythonPath} -m mrd_viz.cli open "${targetUri.fsPath}" --max-thumbnails ${options.maxThumbnails}`;
-		outputChannel.clear();
-		outputChannel.appendLine(`Running: ${backendCommand}`);
-
 		try {
-			const payload = await vscode.window.withProgress(
-				{
-					location: vscode.ProgressLocation.Notification,
-					title: 'Inspecting MRD file',
-					cancellable: false,
-				},
-				() => runOpenFile(targetUri.fsPath, options),
-			);
-
-			outputChannel.appendLine('');
-			outputChannel.appendLine(JSON.stringify(payload, redactingPayloadReplacer, 2));
-			openViewerPanel(context, targetUri, payload, options, outputChannel);
-			showOpenPayloadSummary(payload, outputChannel);
+			await vscode.commands.executeCommand(...getOpenWithMrdEditorArgs(targetUri));
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			outputChannel.appendLine('');
-			outputChannel.appendLine(`Backend failed: ${message}`);
-			if (error instanceof MrdVizBackendError) {
-				appendIfPresent(outputChannel, 'stdout', error.stdout);
-				appendIfPresent(outputChannel, 'stderr', error.stderr);
-			}
 			outputChannel.show(true);
-			vscode.window.showErrorMessage(`MRD Viz backend failed: ${message}`);
+			outputChannel.appendLine(`MRD Viz failed to open ${targetUri.fsPath}: ${message}`);
+			vscode.window.showErrorMessage(`MRD Viz failed to open ${path.basename(targetUri.fsPath)}: ${message}`);
 		}
 	});
 
@@ -52,6 +36,13 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
+
+export function getOpenWithMrdEditorArgs(targetUri: vscode.Uri): [string, vscode.Uri, string, vscode.TextDocumentShowOptions] {
+	return ['vscode.openWith', targetUri, MRD_VIEW_TYPE, {
+		preview: false,
+		viewColumn: vscode.ViewColumn.Active,
+	}];
+}
 
 async function resolveTargetUri(resource?: vscode.Uri, selectedResources?: vscode.Uri[]): Promise<vscode.Uri | undefined> {
 	if (resource?.scheme === 'file') {
@@ -106,105 +97,5 @@ function getDevelopmentBackendPythonPath(extensionPath: string): string | undefi
 
 function isMrdFile(filePath: string): boolean {
 	return filePath.toLowerCase().endsWith('.mrd');
-}
-
-function showOpenPayloadSummary(payload: MrdOpenPayload, outputChannel: vscode.OutputChannel): void {
-	if (!payload.ok) {
-		outputChannel.show(true);
-		vscode.window.showWarningMessage(`MRD Viz inspected ${payload.filename ?? 'file'}, but the backend reported an error: ${formatUnknown(payload.error)}`);
-		return;
-	}
-
-	const imageCount = payload.stream?.image_count ?? 0;
-	const acquisitionCount = payload.stream?.acquisition_count ?? 0;
-	vscode.window.showInformationMessage(
-		`MRD Viz inspected ${payload.filename ?? 'file'}: ${payload.file_class ?? 'unknown'} (${imageCount} images, ${acquisitionCount} acquisitions).`,
-	);
-}
-
-function openViewerPanel(
-	context: vscode.ExtensionContext,
-	targetUri: vscode.Uri,
-	payload: MrdOpenPayload,
-	options: BackendRunnerOptions,
-	outputChannel: vscode.OutputChannel,
-): void {
-	const panel = vscode.window.createWebviewPanel(
-		'mrd-viz.viewer',
-		`MRD Viz: ${payload.filename ?? targetUri.fsPath}`,
-		vscode.ViewColumn.Active,
-		{
-			enableScripts: true,
-			retainContextWhenHidden: true,
-		},
-	);
-	panel.iconPath = vscode.ThemeIcon.File;
-	panel.webview.html = getMrdViewerHtml(panel.webview, payload);
-	const messageSubscription = panel.webview.onDidReceiveMessage(message => {
-		void handleViewerMessage(panel, targetUri, options, outputChannel, message);
-	});
-	panel.onDidDispose(() => messageSubscription.dispose());
-	context.subscriptions.push(panel);
-}
-
-async function handleViewerMessage(
-	panel: vscode.WebviewPanel,
-	targetUri: vscode.Uri,
-	options: BackendRunnerOptions,
-	outputChannel: vscode.OutputChannel,
-	message: unknown,
-): Promise<void> {
-	if (!isViewerToExtensionMessage(message)) {
-		outputChannel.appendLine('Ignored malformed MRD Viz webview message.');
-		return;
-	}
-
-	try {
-		const payload = await runImage(targetUri.fsPath, message.imageIndex, options);
-		postViewerMessage(panel, {
-			type: 'imageLoaded',
-			requestId: message.requestId,
-			payload,
-		});
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : String(error);
-		outputChannel.appendLine(`Selected image ${message.imageIndex} failed: ${errorMessage}`);
-		if (error instanceof MrdVizBackendError) {
-			appendIfPresent(outputChannel, 'stdout', error.stdout);
-			appendIfPresent(outputChannel, 'stderr', error.stderr);
-		}
-		postViewerMessage(panel, {
-			type: 'imageError',
-			requestId: message.requestId,
-			imageIndex: message.imageIndex,
-			error: errorMessage,
-		});
-	}
-}
-
-function postViewerMessage(panel: vscode.WebviewPanel, message: ExtensionToViewerMessage): void {
-	void panel.webview.postMessage(message);
-}
-
-function appendIfPresent(outputChannel: vscode.OutputChannel, label: string, value: string): void {
-	if (!value.trim()) {
-		return;
-	}
-
-	outputChannel.appendLine('');
-	outputChannel.appendLine(`${label}:`);
-	outputChannel.appendLine(value);
-}
-
-function formatUnknown(value: unknown): string {
-	if (typeof value === 'string') {
-		return value;
-	}
-
-	if (value === undefined || value === null) {
-		return 'Unknown error';
-	}
-
-	return JSON.stringify(value);
 }
 

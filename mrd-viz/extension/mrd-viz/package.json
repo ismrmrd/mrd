@@ -9,9 +9,6 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:mrd-viz.openFile"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -19,6 +16,18 @@
         "command": "mrd-viz.openFile",
         "title": "Open File",
         "category": "MRD Viz"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "mrd-viz.mrdFile",
+        "displayName": "MRD Viz",
+        "selector": [
+          {
+            "filenamePattern": "*.mrd"
+          }
+        ],
+        "priority": "default"
       }
     ],
     "configuration": {

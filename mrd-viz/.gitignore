@@ -4,4 +4,5 @@ backend/src/*.egg-info/
 backend/src/**/__pycache__/
 extension/mrd-viz/node_modules/
 extension/mrd-viz/out/
+extension/mrd-viz/.vscode-test/
 *.vsix
