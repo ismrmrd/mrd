@@ -309,6 +309,17 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 			let requestSequence = 0;
 			let pendingRequestId = null;
 			const imageCache = new Map();
+			const MAX_IMAGE_CACHE_ENTRIES = 32;
+
+			function cacheImage(imageIndex, image) {
+				if (imageCache.has(imageIndex)) {
+					imageCache.delete(imageIndex);
+				} else if (imageCache.size >= MAX_IMAGE_CACHE_ENTRIES) {
+					const oldestKey = imageCache.keys().next().value;
+					imageCache.delete(oldestKey);
+				}
+				imageCache.set(imageIndex, image);
+			}
 
 			function valueOrUnknown(value) {
 				return value === undefined || value === null || value === '' ? 'unknown' : String(value);
@@ -682,8 +693,10 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				}
 
 				const imageIndex = Number(tile.image_index);
-				renderSelectedTile(tile, imageCache.has(imageIndex) ? null : 'Loading full-resolution image...');
-				if (!Number.isInteger(imageIndex) || imageIndex < 0 || !tile.renderable) {
+				const canLoad = Number.isInteger(imageIndex) && imageIndex >= 0 && Boolean(tile.renderable);
+				const isCached = canLoad && imageCache.has(imageIndex);
+				renderSelectedTile(tile, canLoad && !isCached ? 'Loading full-resolution image...' : null);
+				if (!canLoad) {
 					return;
 				}
 
@@ -767,7 +780,7 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				const image = payload.image;
 				const imageIndex = Number(image.image_index);
 				if (Number.isInteger(imageIndex)) {
-					imageCache.set(imageIndex, image);
+					cacheImage(imageIndex, image);
 				}
 
 				renderSelectedTile(image);

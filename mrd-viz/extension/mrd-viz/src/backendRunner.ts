@@ -29,7 +29,7 @@ export async function runOpenFile(filePath: string, options: BackendRunnerOption
 		String(options.maxThumbnails),
 	];
 	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs);
-	return parseOpenPayload(result.stdout);
+	return parseOpenPayload(result.stdout, result.stderr);
 }
 
 export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions): Promise<MrdImageResponsePayload> {
@@ -42,7 +42,7 @@ export async function runImage(filePath: string, imageIndex: number, options: Ba
 		String(imageIndex),
 	];
 	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs);
-	return parseImagePayload(result.stdout);
+	return parseImagePayload(result.stdout, result.stderr);
 }
 
 function execPython(pythonPath: string, commandArguments: string[], timeoutMs: number): Promise<{ stdout: string; stderr: string }> {
@@ -69,18 +69,18 @@ function execPython(pythonPath: string, commandArguments: string[], timeoutMs: n
 	});
 }
 
-function parseOpenPayload(stdout: string): MrdOpenPayload {
-	return parsePayload(stdout, isMrdOpenPayload, 'open-file');
+function parseOpenPayload(stdout: string, stderr: string): MrdOpenPayload {
+	return parsePayload(stdout, stderr, isMrdOpenPayload, 'open-file');
 }
 
-function parseImagePayload(stdout: string): MrdImageResponsePayload {
-	return parsePayload(stdout, isMrdImageResponsePayload, 'selected-image');
+function parseImagePayload(stdout: string, stderr: string): MrdImageResponsePayload {
+	return parsePayload(stdout, stderr, isMrdImageResponsePayload, 'selected-image');
 }
 
-function parsePayload<T>(stdout: string, predicate: (value: unknown) => value is T, label: string): T {
+function parsePayload<T>(stdout: string, stderr: string, predicate: (value: unknown) => value is T, label: string): T {
 	const trimmedStdout = stdout.trim();
 	if (!trimmedStdout) {
-		throw new MrdVizBackendError('The MRD Viz backend returned empty stdout.', stdout, '');
+		throw new MrdVizBackendError('The MRD Viz backend returned empty stdout.', stdout, stderr);
 	}
 
 	let payload: unknown;
@@ -88,11 +88,11 @@ function parsePayload<T>(stdout: string, predicate: (value: unknown) => value is
 		payload = JSON.parse(trimmedStdout);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		throw new MrdVizBackendError(`The MRD Viz backend returned invalid JSON: ${message}`, stdout, '');
+		throw new MrdVizBackendError(`The MRD Viz backend returned invalid JSON: ${message}`, stdout, stderr);
 	}
 
 	if (!predicate(payload)) {
-		throw new MrdVizBackendError(`The MRD Viz backend returned JSON that does not match the ${label} payload shape.`, stdout, '');
+		throw new MrdVizBackendError(`The MRD Viz backend returned JSON that does not match the ${label} payload shape.`, stdout, stderr);
 	}
 
 	return payload;

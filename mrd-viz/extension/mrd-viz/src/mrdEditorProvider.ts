@@ -33,6 +33,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 	): Promise<void> {
 		webviewPanel.webview.options = {
 			enableScripts: true,
+			localResourceRoots: [],
 		};
 		webviewPanel.webview.html = getMrdLoadingHtml(webviewPanel.webview, document.uri);
 
