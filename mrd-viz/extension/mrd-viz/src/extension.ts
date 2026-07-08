@@ -45,6 +45,20 @@ export function getOpenWithMrdEditorArgs(targetUri: vscode.Uri): [string, vscode
 }
 
 async function resolveTargetUri(resource?: vscode.Uri, selectedResources?: vscode.Uri[]): Promise<vscode.Uri | undefined> {
+	const candidate = await pickTargetUri(resource, selectedResources);
+	if (!candidate) {
+		return undefined;
+	}
+
+	if (candidate.scheme !== 'file' || !isMrdFile(candidate.fsPath)) {
+		void vscode.window.showWarningMessage(`MRD Viz can only open .mrd files: "${path.basename(candidate.fsPath)}" is not an MRD file.`);
+		return undefined;
+	}
+
+	return candidate;
+}
+
+async function pickTargetUri(resource?: vscode.Uri, selectedResources?: vscode.Uri[]): Promise<vscode.Uri | undefined> {
 	if (resource?.scheme === 'file') {
 		return resource;
 	}
@@ -55,7 +69,7 @@ async function resolveTargetUri(resource?: vscode.Uri, selectedResources?: vscod
 	}
 
 	const activeUri = vscode.window.activeTextEditor?.document.uri;
-	if (activeUri?.scheme === 'file' && isMrdFile(activeUri.fsPath)) {
+	if (activeUri?.scheme === 'file') {
 		return activeUri;
 	}
 
@@ -65,7 +79,6 @@ async function resolveTargetUri(resource?: vscode.Uri, selectedResources?: vscod
 		canSelectMany: false,
 		filters: {
 			'MRD files': ['mrd'],
-			'All files': ['*'],
 		},
 		openLabel: 'Inspect MRD File',
 	});

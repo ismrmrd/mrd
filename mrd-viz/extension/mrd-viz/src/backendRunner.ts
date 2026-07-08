@@ -19,7 +19,12 @@ export class MrdVizBackendError extends Error {
 	}
 }
 
-export async function runOpenFile(filePath: string, options: BackendRunnerOptions): Promise<MrdOpenPayload> {
+export interface OpenFileResult {
+	payload: MrdOpenPayload;
+	stderr: string;
+}
+
+export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal): Promise<OpenFileResult> {
 	const commandArguments = [
 		'-m',
 		'mrd_viz.cli',
@@ -28,8 +33,8 @@ export async function runOpenFile(filePath: string, options: BackendRunnerOption
 		'--max-thumbnails',
 		String(options.maxThumbnails),
 	];
-	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs);
-	return parseOpenPayload(result.stdout, result.stderr);
+	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs, signal);
+	return { payload: parseOpenPayload(result.stdout, result.stderr), stderr: result.stderr };
 }
 
 export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions): Promise<MrdImageResponsePayload> {
@@ -45,7 +50,7 @@ export async function runImage(filePath: string, imageIndex: number, options: Ba
 	return parseImagePayload(result.stdout, result.stderr);
 }
 
-function execPython(pythonPath: string, commandArguments: string[], timeoutMs: number): Promise<{ stdout: string; stderr: string }> {
+function execPython(pythonPath: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
 	return new Promise((resolve, reject) => {
 		execFile(
 			pythonPath,
@@ -54,6 +59,7 @@ function execPython(pythonPath: string, commandArguments: string[], timeoutMs: n
 				maxBuffer: 64 * 1024 * 1024,
 				timeout: timeoutMs,
 				windowsHide: true,
+				signal,
 			},
 			(error, stdout, stderr) => {
 				const stdoutText = stdout.toString();

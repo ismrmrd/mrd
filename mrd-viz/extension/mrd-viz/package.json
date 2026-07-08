@@ -60,13 +60,6 @@
           "when": "resourceExtname == .mrd",
           "group": "navigation"
         }
-      ],
-      "editor/title": [
-        {
-          "command": "mrd-viz.openFile",
-          "when": "resourceExtname == .mrd",
-          "group": "navigation"
-        }
       ]
     }
   },
