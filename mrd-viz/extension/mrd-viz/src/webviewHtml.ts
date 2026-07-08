@@ -2,6 +2,12 @@ import * as vscode from 'vscode';
 
 import { redactingPayloadReplacer, type MrdOpenPayload } from './contracts';
 
+// Maximum number of full-resolution images (base64 PNG payloads) the webview keeps in its
+// in-memory LRU cache. Bounds memory when browsing many tiles: recently viewed images stay
+// instant to revisit while the oldest entries are evicted. 32 comfortably covers typical
+// back-and-forth navigation without letting the cache grow unbounded.
+const MAX_IMAGE_CACHE_ENTRIES = 32;
+
 export function getMrdLoadingHtml(webview: vscode.Webview, targetUri: vscode.Uri): string {
 	return getMrdStateHtml(webview, 'Opening MRD file', 'Inspecting file with the MRD Viz backend.', targetUri.fsPath, '');
 }
@@ -309,7 +315,7 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 			let requestSequence = 0;
 			let pendingRequestId = null;
 			const imageCache = new Map();
-			const MAX_IMAGE_CACHE_ENTRIES = 32;
+			const MAX_IMAGE_CACHE_ENTRIES = ${MAX_IMAGE_CACHE_ENTRIES};
 
 			function cacheImage(imageIndex, image) {
 				if (imageCache.has(imageIndex)) {

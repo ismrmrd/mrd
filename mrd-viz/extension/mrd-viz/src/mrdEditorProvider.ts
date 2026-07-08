@@ -38,6 +38,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 		webviewPanel.webview.html = getMrdLoadingHtml(webviewPanel.webview, document.uri);
 
 		const options = this.getBackendOptions();
+		bindViewerMessageHandling(webviewPanel, document.uri, options, this.outputChannel);
 		this.outputChannel.appendLine('');
 		this.outputChannel.appendLine(`Running: ${formatOpenCommand(document.uri.fsPath, options)}`);
 
@@ -48,7 +49,6 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 			}
 
 			this.outputChannel.appendLine(JSON.stringify(payload, redactingPayloadReplacer, 2));
-			bindViewerMessageHandling(webviewPanel, document.uri, options, this.outputChannel);
 			webviewPanel.webview.html = getMrdViewerHtml(webviewPanel.webview, payload);
 		} catch (error) {
 			if (token.isCancellationRequested) {
