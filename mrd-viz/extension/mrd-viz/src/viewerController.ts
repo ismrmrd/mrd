@@ -13,9 +13,10 @@ export function bindViewerMessageHandling(
 	targetUri: vscode.Uri,
 	options: BackendRunnerOptions,
 	outputChannel: vscode.OutputChannel,
+	signal: AbortSignal,
 ): vscode.Disposable {
 	const messageSubscription = panel.webview.onDidReceiveMessage(message => {
-		void handleViewerMessage(panel.webview, targetUri, options, outputChannel, message);
+		void handleViewerMessage(panel.webview, targetUri, options, outputChannel, signal, message);
 	});
 	const disposeSubscription = panel.onDidDispose(() => messageSubscription.dispose());
 	return vscode.Disposable.from(messageSubscription, disposeSubscription);
@@ -26,6 +27,7 @@ async function handleViewerMessage(
 	targetUri: vscode.Uri,
 	options: BackendRunnerOptions,
 	outputChannel: vscode.OutputChannel,
+	signal: AbortSignal,
 	message: unknown,
 ): Promise<void> {
 	if (!isViewerToExtensionMessage(message)) {
@@ -34,13 +36,18 @@ async function handleViewerMessage(
 	}
 
 	try {
-		const payload = await runImage(targetUri.fsPath, message.imageIndex, options);
+		const { payload, stderr } = await runImage(targetUri.fsPath, message.imageIndex, options, signal);
+		appendIfPresent(outputChannel, 'stderr', stderr);
 		postViewerMessage(webview, {
 			type: 'imageLoaded',
 			requestId: message.requestId,
 			payload,
 		});
 	} catch (error) {
+		if (signal.aborted) {
+			return;
+		}
+
 		const errorMessage = error instanceof Error ? error.message : String(error);
 		outputChannel.appendLine(`Selected image ${message.imageIndex} failed: ${errorMessage}`);
 		if (error instanceof MrdVizBackendError) {

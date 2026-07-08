@@ -49,11 +49,14 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 		webviewPanel.webview.html = getMrdLoadingHtml(webviewPanel.webview, document.uri);
 
 		const options = this.getBackendOptions();
-		bindViewerMessageHandling(webviewPanel, document.uri, options, this.outputChannel);
 
 		const abortController = new AbortController();
 		const cancelSubscription = token.onCancellationRequested(() => abortController.abort());
-		const disposeSubscription = webviewPanel.onDidDispose(() => abortController.abort());
+		// Keep this listener for the panel's lifetime so in-flight image requests are aborted
+		// when the tab is closed; VS Code disposes onDidDispose listeners after they fire.
+		webviewPanel.onDidDispose(() => abortController.abort());
+
+		bindViewerMessageHandling(webviewPanel, document.uri, options, this.outputChannel, abortController.signal);
 
 		this.outputChannel.appendLine('');
 		this.outputChannel.appendLine(`Running: ${formatOpenCommand(document.uri.fsPath, options)}`);
@@ -87,7 +90,6 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 			);
 		} finally {
 			cancelSubscription.dispose();
-			disposeSubscription.dispose();
 		}
 	}
 }

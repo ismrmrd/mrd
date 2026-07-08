@@ -37,7 +37,12 @@ export async function runOpenFile(filePath: string, options: BackendRunnerOption
 	return { payload: parseOpenPayload(result.stdout, result.stderr), stderr: result.stderr };
 }
 
-export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions): Promise<MrdImageResponsePayload> {
+export interface ImageResult {
+	payload: MrdImageResponsePayload;
+	stderr: string;
+}
+
+export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions, signal?: AbortSignal): Promise<ImageResult> {
 	const commandArguments = [
 		'-m',
 		'mrd_viz.cli',
@@ -46,8 +51,8 @@ export async function runImage(filePath: string, imageIndex: number, options: Ba
 		'--index',
 		String(imageIndex),
 	];
-	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs);
-	return parseImagePayload(result.stdout, result.stderr);
+	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs, signal);
+	return { payload: parseImagePayload(result.stdout, result.stderr), stderr: result.stderr };
 }
 
 function execPython(pythonPath: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
