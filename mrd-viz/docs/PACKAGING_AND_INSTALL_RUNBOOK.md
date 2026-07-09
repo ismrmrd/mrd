@@ -45,7 +45,6 @@ Expected output (order may vary):
 ```text
 README.md
 package.json
-LICENSE
 CHANGELOG.md
 out/backendRunner.js
 out/contracts.js
@@ -63,10 +62,10 @@ If you see `src/**`, `**/*.ts`, `out/test/**`, or `node_modules/**` in the list,
 npx --yes @vscode/vsce package
 ```
 
-The `vscode:prepublish` script compiles the TypeScript first, then `vsce` writes the artifact. Expected result:
+The `vscode:prepublish` script compiles the TypeScript first, then `vsce` writes the artifact. `vsce` prints a harmless `LICENSE ... not found` warning — the extension is licensed via the `"license": "MIT"` field in `package.json` and the repository-root [LICENSE](../../LICENSE) covers it. Expected result:
 
 ```text
-DONE  Packaged: .../mrd-viz-0.0.1.vsix (12 files, ~18 KB)
+DONE  Packaged: .../mrd-viz-0.0.1.vsix (11 files, ~18 KB)
 ```
 
 The `.vsix` is git-ignored (see the repo `.gitignore`) and should **not** be committed; treat it as a build artifact (e.g. attach it to a GitHub Release).
