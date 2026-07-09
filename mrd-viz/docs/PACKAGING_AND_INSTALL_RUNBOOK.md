@@ -94,9 +94,71 @@ ismrmrd.mrd-viz@0.0.1
 
 You can also install from the UI: **Extensions view → Views and More Actions (…) → Install from VSIX…**.
 
-## 6. Use It
+## 6. Set Up the Backend (Required to Open Files)
 
-Open any local `.mrd` file (double-click, or **MRD Viz: Open File** from the Command Palette). The extension needs the `mrd_viz` Python backend available — configure `mrdViz.pythonPath`, or rely on the local `mrd-viz/backend/.venv` fallback. See sections 2–5 of the [Official Extension Development Runbook](OFFICIAL_EXT_DEV_RUNBOOK.md) for backend setup and generating test `.mrd` files.
+Installing the VSIX makes the extension available in every window, but rendering `.mrd` files needs the `mrd_viz` Python backend on the machine. The repo-relative `.venv` auto-detection only works when running from source (the F5 dev host) — an **installed** extension must be pointed at the interpreter explicitly via `mrdViz.pythonPath`.
+
+You only need **steps 1–3** of the [Official Extension Development Runbook](OFFICIAL_EXT_DEV_RUNBOOK.md); they are reproduced here for convenience.
+
+### 6a. Create the backend virtual environment (Python 3.12)
+
+Windows PowerShell:
+
+```powershell
+$repoRoot = git rev-parse --show-toplevel
+$backendRoot = Join-Path $repoRoot "mrd-viz/backend"
+Set-Location $backendRoot
+py -3.12 -m venv .venv
+$python = Join-Path $backendRoot ".venv/Scripts/python.exe"
+& $python -m pip install --upgrade pip
+& $python -m pip install -e .
+```
+
+Linux / macOS Bash:
+
+```bash
+repo_root=$(git rev-parse --show-toplevel)
+backend_root="$repo_root/mrd-viz/backend"
+cd "$backend_root"
+python3.12 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install -e .
+```
+
+### 6b. Confirm the interpreter path
+
+Windows PowerShell:
+
+```powershell
+& $python -c "import sys, mrd_viz; print(sys.executable)"
+```
+
+Linux / macOS Bash:
+
+```bash
+./.venv/bin/python -c "import sys, mrd_viz; print(sys.executable)"
+```
+
+The printed path is the value you need next:
+
+- Windows: `<repo-root>\mrd-viz\backend\.venv\Scripts\python.exe`
+- Linux / macOS: `<repo-root>/mrd-viz/backend/.venv/bin/python`
+
+### 6c. Point the extension at that interpreter
+
+Set `mrdViz.pythonPath` to the path from 6b — via **Settings → search "mrdViz: Python Path"**, or in `settings.json`:
+
+```json
+{
+  "mrdViz.pythonPath": "<repo-root>/mrd-viz/backend/.venv/bin/python"
+}
+```
+
+> **Why set this explicitly?** If `mrdViz.pythonPath` is empty, the extension falls back to a bare `python` on `PATH`. On machines that only have `python3` (common on Linux/macOS), that lookup fails and you get a backend error even though Python is installed. Pointing `mrdViz.pythonPath` at the venv interpreter avoids the `python` vs `python3` ambiguity entirely.
+
+### 6d. Open a file
+
+Open any local `.mrd` file (double-click, or **MRD Viz: Open File** from the Command Palette). To generate test `.mrd` files, see section 4 of the [Official Extension Development Runbook](OFFICIAL_EXT_DEV_RUNBOOK.md).
 
 ## 7. Update or Uninstall
 
@@ -116,5 +178,5 @@ code --uninstall-extension ismrmrd.mrd-viz
 ## Notes
 
 - **Publisher / icon:** `publisher` is set to `ismrmrd` so packaging succeeds; an `icon` is optional (only a warning). Both matter only when publishing to the Marketplace, which is out of scope for local installs.
-- **Backend requirement:** installing the VSIX makes the extension available everywhere, but rendering still requires the `mrd_viz` Python backend on the machine. Distributing the backend to end users is tracked separately.
+- **Backend requirement:** installing the VSIX makes the extension available everywhere, but rendering requires the `mrd_viz` Python backend and `mrdViz.pythonPath` pointed at its interpreter (section 6). Distributing/provisioning the backend automatically is tracked separately.
 - **Relation to publishing:** to later publish to the Marketplace, register the `ismrmrd` publisher and run `vsce publish`; the packaging config here (`.vscodeignore`, manifest metadata) is the same foundation.
