@@ -3,6 +3,12 @@
   "displayName": "MRD Viz",
   "description": "MRD file viewer for VS Code",
   "version": "0.0.1",
+  "publisher": "ismrmrd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ismrmrd/mrd.git"
+  },
   "engines": {
     "vscode": "^1.120.0"
   },
