@@ -1,0 +1,4 @@
+# Shell scripts and justfiles run inside Linux dev containers; keep them LF
+# so bash/just don't choke on CR characters even when edited on Windows.
+*.sh text eol=lf
+justfile text eol=lf
