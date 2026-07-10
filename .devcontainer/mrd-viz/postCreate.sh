@@ -4,6 +4,17 @@
 # (backend + extension) is a one-time `just container-setup` run by the user.
 set -euo pipefail
 
+# Node.js (from nodejs.org, which is reachable even where the public npm registry
+# is blocked). Installed here instead of the devcontainer `node` feature, which
+# pulls pnpm from the public npm registry at build time. Node bundles npm.
+if ! command -v node >/dev/null 2>&1; then
+	echo ">> Installing Node.js"
+	node_version="v24.18.0"
+	curl -fsSL "https://nodejs.org/dist/${node_version}/node-${node_version}-linux-x64.tar.xz" -o /tmp/node.tar.xz
+	sudo tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1
+	rm -f /tmp/node.tar.xz
+fi
+
 # just: task runner used by `just container-setup`.
 if ! command -v just >/dev/null 2>&1; then
 	echo ">> Installing just"

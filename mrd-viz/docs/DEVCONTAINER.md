@@ -38,6 +38,23 @@ azcopy copy "<source>" ./data --recursive
 
 Double-click any `.mrd` file, or run **MRD Viz: Open File** from the Command Palette.
 
+## Restricted / corporate networks
+
+Some corporate networks block direct access to the **public npm registry** (`registry.npmjs.org`) and require an internal mirror instead. Symptom: the container build or `just container-setup` fails with an `npm` **TLS handshake failure** to `registry.npmjs.org`. (PyPI is typically unaffected, so the backend install still works.)
+
+To fix it, point the container's npm at your organization's feed with a **git-ignored** `.npmrc`:
+
+1. Find your feed on the host: `npm config get registry`.
+2. Create `mrd-viz/extension/mrd-viz/.npmrc` (git-ignored) with:
+
+   ```ini
+   registry=https://your-org-feed.example/npm/
+   ```
+
+3. Run `just container-setup` again.
+
+If your feed requires authentication, add the appropriate `_authToken`/credential-provider lines (same as your host `.npmrc`). This file is git-ignored so the internal URL is never committed.
+
 ## Notes
 
 - The extension is **built from source** in the container (needs Node). Planned follow-up: attach a prebuilt `.vsix` to a GitHub Release so the container can install it without building.

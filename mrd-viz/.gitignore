@@ -5,4 +5,6 @@ backend/src/**/__pycache__/
 extension/mrd-viz/node_modules/
 extension/mrd-viz/out/
 extension/mrd-viz/.vscode-test/
+# Local npm registry override (e.g. a corporate feed on restricted networks).
+extension/mrd-viz/.npmrc
 *.vsix
