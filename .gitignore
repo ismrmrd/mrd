@@ -4,6 +4,7 @@ cpp/build/
 
 # Local dev-container data landing zone (e.g. azcopy pulls of large .mrd files)
 /data/
+mrd-viz/data/
 
 *.bin
 *.png

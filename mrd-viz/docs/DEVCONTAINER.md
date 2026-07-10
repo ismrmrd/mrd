@@ -27,11 +27,11 @@ This creates a backend virtualenv at `~/.venvs/mrd-viz`, installs the `mrd_viz` 
 
 ## 3. Pull `.mrd` data from Azure
 
-Authenticate and copy files into a working directory (`./data` is git-ignored):
+Authenticate and copy files into the repo-root `data/` directory (git-ignored):
 
 ```bash
 az login            # or use a SAS URL
-azcopy copy "<source>" ./data --recursive
+azcopy copy "<source>" /workspaces/mrd/data --recursive
 ```
 
 ## 4. Open a file
