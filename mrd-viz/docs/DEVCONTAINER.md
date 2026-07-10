@@ -55,6 +55,12 @@ To fix it, point the container's npm at your organization's feed with a **git-ig
 
 If your feed requires authentication, add the appropriate `_authToken`/credential-provider lines (same as your host `.npmrc`). This file is git-ignored so the internal URL is never committed.
 
+## Backend error: a host path or `spawn ... ENOENT`
+
+If opening a `.mrd` file fails and the **Running:** line in the error shows a **host path** (e.g. a Windows `...\.venv\Scripts\python.exe`) instead of `/home/vscode/.venvs/mrd-viz/bin/python`, a workspace `.vscode/settings.json` is overriding the container's interpreter. Workspace settings are bind-mounted into the container and outrank the dev container's setting, so a host `mrdViz.pythonPath` leaks in and the Windows executable doesn't exist in Linux (`ENOENT`).
+
+Fix: remove `mrdViz.pythonPath` from the workspace `.vscode/settings.json`, then reload the window. Keep any host-specific value in your **User** settings instead so it doesn't leak into the container.
+
 ## Notes
 
 - The extension is **built from source** in the container (needs Node). Planned follow-up: attach a prebuilt `.vsix` to a GitHub Release so the container can install it without building.
