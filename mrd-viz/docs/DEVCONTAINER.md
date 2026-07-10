@@ -30,7 +30,7 @@ This creates a backend virtualenv at `~/.venvs/mrd-viz`, installs the `mrd_viz` 
 Authenticate and copy files into a working directory (`./data` is git-ignored):
 
 ```bash
-azcopy login            # or use a SAS URL
+az login            # or use a SAS URL
 azcopy copy "<source>" ./data --recursive
 ```
 
