@@ -54,11 +54,10 @@ jobs:
         run: |
           dest="mrd-viz/extension/mrd-viz/media/backend"
           mkdir -p "$dest"
+          cp -r mrd-viz/backend/dist/mrd-viz/. "$dest/"
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp "mrd-viz/backend/dist/mrd-viz.exe" "$dest/mrd-viz.exe"
             "$dest/mrd-viz.exe" --version
           else
-            cp "mrd-viz/backend/dist/mrd-viz" "$dest/mrd-viz"
             chmod +x "$dest/mrd-viz"
             "$dest/mrd-viz" --version
           fi
@@ -93,8 +92,9 @@ jobs:
           files: dist/**/*.vsix
           generate_release_notes: true
 
-# TODO: code-sign / notarize the macOS and Windows binaries so managed machines
-#       (Gatekeeper / SmartScreen / app-control) will run them without prompts.
+# TODO: optionally sign / notarize the binaries. Not required for the one-dir
+#       build to run under Windows Application Control, but signing removes
+#       SmartScreen / Gatekeeper prompts on first launch.
 # TODO: optionally also publish a generic (no-binary) VSIX as a fallback for
 #       unsupported platforms (uses the resolver's python-interpreter path).
 
