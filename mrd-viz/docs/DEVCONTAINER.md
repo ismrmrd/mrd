@@ -19,19 +19,18 @@ Run MRD Viz inside a reproducible dev container: Python 3.12 + the `mrd_viz` bac
 From the integrated terminal (now connected to the container):
 
 ```bash
-cd mrd-viz
-just container-setup
+just mrd-viz-container-setup
 ```
 
 This creates a backend virtualenv at `~/.venvs/mrd-viz`, installs the `mrd_viz` backend into it, builds the extension `.vsix`, and installs it in this window. `mrdViz.pythonPath` is already pointed at that venv, so no further configuration is needed. Reload the window if the extension does not activate immediately.
 
 ## 3. Pull `.mrd` data from Azure
 
-Authenticate and copy files into the repo-root `data/` directory (git-ignored):
+Authenticate and copy files into the `mrd-viz/data/` directory (git-ignored):
 
 ```bash
 az login            # or use a SAS URL
-azcopy copy "<source>" /workspaces/mrd/data --recursive
+azcopy copy "<source>" /workspaces/mrd/mrd-viz/data --recursive
 ```
 
 ## 4. Open a file
@@ -40,7 +39,7 @@ Double-click any `.mrd` file, or run **MRD Viz: Open File** from the Command Pal
 
 ## Restricted / corporate networks
 
-Some corporate networks block direct access to the **public npm registry** (`registry.npmjs.org`) and require an internal mirror instead. Symptom: the container build or `just container-setup` fails with an `npm` **TLS handshake failure** to `registry.npmjs.org`. (PyPI is typically unaffected, so the backend install still works.)
+Some corporate networks block direct access to the **public npm registry** (`registry.npmjs.org`) and require an internal mirror instead. Symptom: the container build or `just mrd-viz-container-setup` fails with an `npm` **TLS handshake failure** to `registry.npmjs.org`. (PyPI is typically unaffected, so the backend install still works.)
 
 To fix it, point the container's npm at your organization's feed with a **git-ignored** `.npmrc`:
 
@@ -51,7 +50,7 @@ To fix it, point the container's npm at your organization's feed with a **git-ig
    registry=https://your-org-feed.example/npm/
    ```
 
-3. Run `just container-setup` again.
+3. Run `just mrd-viz-container-setup` again.
 
 If your feed requires authentication, add the appropriate `_authToken`/credential-provider lines (same as your host `.npmrc`). This file is git-ignored so the internal URL is never committed.
 

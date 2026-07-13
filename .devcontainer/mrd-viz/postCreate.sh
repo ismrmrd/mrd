@@ -47,7 +47,7 @@ cat <<'EOF'
  MRD Viz dev container is ready.
 
  Next step (run once):
-     cd mrd-viz && just container-setup
+     just mrd-viz-container-setup
 
  That creates the backend virtualenv, installs mrd_viz, and
  builds + installs the MRD Viz extension in this window.
