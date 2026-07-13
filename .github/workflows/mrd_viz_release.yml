@@ -10,13 +10,30 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Package VSIX
-    runs-on: ubuntu-24.04
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-x64
+          - os: windows-2022
+            target: win32-x64
+          - os: macos-14
+            target: darwin-arm64
+          - os: macos-13
+            target: darwin-x64
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -25,25 +42,59 @@ jobs:
           cache: npm
           cache-dependency-path: mrd-viz/extension/mrd-viz/package-lock.json
 
-      - name: Install dependencies
-        working-directory: mrd-viz/extension/mrd-viz
-        run: npm ci
+      - name: Build standalone backend binary
+        working-directory: mrd-viz/backend
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[package]"
+          pyinstaller --clean --noconfirm packaging/mrd-viz.spec
 
-      - name: Package VSIX
+      - name: Stage binary into the extension
+        shell: bash
+        run: |
+          dest="mrd-viz/extension/mrd-viz/media/backend"
+          mkdir -p "$dest"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "mrd-viz/backend/dist/mrd-viz.exe" "$dest/mrd-viz.exe"
+            "$dest/mrd-viz.exe" --version
+          else
+            cp "mrd-viz/backend/dist/mrd-viz" "$dest/mrd-viz"
+            chmod +x "$dest/mrd-viz"
+            "$dest/mrd-viz" --version
+          fi
+
+      - name: Package platform VSIX
         working-directory: mrd-viz/extension/mrd-viz
-        run: npx --yes @vscode/vsce package
+        run: |
+          npm ci
+          npx --yes @vscode/vsce package --target ${{ matrix.target }}
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mrd-viz-vsix
+          name: vsix-${{ matrix.target }}
           path: mrd-viz/extension/mrd-viz/*.vsix
 
-      # On a version tag, publish a GitHub Release with the VSIX attached so
-      # researchers can install it via: code --install-extension mrd-viz-*.vsix
-      - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download platform VSIXs
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          files: mrd-viz/extension/mrd-viz/*.vsix
+          files: dist/**/*.vsix
           generate_release_notes: true
+
+# TODO: code-sign / notarize the macOS and Windows binaries so managed machines
+#       (Gatekeeper / SmartScreen / app-control) will run them without prompts.
+# TODO: optionally also publish a generic (no-binary) VSIX as a fallback for
+#       unsupported platforms (uses the resolver's python-interpreter path).
+

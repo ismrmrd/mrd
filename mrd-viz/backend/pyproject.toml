@@ -17,6 +17,9 @@ plots = [
 test = [
     "pytest>=8.3",
 ]
+package = [
+    "pyinstaller>=6.10",
+]
 
 [project.scripts]
 mrd-viz = "mrd_viz.cli:main"

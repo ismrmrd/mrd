@@ -43,3 +43,7 @@ container-setup:
     code --install-extension "$vsix" --force
     echo ">> Setup complete. Backend interpreter: $venv/bin/python"
     echo ">> Reload the window if the extension does not activate immediately."
+
+# Build the standalone backend binary (dist/mrd-viz[.exe]) via PyInstaller.
+@build-binary:
+    cd backend && python -m pip install ".[package]" && pyinstaller --clean --noconfirm packaging/mrd-viz.spec
