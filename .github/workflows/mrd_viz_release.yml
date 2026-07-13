@@ -1,6 +1,12 @@
 name: MRD Viz Release
 
 on:
+  pull_request:
+    branches: [carter-mrd-viz]
+    paths:
+      - "mrd-viz/extension/**"
+      - "mrd-viz/backend/**"
+      - ".github/workflows/mrd_viz_release.yml"
   push:
     tags:
       - "mrd-viz-v*"
