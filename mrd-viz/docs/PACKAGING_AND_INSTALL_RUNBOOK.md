@@ -156,6 +156,8 @@ Set `mrdViz.pythonPath` to the path from 6b — via **Settings → search "mrdVi
 
 > **Why set this explicitly?** If `mrdViz.pythonPath` is empty, the extension falls back to a bare `python` on `PATH`. On machines that only have `python3` (common on Linux/macOS), that lookup fails and you get a backend error even though Python is installed. Pointing `mrdViz.pythonPath` at the venv interpreter avoids the `python` vs `python3` ambiguity entirely.
 
+> **Set this in User settings, not Workspace settings, if you also use the dev container.** A workspace `.vscode/settings.json` is bind-mounted into the dev container, so a host path set there (e.g. a Windows `...\.venv\Scripts\python.exe`) leaks into the container and overrides its Linux interpreter — producing a `spawn ... ENOENT` backend error. The dev container sets its own `mrdViz.pythonPath`; keeping the host value in **User** settings prevents the two from colliding.
+
 ### 6d. Open a file
 
 Open any local `.mrd` file (double-click, or **MRD Viz: Open File** from the Command Palette). To generate test `.mrd` files, see section 4 of the [Official Extension Development Runbook](OFFICIAL_EXT_DEV_RUNBOOK.md).

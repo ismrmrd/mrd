@@ -23,3 +23,23 @@
 @ci: backend-test extension-check
 
 @full-ci: backend-test extension-check extension-test
+
+@extension-package: extension-compile
+    cd extension/mrd-viz && cp ../../../LICENSE LICENSE && trap 'rm -f LICENSE' EXIT && npx --yes @vscode/vsce package
+
+# One-time provisioning inside the MRD Viz dev container: backend venv + extension install.
+container-setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    venv="$HOME/.venvs/mrd-viz"
+    echo ">> Creating backend virtualenv: $venv"
+    python -m venv "$venv"
+    "$venv/bin/python" -m pip install --upgrade pip
+    ( cd backend && "$venv/bin/python" -m pip install -e ".[test]" )
+    echo ">> Building and installing the MRD Viz extension (VSIX)"
+    ( cd extension/mrd-viz && npm ci && cp ../../../LICENSE LICENSE && trap 'rm -f LICENSE' EXIT && npx --yes @vscode/vsce package )
+    vsix="$(ls -t extension/mrd-viz/mrd-viz-*.vsix 2>/dev/null | head -1)"
+    if [ -z "$vsix" ]; then echo ">> ERROR: no VSIX found in extension/mrd-viz (packaging may have failed)." >&2; exit 1; fi
+    code --install-extension "$vsix" --force
+    echo ">> Setup complete. Backend interpreter: $venv/bin/python"
+    echo ">> Reload the window if the extension does not activate immediately."
