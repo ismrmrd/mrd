@@ -2,13 +2,14 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 import { MrdVizBackendError, runOpenFile, type BackendRunnerOptions } from './backendRunner';
+import { resolveBackend } from './backendResolver';
 import { redactingPayloadReplacer } from './contracts';
-import { getMrdErrorHtml, getMrdLoadingHtml, getMrdViewerHtml } from './webviewHtml';
+import { getMrdBackendMissingHtml, getMrdErrorHtml, getMrdLoadingHtml, getMrdViewerHtml } from './webviewHtml';
 import { appendIfPresent, bindViewerMessageHandling } from './viewerController';
 
 export const MRD_VIEW_TYPE = 'mrd-viz.mrdFile';
 
-type BackendOptionsProvider = () => BackendRunnerOptions;
+const BACKEND_SETUP_COMMANDS = new Set(['mrd-viz.setUpBackend', 'mrd-viz.selectInterpreter']);
 
 class MrdDocument implements vscode.CustomDocument {
 	constructor(readonly uri: vscode.Uri) {}
@@ -18,7 +19,7 @@ class MrdDocument implements vscode.CustomDocument {
 
 export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<MrdDocument> {
 	constructor(
-		private readonly getBackendOptions: BackendOptionsProvider,
+		private readonly context: vscode.ExtensionContext,
 		private readonly outputChannel: vscode.OutputChannel,
 	) {}
 
@@ -48,7 +49,28 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 
 		webviewPanel.webview.html = getMrdLoadingHtml(webviewPanel.webview, document.uri);
 
-		const options = this.getBackendOptions();
+		const configuration = vscode.workspace.getConfiguration('mrdViz');
+		const timeoutMs = configuration.get<number>('backendTimeoutMs') ?? 30000;
+		const maxThumbnails = configuration.get<number>('maxThumbnails') ?? 128;
+
+		const resolution = await resolveBackend(this.context, timeoutMs);
+		if (token.isCancellationRequested) {
+			return;
+		}
+		if (!resolution.ok) {
+			this.outputChannel.appendLine('');
+			this.outputChannel.appendLine(`No MRD Viz backend found. Tried: ${resolution.tried.join('; ')}`);
+			this.bindBackendSetupCommands(webviewPanel);
+			webviewPanel.webview.html = getMrdBackendMissingHtml(webviewPanel.webview, resolution.tried);
+			return;
+		}
+
+		const options: BackendRunnerOptions = {
+			command: resolution.backend.command,
+			baseArgs: resolution.backend.baseArgs,
+			maxThumbnails,
+			timeoutMs,
+		};
 
 		const abortController = new AbortController();
 		const cancelSubscription = token.onCancellationRequested(() => abortController.abort());
@@ -92,8 +114,25 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 			cancelSubscription.dispose();
 		}
 	}
+
+	private bindBackendSetupCommands(webviewPanel: vscode.WebviewPanel): void {
+		const subscription = webviewPanel.webview.onDidReceiveMessage(async (message: unknown) => {
+			if (isCommandMessage(message) && BACKEND_SETUP_COMMANDS.has(message.command)) {
+				await vscode.commands.executeCommand(message.command);
+			}
+		});
+		webviewPanel.onDidDispose(() => subscription.dispose());
+	}
+}
+
+function isCommandMessage(value: unknown): value is { type: 'command'; command: string } {
+	return typeof value === 'object'
+		&& value !== null
+		&& (value as { type?: unknown }).type === 'command'
+		&& typeof (value as { command?: unknown }).command === 'string';
 }
 
 function formatOpenCommand(filePath: string, options: BackendRunnerOptions): string {
-	return `${options.pythonPath} -m mrd_viz.cli open "${filePath}" --max-thumbnails ${options.maxThumbnails}`;
+	const parts = [options.command, ...options.baseArgs, 'open', `"${filePath}"`, '--max-thumbnails', String(options.maxThumbnails)];
+	return parts.join(' ');
 }

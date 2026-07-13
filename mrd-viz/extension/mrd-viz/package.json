@@ -23,6 +23,16 @@
         "command": "mrd-viz.openFile",
         "title": "Open File",
         "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.setUpBackend",
+        "title": "Set Up Backend",
+        "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.selectInterpreter",
+        "title": "Select Python Interpreter",
+        "category": "MRD Viz"
       }
     ],
     "customEditors": [

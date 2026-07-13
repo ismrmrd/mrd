@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 
 import { getOpenWithMrdEditorArgs } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
-import { getMrdErrorHtml } from '../webviewHtml';
+import { getMrdBackendMissingHtml, getMrdErrorHtml } from '../webviewHtml';
 
 interface CommandContribution {
 	command: string;
@@ -51,6 +51,8 @@ suite('MRD Viz Extension', () => {
 		const commands = await vscode.commands.getCommands(true);
 
 		assert.ok(commands.includes('mrd-viz.openFile'));
+		assert.ok(commands.includes('mrd-viz.setUpBackend'));
+		assert.ok(commands.includes('mrd-viz.selectInterpreter'));
 	});
 
 	test('routes command opens through the custom editor view type', () => {
@@ -72,6 +74,16 @@ suite('MRD Viz Extension', () => {
 
 		assert.ok(html.includes('Bad &lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; path'));
 		assert.ok(!html.includes('<script>alert'));
+	});
+
+	test('renders a guided backend-missing view with escaped candidate paths', () => {
+		const webview = { cspSource: 'vscode-resource:' } as vscode.Webview;
+		const html = getMrdBackendMissingHtml(webview, ['"python" on PATH', 'mrdViz.pythonPath setting (<x>)']);
+
+		assert.ok(html.includes('MRD Viz backend not found'));
+		assert.ok(html.includes('mrdViz.pythonPath setting (&lt;x&gt;)'));
+		assert.ok(html.includes('mrd-viz.setUpBackend'));
+		assert.ok(html.includes('mrd-viz.selectInterpreter'));
 	});
 });
 

@@ -16,6 +16,71 @@ export function getMrdErrorHtml(webview: vscode.Webview, title: string, detail: 
 	return getMrdStateHtml(webview, title, detail, targetPath, 'error');
 }
 
+export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: string[]): string {
+	const nonce = getNonce();
+	const cspSource = webview.cspSource;
+	const triedItems = tried.map(entry => `<li>${escapeHtml(entry)}</li>`).join('');
+
+	return `<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
+	<title>MRD Viz</title>
+	<style nonce="${nonce}">
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			color: var(--vscode-foreground);
+			background: var(--vscode-editor-background);
+			font-family: var(--vscode-font-family);
+			font-size: var(--vscode-font-size);
+		}
+		main { display: grid; align-content: start; gap: 12px; min-height: 100vh; padding: 24px; max-width: 760px; }
+		h1 { margin: 0; font-size: 15px; font-weight: 650; }
+		p { margin: 0; color: var(--vscode-descriptionForeground); line-height: 1.45; }
+		code { font-family: var(--vscode-editor-font-family); }
+		ul { margin: 4px 0; padding-left: 18px; color: var(--vscode-descriptionForeground); }
+		li { overflow-wrap: anywhere; }
+		.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+		button {
+			padding: 6px 12px;
+			border: 1px solid var(--vscode-button-border, transparent);
+			border-radius: 4px;
+			color: var(--vscode-button-foreground);
+			background: var(--vscode-button-background);
+			font-family: inherit;
+			font-size: inherit;
+			cursor: pointer;
+		}
+		button.secondary { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
+		button:hover { background: var(--vscode-button-hoverBackground); }
+	</style>
+</head>
+<body>
+	<main>
+		<h1>MRD Viz backend not found</h1>
+		<p>MRD Viz needs a Python 3.12 environment with the <code>mrd_viz</code> package installed, but none of these candidates worked:</p>
+		<ul>${triedItems}</ul>
+		<div class="actions">
+			<button type="button" id="setup">Set Up Backend…</button>
+			<button type="button" id="select" class="secondary">Select Python Interpreter…</button>
+		</div>
+		<p>You can also open this workspace in the MRD Viz dev container, which provisions the backend for you.</p>
+	</main>
+	<script nonce="${nonce}">
+		(function () {
+			const vscode = acquireVsCodeApi();
+			function send(command) { vscode.postMessage({ type: 'command', command: command }); }
+			document.getElementById('setup').addEventListener('click', function () { send('mrd-viz.setUpBackend'); });
+			document.getElementById('select').addEventListener('click', function () { send('mrd-viz.selectInterpreter'); });
+		})();
+	</script>
+</body>
+</html>`;
+}
+
 export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayload): string {
 	const nonce = getNonce();
 	const payloadJson = jsonForScript(payload);

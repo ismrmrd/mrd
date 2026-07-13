@@ -4,14 +4,23 @@ from __future__ import annotations
 
 import argparse
 import json
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from .html_harness import write_mosaic_html
 from .main import DEFAULT_OPTIONS, PreviewOptions, classify_file, extract_image, open_file
 
 
+def _package_version() -> str:
+    try:
+        return version("mrd-viz")
+    except PackageNotFoundError:  # running from a source tree without install metadata
+        return "unknown"
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="mrd-viz")
+    parser.add_argument("--version", action="version", version=f"mrd-viz {_package_version()}")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     classify_parser = subparsers.add_parser("classify", help="Return the stream classification for an MRD file")
