@@ -5,7 +5,8 @@ import * as vscode from 'vscode';
 
 import { getOpenWithMrdEditorArgs } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
-import { getMrdBackendMissingHtml, getMrdErrorHtml } from '../webviewHtml';
+import { getMrdBackendMissingHtml } from '../webviewHtml';
+import { getMrdErrorHtml } from '../stateHtml';
 
 interface CommandContribution {
 	command: string;

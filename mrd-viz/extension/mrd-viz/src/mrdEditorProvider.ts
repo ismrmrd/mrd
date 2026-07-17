@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import { MrdVizBackendError, runOpenFile, type BackendRunnerOptions } from './backendRunner';
 import { invalidateBackendCache, resolveBackend } from './backendResolver';
 import { redactingPayloadReplacer } from './contracts';
-import { getMrdBackendMissingHtml, getMrdErrorHtml, getMrdLoadingHtml, getMrdViewerHtml } from './webviewHtml';
+import { getMrdBackendMissingHtml, getMrdViewerHtml } from './webviewHtml';
+import { getMrdErrorHtml, getMrdLoadingHtml } from './stateHtml';
 import { appendIfPresent, bindViewerMessageHandling } from './viewerController';
 
 export const MRD_VIEW_TYPE = 'mrd-viz.mrdFile';
