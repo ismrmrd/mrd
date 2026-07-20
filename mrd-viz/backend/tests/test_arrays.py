@@ -11,6 +11,7 @@ import pytest
 from mrd_viz.main import (
     PreviewOptions,
     _display_plane,
+    _image_mosaic_tiles,
     _image_tile,
     _normalize_to_uint8,
     _plane_to_png_base64,
@@ -90,7 +91,8 @@ def test_image_tile_renders_requested_slice() -> None:
         "ImageFloat",
         stream_index=0,
         image_index=0,
-        options=PreviewOptions(max_thumbnails=1, slice_coords=(0, 1)),
+        options=PreviewOptions(max_thumbnails=1),
+        slice_coords=(0, 1),
     )
 
     assert tile["renderable"] is True
@@ -99,6 +101,32 @@ def test_image_tile_renders_requested_slice() -> None:
         {"axis": 0, "name": "channel", "size": 1},
         {"axis": 1, "name": "z", "size": 2},
     ]
+
+
+def test_image_mosaic_tiles_explodes_z_slices() -> None:
+    data = np.arange(1 * 3 * 2 * 2, dtype=np.float32).reshape(1, 3, 2, 2)
+    image = mrd.Image[np.float32](
+        head=mrd.ImageHeader(image_type=mrd.ImageType.MAGNITUDE),
+        data=data,
+    )
+
+    # Without explode mode a single volume yields one tile.
+    single, hit_limit = _image_mosaic_tiles(image, "ImageFloat", 0, 4, PreviewOptions(), limit=16)
+    assert len(single) == 1
+    assert hit_limit is False
+    assert "tile_title" not in single[0]
+
+    # Explode mode yields one tile per z slice, labeled and tagged with source_plane.
+    exploded, hit_limit = _image_mosaic_tiles(image, "ImageFloat", 0, 4, PreviewOptions(explode_slices=True), limit=16)
+    assert len(exploded) == 3
+    assert hit_limit is False
+    assert [tile["source_plane"]["z"] for tile in exploded] == [0, 1, 2]
+    assert exploded[2]["tile_title"] == "Image 4 \u00b7 z 2"
+
+    # The per-image limit truncates the exploded tiles.
+    limited, hit_limit = _image_mosaic_tiles(image, "ImageFloat", 0, 4, PreviewOptions(explode_slices=True), limit=2)
+    assert len(limited) == 2
+    assert hit_limit is True
 
 
 def test_display_plane_rejects_empty_or_unsupported_arrays() -> None:

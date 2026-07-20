@@ -35,8 +35,8 @@ async function handleViewerMessage(
 		return;
 	}
 
-	if (message.type === 'refreshMosaic') {
-		await handleRefreshMosaic(webview, targetUri, options, outputChannel, signal, message);
+	if (message.type === 'setMosaicMode') {
+		await handleSetMosaicMode(webview, targetUri, options, outputChannel, signal, message);
 		return;
 	}
 
@@ -79,19 +79,19 @@ async function handleLoadImage(
 	}
 }
 
-async function handleRefreshMosaic(
+async function handleSetMosaicMode(
 	webview: vscode.Webview,
 	targetUri: vscode.Uri,
 	options: BackendRunnerOptions,
 	outputChannel: vscode.OutputChannel,
 	signal: AbortSignal,
-	message: Extract<ViewerToExtensionMessage, { type: 'refreshMosaic' }>,
+	message: Extract<ViewerToExtensionMessage, { type: 'setMosaicMode' }>,
 ): Promise<void> {
 	try {
-		const { payload, stderr } = await runOpenFile(targetUri.fsPath, options, signal, message.sliceCoords);
+		const { payload, stderr } = await runOpenFile(targetUri.fsPath, options, signal, message.mode === 'slices');
 		appendIfPresent(outputChannel, 'stderr', stderr);
 		postViewerMessage(webview, {
-			type: 'mosaicRefreshed',
+			type: 'mosaicUpdated',
 			requestId: message.requestId,
 			payload,
 		});
@@ -101,7 +101,7 @@ async function handleRefreshMosaic(
 		}
 
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		outputChannel.appendLine(`Mosaic refresh failed: ${errorMessage}`);
+		outputChannel.appendLine(`Mosaic mode '${message.mode}' failed: ${errorMessage}`);
 		if (error instanceof MrdVizBackendError) {
 			appendIfPresent(outputChannel, 'stdout', error.stdout);
 			appendIfPresent(outputChannel, 'stderr', error.stderr);

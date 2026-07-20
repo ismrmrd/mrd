@@ -105,12 +105,12 @@ suite('MRD Viz Extension', () => {
 		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: -1 }));
 	});
 
-	test('validates refreshMosaic messages with integer slice coordinates', () => {
-		assert.ok(isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3', sliceCoords: [] }));
-		assert.ok(isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3', sliceCoords: [1, 2] }));
-		assert.ok(!isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3' }));
-		assert.ok(!isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3', sliceCoords: [1.5] }));
-		assert.ok(!isViewerToExtensionMessage({ type: 'nope', requestId: '3', sliceCoords: [] }));
+	test('validates setMosaicMode messages with a known mode', () => {
+		assert.ok(isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3', mode: 'images' }));
+		assert.ok(isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3', mode: 'slices' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3', mode: 'volumes' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'nope', requestId: '3', mode: 'images' }));
 	});
 });
 

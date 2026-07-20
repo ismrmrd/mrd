@@ -20,7 +20,9 @@
 	let selectedTileThumb = null;
 	let selectedSliceDims = [];
 	let selectedSliceCoords = [];
-	let mosaicSliceCoords = [];
+	let mosaicMode = 'images';
+	let mosaicRevertMode = 'images';
+	let mosaicPending = false;
 	let mosaicRequestId = null;
 	const imageCache = new Map();
 	const MAX_IMAGE_CACHE_ENTRIES = Number(config.maxImageCacheEntries) || 32;
@@ -373,7 +375,7 @@
 	function renderMosaic() {
 		const root = document.getElementById('mosaic');
 		root.textContent = '';
-		removeMosaicSliceControls();
+		removeMosaicModeControls();
 		const tiles = (payload.mosaic && payload.mosaic.thumbnails) || [];
 		if (!tiles.length) {
 			const empty = document.createElement('div');
@@ -407,7 +409,7 @@
 
 			const title = document.createElement('div');
 			title.className = 'tile-name';
-			title.textContent = 'Image ' + valueOrUnknown(tile.image_index);
+			title.textContent = tile.tile_title || ('Image ' + valueOrUnknown(tile.image_index));
 			button.appendChild(title);
 
 			const meta = document.createElement('div');
@@ -422,25 +424,104 @@
 			root.appendChild(button);
 		});
 
-		renderMosaicSliceControls(tiles);
+		renderMosaicModeControls(tiles);
 		selectTile(tiles[0]);
 	}
 
-	function removeMosaicSliceControls() {
-		const existing = document.getElementById('mosaic-slice');
+	function currentTiles() {
+		return (payload.mosaic && payload.mosaic.thumbnails) || [];
+	}
+
+	function removeMosaicModeControls() {
+		const existing = document.getElementById('mosaic-mode');
 		if (existing) {
 			existing.remove();
 		}
 	}
 
-	function commonSliceDims(tiles) {
-		for (let i = 0; i < tiles.length; i++) {
-			const dims = tiles[i] && tiles[i].slice_dims;
-			if (Array.isArray(dims) && dims.some(function (dim) { return (Number(dim.size) || 1) > 1; })) {
-				return dims;
+	function mosaicCanExplode(tiles) {
+		return tiles.some(function (tile) {
+			const dims = tile && tile.slice_dims;
+			if (!Array.isArray(dims) || !dims.length) {
+				return false;
 			}
+			const z = dims[dims.length - 1];
+			return Boolean(z) && (Number(z.size) || 1) > 1;
+		});
+	}
+
+	function setMosaicNotice(text, kind) {
+		const noticesEl = document.getElementById('notices');
+		if (!noticesEl) {
+			return;
 		}
-		return [];
+		noticesEl.textContent = '';
+		if (text) {
+			noticesEl.appendChild(notice(text, kind));
+		}
+	}
+
+	function makeMosaicModeButton(mode, label, title) {
+		const button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'mrd-segmented-button';
+		button.textContent = label;
+		button.title = title;
+		if (mosaicMode === mode) {
+			button.classList.add('is-active');
+		}
+		button.setAttribute('aria-pressed', mosaicMode === mode ? 'true' : 'false');
+		button.disabled = mosaicPending;
+		button.addEventListener('click', function () {
+			setMosaicMode(mode);
+		});
+		return button;
+	}
+
+	function renderMosaicModeControls(tiles) {
+		removeMosaicModeControls();
+		if (!mosaicCanExplode(tiles)) {
+			return;
+		}
+
+		const bar = document.createElement('div');
+		bar.id = 'mosaic-mode';
+		bar.className = 'mrd-mosaic-mode';
+
+		const label = document.createElement('span');
+		label.className = 'mrd-mosaic-mode-label';
+		label.textContent = 'View';
+		bar.appendChild(label);
+
+		const group = document.createElement('div');
+		group.className = 'mrd-segmented';
+		group.setAttribute('role', 'group');
+		group.append(
+			makeMosaicModeButton('images', 'Images', 'One thumbnail per image'),
+			makeMosaicModeButton('slices', 'Slices', 'One thumbnail per z slice')
+		);
+		bar.appendChild(group);
+
+		const mosaicEl = document.getElementById('mosaic');
+		mosaicEl.parentNode.insertBefore(bar, mosaicEl);
+	}
+
+	function setMosaicMode(mode) {
+		if (mosaicPending || mode === mosaicMode) {
+			return;
+		}
+		mosaicRevertMode = mosaicMode;
+		mosaicMode = mode;
+		mosaicPending = true;
+		const requestId = String(++requestSequence);
+		mosaicRequestId = requestId;
+		renderMosaicModeControls(currentTiles());
+		setMosaicNotice(mode === 'slices' ? 'Rendering individual slices...' : 'Rebuilding image mosaic...', 'warning');
+		vscode.postMessage({
+			type: 'setMosaicMode',
+			requestId: requestId,
+			mode: mode
+		});
 	}
 
 	function buildSliceSlider(dim, currentValue, onCommit) {
@@ -472,46 +553,6 @@
 
 		row.append(caption, slider);
 		return row;
-	}
-
-	function renderMosaicSliceControls(tiles) {
-		removeMosaicSliceControls();
-		const dims = commonSliceDims(tiles);
-		if (!dims.length) {
-			return;
-		}
-
-		const bar = document.createElement('div');
-		bar.id = 'mosaic-slice';
-		bar.className = 'mrd-slice-controls mrd-mosaic-slice';
-
-		const title = document.createElement('span');
-		title.className = 'mrd-slice-title';
-		title.textContent = 'Step all thumbnails';
-		bar.appendChild(title);
-
-		dims.forEach(function (dim) {
-			if ((Number(dim.size) || 1) <= 1) {
-				return;
-			}
-			bar.appendChild(buildSliceSlider(dim, mosaicSliceCoords[Number(dim.axis)], function (axis, value) {
-				mosaicSliceCoords[axis] = value;
-				refreshMosaic();
-			}));
-		});
-
-		const mosaicEl = document.getElementById('mosaic');
-		mosaicEl.parentNode.insertBefore(bar, mosaicEl);
-	}
-
-	function refreshMosaic() {
-		const requestId = String(++requestSequence);
-		mosaicRequestId = requestId;
-		vscode.postMessage({
-			type: 'refreshMosaic',
-			requestId: requestId,
-			sliceCoords: mosaicSliceCoords.slice()
-		});
 	}
 
 	function selectTile(tile) {
@@ -865,27 +906,28 @@
 		renderSelectedTile(image);
 	}
 
-	function handleMosaicRefreshed(message) {
+	function handleMosaicUpdated(message) {
 		if (message.requestId !== mosaicRequestId) {
 			return;
 		}
 
+		mosaicPending = false;
 		const responsePayload = message.payload || {};
 		if (responsePayload.ok !== true || !responsePayload.mosaic) {
-			handleMosaicError((responsePayload && responsePayload.error) || 'Unable to refresh the mosaic.');
+			handleMosaicError((responsePayload && responsePayload.error) || 'Unable to update the mosaic.');
 			return;
 		}
 
 		payload.mosaic = responsePayload.mosaic;
+		setMosaicNotice('', null);
 		renderMosaic();
 	}
 
 	function handleMosaicError(error) {
-		const noticesEl = document.getElementById('notices');
-		if (noticesEl) {
-			noticesEl.textContent = '';
-			noticesEl.appendChild(notice(String(error), 'error'));
-		}
+		mosaicPending = false;
+		mosaicMode = mosaicRevertMode;
+		setMosaicNotice(String(error), 'error');
+		renderMosaicModeControls(currentTiles());
 	}
 
 	function buildSelectedSliceControls() {
@@ -929,10 +971,10 @@
 			handleImageLoaded(message);
 		} else if (message.type === 'imageError' && message.requestId === pendingRequestId) {
 			renderSelectedError(message.error || 'Unable to load selected image.');
-		} else if (message.type === 'mosaicRefreshed') {
-			handleMosaicRefreshed(message);
+		} else if (message.type === 'mosaicUpdated') {
+			handleMosaicUpdated(message);
 		} else if (message.type === 'mosaicError' && message.requestId === mosaicRequestId) {
-			handleMosaicError(message.error || 'Unable to refresh the mosaic.');
+			handleMosaicError(message.error || 'Unable to update the mosaic.');
 		}
 	});
 

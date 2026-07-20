@@ -52,12 +52,10 @@ def _build_parser() -> argparse.ArgumentParser:
     open_parser.add_argument("--max-thumbnails", type=int, default=DEFAULT_OPTIONS.max_thumbnails)
     open_parser.add_argument("--thumbnail-size", type=int, default=DEFAULT_OPTIONS.thumbnail_size)
     open_parser.add_argument(
-        "--slice",
-        dest="slice",
-        action="append",
-        type=_slice_pair,
-        metavar="AXIS:INDEX",
-        help="Select a leading-axis slice index for the mosaic (repeatable, e.g. --slice 0:2 --slice 1:5)",
+        "--explode-slices",
+        dest="explode_slices",
+        action="store_true",
+        help="Emit one mosaic thumbnail per z slice instead of one per image",
     )
 
     image_parser = subparsers.add_parser("image", help="Return one full-resolution image payload by mosaic image index")
@@ -91,11 +89,11 @@ def _run_classify(path: Path) -> int:
     return _emit_payload(classify_file(path))
 
 
-def _run_inspect(path: Path, max_thumbnails: int, thumbnail_size: int, slice_pairs: list[tuple[int, int]] | None) -> int:
+def _run_inspect(path: Path, max_thumbnails: int, thumbnail_size: int, explode_slices: bool) -> int:
     options = PreviewOptions(
         max_thumbnails=max_thumbnails,
         thumbnail_size=thumbnail_size,
-        slice_coords=_coords_from_pairs(slice_pairs),
+        explode_slices=explode_slices,
     )
     return _emit_payload(open_file(path, options))
 
@@ -127,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "classify":
         return _run_classify(args.path)
     if args.command in {"open", "inspect"}:
-        return _run_inspect(args.path, args.max_thumbnails, args.thumbnail_size, args.slice)
+        return _run_inspect(args.path, args.max_thumbnails, args.thumbnail_size, args.explode_slices)
     if args.command == "image":
         return _run_image(args.path, args.index, args.slice)
     if args.command == "html":

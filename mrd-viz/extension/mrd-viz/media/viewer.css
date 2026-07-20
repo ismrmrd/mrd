@@ -268,18 +268,47 @@ button, pre { font-family: inherit; }
 	gap: 6px;
 }
 
-.mrd-mosaic-slice {
+.mrd-mosaic-mode {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	margin-bottom: 10px;
-	padding: 8px 9px;
-	border: 1px solid var(--mrd-line);
-	border-radius: 6px;
-	background: var(--vscode-editor-background);
 }
 
-.mrd-slice-title {
+.mrd-mosaic-mode-label {
 	font-size: 12px;
-	font-weight: 600;
 	color: var(--mrd-muted);
+}
+
+.mrd-segmented {
+	display: inline-flex;
+	border: 1px solid var(--mrd-line);
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.mrd-segmented-button {
+	font: inherit;
+	font-size: 12px;
+	padding: 4px 12px;
+	border: none;
+	background: transparent;
+	color: var(--mrd-text);
+	cursor: pointer;
+}
+
+.mrd-segmented-button + .mrd-segmented-button {
+	border-left: 1px solid var(--mrd-line);
+}
+
+.mrd-segmented-button.is-active {
+	background: var(--vscode-button-background, var(--mrd-line));
+	color: var(--vscode-button-foreground, var(--mrd-text));
+}
+
+.mrd-segmented-button:disabled {
+	opacity: 0.6;
+	cursor: default;
 }
 
 .mrd-slice-row {

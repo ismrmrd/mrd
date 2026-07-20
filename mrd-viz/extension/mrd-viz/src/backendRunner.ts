@@ -25,14 +25,14 @@ export interface OpenFileResult {
 	stderr: string;
 }
 
-export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal, sliceCoords?: number[]): Promise<OpenFileResult> {
+export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal, explodeSlices = false): Promise<OpenFileResult> {
 	const commandArguments = [
 		...options.baseArgs,
 		'open',
 		filePath,
 		'--max-thumbnails',
 		String(options.maxThumbnails),
-		...sliceArgs(sliceCoords),
+		...(explodeSlices ? ['--explode-slices'] : []),
 	];
 	const result = await execBackend(options.command, commandArguments, options.timeoutMs, signal);
 	return { payload: parseOpenPayload(result.stdout, result.stderr), stderr: result.stderr };

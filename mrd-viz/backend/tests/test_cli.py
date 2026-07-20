@@ -112,3 +112,17 @@ def test_cli_image_rejects_malformed_slice(generated_mrd_pair: tuple[Path, Path]
 
     assert result.returncode == 2
     assert "AXIS:INDEX" in result.stderr
+
+
+def test_cli_open_explode_slices_emits_tiles(generated_mrd_pair: tuple[Path, Path]) -> None:
+    _, recon_path = generated_mrd_pair
+
+    default_result, default_payload = run_cli("open", recon_path, "--max-thumbnails", 64)
+    exploded_result, exploded_payload = run_cli("open", recon_path, "--max-thumbnails", 64, "--explode-slices")
+
+    assert default_result.returncode == 0
+    assert exploded_result.returncode == 0
+    default_tiles = default_payload["mosaic"]["thumbnails"]
+    exploded_tiles = exploded_payload["mosaic"]["thumbnails"]
+    assert len(exploded_tiles) >= len(default_tiles)
+

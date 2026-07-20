@@ -18,6 +18,7 @@ export interface MrdMosaicTile {
 	stream_item_type?: string;
 	data_shape?: number[];
 	slice_dims?: MrdSliceDim[];
+	tile_title?: string;
 	dtype?: string;
 	png_base64?: string | null;
 	rendered_shape?: number[] | null;
@@ -88,6 +89,8 @@ export interface MrdImageResponsePayload {
 	[key: string]: unknown;
 }
 
+export type MrdMosaicMode = 'images' | 'slices';
+
 export interface LoadImageRequestMessage {
 	type: 'loadImage';
 	requestId: string;
@@ -95,10 +98,10 @@ export interface LoadImageRequestMessage {
 	sliceCoords?: number[];
 }
 
-export interface RefreshMosaicRequestMessage {
-	type: 'refreshMosaic';
+export interface SetMosaicModeRequestMessage {
+	type: 'setMosaicMode';
 	requestId: string;
-	sliceCoords: number[];
+	mode: MrdMosaicMode;
 }
 
 export interface ImageLoadedMessage {
@@ -114,8 +117,8 @@ export interface ImageErrorMessage {
 	error: string;
 }
 
-export interface MosaicRefreshedMessage {
-	type: 'mosaicRefreshed';
+export interface MosaicUpdatedMessage {
+	type: 'mosaicUpdated';
 	requestId: string;
 	payload: MrdOpenPayload;
 }
@@ -126,12 +129,12 @@ export interface MosaicErrorMessage {
 	error: string;
 }
 
-export type ViewerToExtensionMessage = LoadImageRequestMessage | RefreshMosaicRequestMessage;
+export type ViewerToExtensionMessage = LoadImageRequestMessage | SetMosaicModeRequestMessage;
 
 export type ExtensionToViewerMessage =
 	| ImageLoadedMessage
 	| ImageErrorMessage
-	| MosaicRefreshedMessage
+	| MosaicUpdatedMessage
 	| MosaicErrorMessage;
 
 export function isMrdImageResponsePayload(value: unknown): value is MrdImageResponsePayload {
@@ -146,7 +149,7 @@ export function isViewerToExtensionMessage(value: unknown): value is ViewerToExt
 		return false;
 	}
 
-	const message = value as { type?: unknown; requestId?: unknown; imageIndex?: unknown; sliceCoords?: unknown };
+	const message = value as { type?: unknown; requestId?: unknown; imageIndex?: unknown; sliceCoords?: unknown; mode?: unknown };
 	if (typeof message.requestId !== 'string') {
 		return false;
 	}
@@ -159,8 +162,8 @@ export function isViewerToExtensionMessage(value: unknown): value is ViewerToExt
 			&& isOptionalSliceCoords(message.sliceCoords);
 	}
 
-	if (message.type === 'refreshMosaic') {
-		return isSliceCoords(message.sliceCoords);
+	if (message.type === 'setMosaicMode') {
+		return message.mode === 'images' || message.mode === 'slices';
 	}
 
 	return false;

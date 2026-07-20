@@ -46,7 +46,7 @@ class PreviewOptions:
     max_acquisition_examples: int = 8
     preload_full_images: int = 1
     read_full_stream: bool = False
-    slice_coords: tuple[int, ...] = ()
+    explode_slices: bool = False
 
 
 DEFAULT_OPTIONS = PreviewOptions()
@@ -189,9 +189,16 @@ def _consume_stream_item(state: dict[str, Any], item: Any, stream_index: int, op
         image_index = state["stream"]["image_count"]
         state["stream"]["image_count"] += 1
         state["metadata"]["images"].append(_image_metadata(image, item_type, stream_index, image_index))
-        if image_index < options.max_thumbnails:
-            state["mosaic"]["thumbnails"].append(_image_tile(image, item_type, stream_index, image_index, options))
-        else:
+
+        thumbnails = state["mosaic"]["thumbnails"]
+        remaining = options.max_thumbnails - len(thumbnails)
+        if remaining <= 0:
+            state["mosaic"]["truncated"] = True
+            return True
+
+        tiles, hit_limit = _image_mosaic_tiles(image, item_type, stream_index, image_index, options, remaining)
+        thumbnails.extend(tiles)
+        if hit_limit:
             state["mosaic"]["truncated"] = True
             return True
         return False
@@ -273,16 +280,25 @@ def _image_payload(
     return payload
 
 
-def _image_tile(image: mrd.Image, item_type: str, stream_index: int, image_index: int, options: PreviewOptions) -> dict[str, Any]:
+def _image_tile(
+    image: mrd.Image,
+    item_type: str,
+    stream_index: int,
+    image_index: int,
+    options: PreviewOptions,
+    *,
+    slice_coords: Sequence[int] | None = None,
+    title: str | None = None,
+) -> dict[str, Any]:
     try:
-        return _image_payload(
+        payload = _image_payload(
             image,
             item_type,
             stream_index,
             image_index,
             thumbnail=True,
             max_size=options.thumbnail_size,
-            slice_coords=options.slice_coords,
+            slice_coords=slice_coords,
         )
     except Exception as exc:
         payload = _image_metadata(image, item_type, stream_index, image_index)
@@ -296,7 +312,49 @@ def _image_tile(image: mrd.Image, item_type: str, stream_index: int, image_index
                 "source_plane": None,
             }
         )
-        return payload
+    if title is not None:
+        payload["tile_title"] = title
+    return payload
+
+
+def _image_mosaic_tiles(
+    image: mrd.Image,
+    item_type: str,
+    stream_index: int,
+    image_index: int,
+    options: PreviewOptions,
+    limit: int,
+) -> tuple[list[dict[str, Any]], bool]:
+    """Return (tiles, hit_limit) for one image, exploding z slices when requested."""
+
+    if not options.explode_slices:
+        return [_image_tile(image, item_type, stream_index, image_index, options)], False
+
+    slice_dims = _slice_dims(np.asarray(image.data).shape)
+    z_dim = slice_dims[-1] if slice_dims else None
+    if z_dim is None or int(z_dim["size"]) <= 1:
+        return [_image_tile(image, item_type, stream_index, image_index, options)], False
+
+    z_axis = int(z_dim["axis"])
+    z_size = int(z_dim["size"])
+    tiles: list[dict[str, Any]] = []
+    for z in range(z_size):
+        if len(tiles) >= limit:
+            return tiles, True
+        coords = [0] * len(slice_dims)
+        coords[z_axis] = z
+        tiles.append(
+            _image_tile(
+                image,
+                item_type,
+                stream_index,
+                image_index,
+                options,
+                slice_coords=coords,
+                title=f"Image {image_index} \u00b7 z {z}",
+            )
+        )
+    return tiles, False
 
 
 def _slice_dims(shape: Sequence[int]) -> list[dict[str, Any]]:
