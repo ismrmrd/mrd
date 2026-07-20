@@ -7,6 +7,7 @@ import { getOpenWithMrdEditorArgs } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
 import { getMrdBackendMissingHtml } from '../webviewHtml';
 import { getMrdErrorHtml } from '../stateHtml';
+import { isViewerToExtensionMessage } from '../contracts';
 
 interface CommandContribution {
 	command: string;
@@ -94,6 +95,22 @@ suite('MRD Viz Extension', () => {
 		assert.ok(html.includes('No diagnostic output was captured.'));
 		assert.ok(html.includes('mrd-viz.setUpBackend'));
 		assert.ok(html.includes('mrd-viz.selectInterpreter'));
+	});
+
+	test('validates loadImage messages including optional slice coordinates', () => {
+		assert.ok(isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 0 }));
+		assert.ok(isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: [0, 1] }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: [0, -1] }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: 'nope' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: -1 }));
+	});
+
+	test('validates refreshMosaic messages with integer slice coordinates', () => {
+		assert.ok(isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3', sliceCoords: [] }));
+		assert.ok(isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3', sliceCoords: [1, 2] }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'refreshMosaic', requestId: '3', sliceCoords: [1.5] }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'nope', requestId: '3', sliceCoords: [] }));
 	});
 });
 

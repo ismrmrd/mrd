@@ -232,6 +232,45 @@ button, pre { font-family: inherit; }
 	-webkit-user-drag: none;
 }
 
+.mrd-slice-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.mrd-mosaic-slice {
+	margin-bottom: 10px;
+	padding: 8px 9px;
+	border: 1px solid var(--mrd-line);
+	border-radius: 6px;
+	background: var(--vscode-editor-background);
+}
+
+.mrd-slice-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--mrd-muted);
+}
+
+.mrd-slice-row {
+	display: grid;
+	grid-template-columns: minmax(0, max-content) minmax(120px, 1fr);
+	align-items: center;
+	gap: 10px;
+}
+
+.mrd-slice-name {
+	font-size: 12px;
+	color: var(--mrd-muted);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.mrd-slice-row input[type="range"] {
+	width: 100%;
+	accent-color: var(--vscode-focusBorder, currentColor);
+}
+
 body.mrd-maximized #mosaic-panel,
 body.mrd-maximized #metadata-panel,
 body.mrd-maximized .header {

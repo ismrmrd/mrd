@@ -83,3 +83,32 @@ def test_cli_clean_image_error_exits_one(generated_mrd_pair: tuple[Path, Path]) 
     assert result.returncode == 1
     assert payload["ok"] is False
     assert "not found" in payload["error"]
+
+
+def test_cli_image_accepts_slice_options(generated_mrd_pair: tuple[Path, Path]) -> None:
+    _, recon_path = generated_mrd_pair
+
+    result, payload = run_cli("image", recon_path, "--index", 0, "--slice", "0:0", "--slice", "1:0")
+
+    assert result.returncode == 0
+    assert payload["image"]["renderable"] is True
+    assert "slice_dims" in payload["image"]
+    assert isinstance(payload["image"]["source_plane"], dict)
+
+
+def test_cli_image_rejects_malformed_slice(generated_mrd_pair: tuple[Path, Path]) -> None:
+    _, recon_path = generated_mrd_pair
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(SRC_ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+    result = subprocess.run(
+        [sys.executable, "-m", "mrd_viz.cli", "image", str(recon_path), "--index", "0", "--slice", "bogus"],
+        cwd=BACKEND_ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 2
+    assert "AXIS:INDEX" in result.stderr

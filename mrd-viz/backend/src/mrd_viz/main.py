@@ -12,7 +12,7 @@ from dataclasses import dataclass, replace
 from enum import StrEnum
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import mrd
 import numpy as np
@@ -46,6 +46,7 @@ class PreviewOptions:
     max_acquisition_examples: int = 8
     preload_full_images: int = 1
     read_full_stream: bool = False
+    slice_coords: tuple[int, ...] = ()
 
 
 DEFAULT_OPTIONS = PreviewOptions()
@@ -84,7 +85,7 @@ def open_file(path: Path, options: PreviewOptions | None = None) -> dict[str, An
         return _error_payload(path, str(exc))
 
 
-def extract_image(path: Path, image_index: int) -> dict[str, Any]:
+def extract_image(path: Path, image_index: int, slice_coords: Sequence[int] | None = None) -> dict[str, Any]:
     """Return one full-resolution image payload for lazy tile expansion."""
 
     path = Path(path)
@@ -105,7 +106,14 @@ def extract_image(path: Path, image_index: int) -> dict[str, Any]:
                 if image is None:
                     continue
                 if seen_images == image_index and selected_image is None:
-                    selected_image = _image_payload(image, _stream_item_type_name(item), stream_index, seen_images, thumbnail=False)
+                    selected_image = _image_payload(
+                        image,
+                        _stream_item_type_name(item),
+                        stream_index,
+                        seen_images,
+                        thumbnail=False,
+                        slice_coords=slice_coords,
+                    )
                     break
                 seen_images += 1
 
@@ -244,10 +252,14 @@ def _image_payload(
     *,
     thumbnail: bool,
     max_size: int = 192,
+    slice_coords: Sequence[int] | None = None,
 ) -> dict[str, Any]:
-    plane = _display_plane(np.asarray(image.data))
-    png_base64, rendered_shape = _plane_to_png_base64(plane, thumbnail=thumbnail, max_size=max_size)
+    data = np.asarray(image.data)
     payload = _image_metadata(image, item_type, stream_index, image_index)
+    slice_dims = payload["slice_dims"]
+    coords = _clamp_coords(slice_dims, slice_coords)
+    plane = _display_plane(data, coords)
+    png_base64, rendered_shape = _plane_to_png_base64(plane, thumbnail=thumbnail, max_size=max_size)
     payload.update(
         {
             "png_base64": png_base64,
@@ -255,7 +267,7 @@ def _image_payload(
             "thumbnail": thumbnail,
             "renderable": True,
             "render_error": None,
-            "source_plane": {"channel": 0, "z": 0},
+            "source_plane": _source_plane(slice_dims, coords),
         }
     )
     return payload
@@ -263,7 +275,15 @@ def _image_payload(
 
 def _image_tile(image: mrd.Image, item_type: str, stream_index: int, image_index: int, options: PreviewOptions) -> dict[str, Any]:
     try:
-        return _image_payload(image, item_type, stream_index, image_index, thumbnail=True, max_size=options.thumbnail_size)
+        return _image_payload(
+            image,
+            item_type,
+            stream_index,
+            image_index,
+            thumbnail=True,
+            max_size=options.thumbnail_size,
+            slice_coords=options.slice_coords,
+        )
     except Exception as exc:
         payload = _image_metadata(image, item_type, stream_index, image_index)
         payload.update(
@@ -279,14 +299,54 @@ def _image_tile(image: mrd.Image, item_type: str, stream_index: int, image_index
         return payload
 
 
-def _display_plane(data: np.ndarray) -> np.ndarray:
-    if data.ndim == 4:
-        return data[0, 0, :, :]
-    if data.ndim == 3:
-        return data[0, :, :]
-    if data.ndim == 2:
+def _slice_dims(shape: Sequence[int]) -> list[dict[str, Any]]:
+    """Describe the steppable leading axes (everything before the trailing y/x plane).
+
+    MRD image data is canonically ``[channel, z, y, x]``; only 3D and 4D arrays
+    expose steppable axes.
+    """
+
+    dims = [int(d) for d in shape]
+    if len(dims) not in (3, 4):
+        return []
+    leading = dims[:-2]
+    names = ["channel", "z"] if len(leading) == 2 else ["z"]
+    return [{"axis": i, "name": names[i], "size": size} for i, size in enumerate(leading)]
+
+
+def _clamp_coords(slice_dims: Sequence[dict[str, Any]], coords: Sequence[int] | None) -> list[int]:
+    """Clamp requested slice indices to each axis, defaulting missing axes to 0."""
+
+    requested = list(coords or [])
+    clamped: list[int] = []
+    for dim in slice_dims:
+        axis = int(dim["axis"])
+        value = requested[axis] if axis < len(requested) else 0
+        clamped.append(max(0, min(int(value), int(dim["size"]) - 1)))
+    return clamped
+
+
+def _source_plane(slice_dims: Sequence[dict[str, Any]], coords: Sequence[int]) -> dict[str, int]:
+    plane: dict[str, int] = {}
+    for dim in slice_dims:
+        axis = int(dim["axis"])
+        plane[str(dim["name"])] = int(coords[axis]) if axis < len(coords) else 0
+    return plane
+
+
+def _display_plane(data: np.ndarray, coords: Sequence[int] | None = None) -> np.ndarray:
+    if data.ndim not in (2, 3, 4):
+        raise ValueError(f"Unsupported image data dimensions: {list(data.shape)}")
+    leading = data.ndim - 2
+    if leading == 0:
         return data
-    raise ValueError(f"Unsupported image data dimensions: {list(data.shape)}")
+    requested = list(coords or [])
+    index: list[int] = []
+    for axis in range(leading):
+        size = int(data.shape[axis])
+        value = requested[axis] if axis < len(requested) else 0
+        index.append(max(0, min(int(value), size - 1)))
+    return data[tuple(index)]
 
 
 def _plane_to_png_base64(plane: np.ndarray, *, thumbnail: bool, max_size: int) -> tuple[str, list[int]]:
@@ -354,6 +414,7 @@ def _image_metadata(image: mrd.Image, item_type: str, stream_index: int, image_i
         "stream_index": stream_index,
         "stream_item_type": item_type,
         "data_shape": list(data.shape),
+        "slice_dims": _slice_dims(data.shape),
         "dtype": str(data.dtype),
         "head": {
             "image_type": _safe_int(getattr(head, "image_type", None)),

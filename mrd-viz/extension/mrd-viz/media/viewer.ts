@@ -13,18 +13,48 @@
 	let selectedIndex = null;
 	let requestSequence = 0;
 	let pendingRequestId = null;
+	let pendingRequestIndex = null;
+	let pendingRequestCoords = [];
 	let activeViewport = null;
+	let selectedImageIndex = null;
+	let selectedTileThumb = null;
+	let selectedSliceDims = [];
+	let selectedSliceCoords = [];
+	let mosaicSliceCoords = [];
+	let mosaicRequestId = null;
 	const imageCache = new Map();
 	const MAX_IMAGE_CACHE_ENTRIES = Number(config.maxImageCacheEntries) || 32;
 
-	function cacheImage(imageIndex, image) {
-		if (imageCache.has(imageIndex)) {
-			imageCache.delete(imageIndex);
+	function cacheImage(key, image) {
+		if (imageCache.has(key)) {
+			imageCache.delete(key);
 		} else if (imageCache.size >= MAX_IMAGE_CACHE_ENTRIES) {
 			const oldestKey = imageCache.keys().next().value;
 			imageCache.delete(oldestKey);
 		}
-		imageCache.set(imageIndex, image);
+		imageCache.set(key, image);
+	}
+
+	function cacheKey(imageIndex, coords) {
+		return String(imageIndex) + '@' + (coords || []).join(',');
+	}
+
+	function clampIndex(value, size) {
+		const numeric = Number.isInteger(value) ? value : Number(value) || 0;
+		return Math.max(0, Math.min(numeric, size - 1));
+	}
+
+	function defaultSliceCoords(dims, sourcePlane) {
+		const coords = [];
+		(dims || []).forEach(function (dim) {
+			const axis = Number(dim.axis);
+			let value = 0;
+			if (sourcePlane && typeof sourcePlane === 'object' && dim.name in sourcePlane) {
+				value = Number(sourcePlane[dim.name]) || 0;
+			}
+			coords[axis] = clampIndex(value, Number(dim.size) || 1);
+		});
+		return coords;
 	}
 
 	function valueOrUnknown(value) {
@@ -341,6 +371,7 @@
 	function renderMosaic() {
 		const root = document.getElementById('mosaic');
 		root.textContent = '';
+		removeMosaicSliceControls();
 		const tiles = (payload.mosaic && payload.mosaic.thumbnails) || [];
 		if (!tiles.length) {
 			const empty = document.createElement('div');
@@ -389,35 +420,142 @@
 			root.appendChild(button);
 		});
 
+		renderMosaicSliceControls(tiles);
 		selectTile(tiles[0]);
+	}
+
+	function removeMosaicSliceControls() {
+		const existing = document.getElementById('mosaic-slice');
+		if (existing) {
+			existing.remove();
+		}
+	}
+
+	function commonSliceDims(tiles) {
+		for (let i = 0; i < tiles.length; i++) {
+			const dims = tiles[i] && tiles[i].slice_dims;
+			if (Array.isArray(dims) && dims.some(function (dim) { return (Number(dim.size) || 1) > 1; })) {
+				return dims;
+			}
+		}
+		return [];
+	}
+
+	function buildSliceSlider(dim, currentValue, onCommit) {
+		const size = Number(dim.size) || 1;
+		const axis = Number(dim.axis);
+		const label = dim.name || ('axis ' + axis);
+		const current = clampIndex(currentValue, size);
+
+		const row = document.createElement('div');
+		row.className = 'mrd-slice-row';
+
+		const caption = document.createElement('span');
+		caption.className = 'mrd-slice-name';
+		caption.textContent = label + ' ' + current + ' / ' + (size - 1);
+
+		const slider = document.createElement('input');
+		slider.type = 'range';
+		slider.min = '0';
+		slider.max = String(size - 1);
+		slider.step = '1';
+		slider.value = String(current);
+		slider.setAttribute('aria-label', 'Step ' + label);
+		slider.addEventListener('input', function () {
+			caption.textContent = label + ' ' + slider.value + ' / ' + (size - 1);
+		});
+		slider.addEventListener('change', function () {
+			onCommit(axis, Number(slider.value));
+		});
+
+		row.append(caption, slider);
+		return row;
+	}
+
+	function renderMosaicSliceControls(tiles) {
+		removeMosaicSliceControls();
+		const dims = commonSliceDims(tiles);
+		if (!dims.length) {
+			return;
+		}
+
+		const bar = document.createElement('div');
+		bar.id = 'mosaic-slice';
+		bar.className = 'mrd-slice-controls mrd-mosaic-slice';
+
+		const title = document.createElement('span');
+		title.className = 'mrd-slice-title';
+		title.textContent = 'Step all thumbnails';
+		bar.appendChild(title);
+
+		dims.forEach(function (dim) {
+			if ((Number(dim.size) || 1) <= 1) {
+				return;
+			}
+			bar.appendChild(buildSliceSlider(dim, mosaicSliceCoords[Number(dim.axis)], function (axis, value) {
+				mosaicSliceCoords[axis] = value;
+				refreshMosaic();
+			}));
+		});
+
+		const mosaicEl = document.getElementById('mosaic');
+		mosaicEl.parentNode.insertBefore(bar, mosaicEl);
+	}
+
+	function refreshMosaic() {
+		const requestId = String(++requestSequence);
+		mosaicRequestId = requestId;
+		vscode.postMessage({
+			type: 'refreshMosaic',
+			requestId: requestId,
+			sliceCoords: mosaicSliceCoords.slice()
+		});
 	}
 
 	function selectTile(tile) {
 		if (!tile) {
+			selectedImageIndex = null;
+			selectedTileThumb = null;
+			selectedSliceDims = [];
+			selectedSliceCoords = [];
 			renderSelectedTile(null);
 			return;
 		}
 
-		const imageIndex = Number(tile.image_index);
-		const canLoad = Number.isInteger(imageIndex) && imageIndex >= 0 && Boolean(tile.renderable);
-		const isCached = canLoad && imageCache.has(imageIndex);
-		renderSelectedTile(tile, canLoad && !isCached ? 'Loading full-resolution image...' : null);
+		selectedImageIndex = Number(tile.image_index);
+		selectedTileThumb = tile;
+		selectedSliceDims = Array.isArray(tile.slice_dims) ? tile.slice_dims : [];
+		selectedSliceCoords = defaultSliceCoords(selectedSliceDims, tile.source_plane);
+		loadSelectedImage();
+	}
+
+	function loadSelectedImage() {
+		const canLoad = Number.isInteger(selectedImageIndex)
+			&& selectedImageIndex >= 0
+			&& selectedTileThumb
+			&& Boolean(selectedTileThumb.renderable);
 		if (!canLoad) {
+			renderSelectedTile(selectedTileThumb);
 			return;
 		}
 
-		const cachedImage = imageCache.get(imageIndex);
+		const key = cacheKey(selectedImageIndex, selectedSliceCoords);
+		const cachedImage = imageCache.get(key);
 		if (cachedImage) {
 			renderSelectedTile(cachedImage, 'Loaded from selection cache.');
 			return;
 		}
 
+		renderSelectedTile(selectedTileThumb, 'Loading full-resolution image...');
 		const requestId = String(++requestSequence);
 		pendingRequestId = requestId;
+		pendingRequestIndex = selectedImageIndex;
+		pendingRequestCoords = selectedSliceCoords.slice();
 		vscode.postMessage({
 			type: 'loadImage',
-			requestId,
-			imageIndex
+			requestId: requestId,
+			imageIndex: selectedImageIndex,
+			sliceCoords: selectedSliceCoords.slice()
 		});
 	}
 
@@ -615,6 +753,11 @@
 			root.appendChild(frame);
 		}
 
+		const sliceControls = buildSelectedSliceControls();
+		if (sliceControls) {
+			root.appendChild(sliceControls);
+		}
+
 		const fields = document.createElement('dl');
 		const head = tile.head || {};
 		addField(fields, 'slice', head.slice);
@@ -646,12 +789,55 @@
 		}
 
 		const image = responsePayload.image;
-		const imageIndex = Number(image.image_index);
-		if (Number.isInteger(imageIndex)) {
-			cacheImage(imageIndex, image);
+		if (Number.isInteger(pendingRequestIndex)) {
+			cacheImage(cacheKey(pendingRequestIndex, pendingRequestCoords), image);
 		}
 
 		renderSelectedTile(image);
+	}
+
+	function handleMosaicRefreshed(message) {
+		if (message.requestId !== mosaicRequestId) {
+			return;
+		}
+
+		const responsePayload = message.payload || {};
+		if (responsePayload.ok !== true || !responsePayload.mosaic) {
+			handleMosaicError((responsePayload && responsePayload.error) || 'Unable to refresh the mosaic.');
+			return;
+		}
+
+		payload.mosaic = responsePayload.mosaic;
+		renderMosaic();
+	}
+
+	function handleMosaicError(error) {
+		const noticesEl = document.getElementById('notices');
+		if (noticesEl) {
+			noticesEl.textContent = '';
+			noticesEl.appendChild(notice(String(error), 'error'));
+		}
+	}
+
+	function buildSelectedSliceControls() {
+		if (!selectedSliceDims || !selectedSliceDims.length) {
+			return null;
+		}
+
+		const wrap = document.createElement('div');
+		wrap.className = 'mrd-slice-controls';
+		let rendered = false;
+		selectedSliceDims.forEach(function (dim) {
+			if ((Number(dim.size) || 1) <= 1) {
+				return;
+			}
+			rendered = true;
+			wrap.appendChild(buildSliceSlider(dim, selectedSliceCoords[Number(dim.axis)], function (axis, value) {
+				selectedSliceCoords[axis] = value;
+				loadSelectedImage();
+			}));
+		});
+		return rendered ? wrap : null;
 	}
 
 	function renderSelectedError(error) {
@@ -674,6 +860,10 @@
 			handleImageLoaded(message);
 		} else if (message.type === 'imageError' && message.requestId === pendingRequestId) {
 			renderSelectedError(message.error || 'Unable to load selected image.');
+		} else if (message.type === 'mosaicRefreshed') {
+			handleMosaicRefreshed(message);
+		} else if (message.type === 'mosaicError' && message.requestId === mosaicRequestId) {
+			handleMosaicError(message.error || 'Unable to refresh the mosaic.');
 		}
 	});
 
