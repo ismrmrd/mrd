@@ -24,6 +24,8 @@
 	let mosaicRequestId = null;
 	const imageCache = new Map();
 	const MAX_IMAGE_CACHE_ENTRIES = Number(config.maxImageCacheEntries) || 32;
+	const persisted = (vscode.getState() || {}) as any;
+	let viewportHeight = Number(persisted.viewportHeight) || 0;
 
 	function cacheImage(key, image) {
 		if (imageCache.has(key)) {
@@ -563,6 +565,21 @@
 		return document.body.classList.contains('mrd-maximized');
 	}
 
+	function persistState() {
+		vscode.setState({ viewportHeight: viewportHeight, maximized: isMaximized() });
+	}
+
+	function toggleMaximize() {
+		document.body.classList.toggle('mrd-maximized');
+		persistState();
+		if (activeViewport) {
+			if (activeViewport.syncControls) {
+				activeViewport.syncControls();
+			}
+			requestAnimationFrame(activeViewport.refit);
+		}
+	}
+
 	function makeToolButton(label, title, onClick) {
 		const button = document.createElement('button');
 		button.type = 'button';
@@ -694,32 +711,84 @@
 		}
 		frame.addEventListener('pointerup', endDrag);
 		frame.addEventListener('pointercancel', endDrag);
-		frame.addEventListener('dblclick', fit);
+		frame.addEventListener('dblclick', toggleMaximize);
 
-		const maximizeButton = makeToolButton(isMaximized() ? 'Exit full window' : 'Maximize', 'Toggle full-window view (Esc to exit)', function () {
-			document.body.classList.toggle('mrd-maximized');
-			maximizeButton.textContent = isMaximized() ? 'Exit full window' : 'Maximize';
-			requestAnimationFrame(fit);
-		});
+		function zoomIn() {
+			zoomBy(1.2, frame.clientWidth / 2, frame.clientHeight / 2);
+		}
+
+		function zoomOut() {
+			zoomBy(1 / 1.2, frame.clientWidth / 2, frame.clientHeight / 2);
+		}
+
+		const maximizeButton = makeToolButton('\u2922', 'Maximize', toggleMaximize);
+		maximizeButton.classList.add('mrd-tool-maximize');
+		function syncMaximizeButton() {
+			maximizeButton.textContent = isMaximized() ? '\u2921' : '\u2922';
+			maximizeButton.title = isMaximized() ? 'Restore view (Esc)' : 'Maximize';
+			maximizeButton.setAttribute('aria-label', maximizeButton.title);
+		}
+		syncMaximizeButton();
 
 		const toolbar = document.createElement('div');
 		toolbar.className = 'mrd-viewport-toolbar';
 		toolbar.append(
-			makeToolButton('\u2212', 'Zoom out', function () { zoomBy(1 / 1.2, frame.clientWidth / 2, frame.clientHeight / 2); }),
+			makeToolButton('\u2212', 'Zoom out (-)', zoomOut),
 			zoomLabel,
-			makeToolButton('+', 'Zoom in', function () { zoomBy(1.2, frame.clientWidth / 2, frame.clientHeight / 2); }),
-			makeToolButton('Fit', 'Fit image to window', fit),
+			makeToolButton('+', 'Zoom in (+)', zoomIn),
+			makeToolButton('Fit', 'Fit image to window (0)', fit),
 			makeToolButton('1:1', 'Actual size', actualSize),
 			maximizeButton
 		);
+
+		const resizer = document.createElement('div');
+		resizer.className = 'mrd-viewport-resizer';
+		resizer.title = 'Drag to resize the image area';
+		resizer.setAttribute('aria-label', 'Resize image area');
+		let resizing = false;
+		let resizeStartY = 0;
+		let resizeStartHeight = 0;
+		resizer.addEventListener('pointerdown', function (event) {
+			resizing = true;
+			resizeStartY = event.clientY;
+			resizeStartHeight = frame.getBoundingClientRect().height;
+			try {
+				resizer.setPointerCapture(event.pointerId);
+			} catch (err) { /* pointer capture is best-effort */ }
+			event.preventDefault();
+		});
+		resizer.addEventListener('pointermove', function (event) {
+			if (!resizing) {
+				return;
+			}
+			viewportHeight = Math.max(140, resizeStartHeight + (event.clientY - resizeStartY));
+			frame.style.height = viewportHeight + 'px';
+			refit();
+		});
+		function endResize(event) {
+			if (!resizing) {
+				return;
+			}
+			resizing = false;
+			try {
+				resizer.releasePointerCapture(event.pointerId);
+			} catch (err) { /* pointer capture is best-effort */ }
+			persistState();
+		}
+		resizer.addEventListener('pointerup', endResize);
+		resizer.addEventListener('pointercancel', endResize);
+
+		if (viewportHeight > 0) {
+			frame.style.height = viewportHeight + 'px';
+		}
 
 		img.addEventListener('load', refit);
 		if (img.complete && img.naturalWidth) {
 			requestAnimationFrame(fit);
 		}
 
-		activeViewport = { refit: refit };
-		container.append(toolbar, frame);
+		activeViewport = { refit: refit, zoomIn: zoomIn, zoomOut: zoomOut, fit: fit, syncControls: syncMaximizeButton };
+		container.append(toolbar, frame, resizer);
 		return container;
 	}
 
@@ -874,13 +943,32 @@
 	});
 
 	document.addEventListener('keydown', function (event) {
+		const target = event.target as HTMLElement;
+		if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+			return;
+		}
 		if (event.key === 'Escape' && isMaximized()) {
-			document.body.classList.remove('mrd-maximized');
-			if (activeViewport) {
-				requestAnimationFrame(activeViewport.refit);
-			}
+			toggleMaximize();
+			return;
+		}
+		if (!activeViewport) {
+			return;
+		}
+		if (event.key === '+' || event.key === '=') {
+			activeViewport.zoomIn();
+			event.preventDefault();
+		} else if (event.key === '-' || event.key === '_') {
+			activeViewport.zoomOut();
+			event.preventDefault();
+		} else if (event.key === '0') {
+			activeViewport.fit();
+			event.preventDefault();
 		}
 	});
+
+	if (persisted.maximized) {
+		document.body.classList.add('mrd-maximized');
+	}
 
 	renderShell();
 	renderMosaic();

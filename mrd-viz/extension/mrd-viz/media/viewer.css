@@ -232,6 +232,36 @@ button, pre { font-family: inherit; }
 	-webkit-user-drag: none;
 }
 
+.mrd-tool-maximize {
+	margin-left: auto;
+	font-size: 15px;
+	line-height: 1;
+}
+
+.mrd-viewport-resizer {
+	height: 10px;
+	margin-top: 2px;
+	cursor: ns-resize;
+	position: relative;
+	touch-action: none;
+}
+
+.mrd-viewport-resizer::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 44px;
+	height: 3px;
+	transform: translate(-50%, -50%);
+	border-radius: 2px;
+	background: var(--mrd-line);
+}
+
+.mrd-viewport-resizer:hover::after {
+	background: var(--vscode-focusBorder, var(--mrd-muted));
+}
+
 .mrd-slice-controls {
 	display: flex;
 	flex-direction: column;
@@ -295,13 +325,8 @@ body.mrd-maximized #selected-panel .detail {
 	overflow: auto;
 }
 
-body.mrd-maximized .mrd-viewport {
-	flex: 1 1 auto;
-}
-
 body.mrd-maximized .mrd-viewport-frame {
-	flex: 1 1 auto;
-	height: auto;
+	height: 70vh;
 	max-height: none;
 }
 
