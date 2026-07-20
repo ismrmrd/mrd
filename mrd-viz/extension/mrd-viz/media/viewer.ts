@@ -13,6 +13,7 @@
 	let selectedIndex = null;
 	let requestSequence = 0;
 	let pendingRequestId = null;
+	let activeViewport = null;
 	const imageCache = new Map();
 	const MAX_IMAGE_CACHE_ENTRIES = Number(config.maxImageCacheEntries) || 32;
 
@@ -420,6 +421,170 @@
 		});
 	}
 
+	function isMaximized() {
+		return document.body.classList.contains('mrd-maximized');
+	}
+
+	function makeToolButton(label, title, onClick) {
+		const button = document.createElement('button');
+		button.type = 'button';
+		button.className = 'mrd-tool-button';
+		button.textContent = label;
+		button.title = title;
+		button.addEventListener('click', onClick);
+		return button;
+	}
+
+	// Builds an interactive image surface (zoom/pan + full-window toggle) for the selected tile.
+	function createImageViewport(tile) {
+		const container = document.createElement('div');
+		container.className = 'mrd-viewport';
+
+		const frame = document.createElement('div');
+		frame.className = 'mrd-viewport-frame';
+
+		const img = document.createElement('img');
+		img.className = 'mrd-viewport-image';
+		img.src = 'data:image/png;base64,' + tile.png_base64;
+		img.alt = 'Selected MRD image item ' + valueOrUnknown(tile.image_index);
+		img.draggable = false;
+		frame.appendChild(img);
+
+		const MIN_SCALE = 0.05;
+		const MAX_SCALE = 40;
+		let scale = 1;
+		let offsetX = 0;
+		let offsetY = 0;
+		let mode = 'fit';
+
+		const zoomLabel = document.createElement('span');
+		zoomLabel.className = 'mrd-zoom-label';
+
+		function naturalSize() {
+			return { w: img.naturalWidth || 1, h: img.naturalHeight || 1 };
+		}
+
+		function fitScale() {
+			const n = naturalSize();
+			const fw = frame.clientWidth || 1;
+			const fh = frame.clientHeight || 1;
+			return Math.min(fw / n.w, fh / n.h);
+		}
+
+		function apply() {
+			img.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px) scale(' + scale + ')';
+			zoomLabel.textContent = Math.round(scale * 100) + '%';
+			frame.classList.toggle('is-pannable', scale > fitScale() + 0.0001);
+		}
+
+		function fit() {
+			mode = 'fit';
+			scale = fitScale();
+			const n = naturalSize();
+			offsetX = (frame.clientWidth - n.w * scale) / 2;
+			offsetY = (frame.clientHeight - n.h * scale) / 2;
+			apply();
+		}
+
+		function setScaleAbout(newScale, cx, cy) {
+			newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+			const ix = (cx - offsetX) / scale;
+			const iy = (cy - offsetY) / scale;
+			scale = newScale;
+			offsetX = cx - ix * scale;
+			offsetY = cy - iy * scale;
+			apply();
+		}
+
+		function zoomBy(factor, cx, cy) {
+			mode = 'free';
+			setScaleAbout(scale * factor, cx, cy);
+		}
+
+		function actualSize() {
+			mode = 'free';
+			setScaleAbout(1, frame.clientWidth / 2, frame.clientHeight / 2);
+		}
+
+		function refit() {
+			if (mode === 'fit') {
+				fit();
+			} else {
+				apply();
+			}
+		}
+
+		frame.addEventListener('wheel', function (event) {
+			event.preventDefault();
+			const rect = frame.getBoundingClientRect();
+			const factor = event.deltaY < 0 ? 1.1 : 1 / 1.1;
+			zoomBy(factor, event.clientX - rect.left, event.clientY - rect.top);
+		}, { passive: false });
+
+		let dragging = false;
+		let lastX = 0;
+		let lastY = 0;
+		frame.addEventListener('pointerdown', function (event) {
+			dragging = true;
+			lastX = event.clientX;
+			lastY = event.clientY;
+			frame.classList.add('is-panning');
+			try {
+				frame.setPointerCapture(event.pointerId);
+			} catch (err) { /* pointer capture is best-effort */ }
+		});
+		frame.addEventListener('pointermove', function (event) {
+			if (!dragging) {
+				return;
+			}
+			offsetX += event.clientX - lastX;
+			offsetY += event.clientY - lastY;
+			lastX = event.clientX;
+			lastY = event.clientY;
+			mode = 'free';
+			apply();
+		});
+		function endDrag(event) {
+			if (!dragging) {
+				return;
+			}
+			dragging = false;
+			frame.classList.remove('is-panning');
+			try {
+				frame.releasePointerCapture(event.pointerId);
+			} catch (err) { /* pointer capture is best-effort */ }
+		}
+		frame.addEventListener('pointerup', endDrag);
+		frame.addEventListener('pointercancel', endDrag);
+		frame.addEventListener('dblclick', fit);
+
+		const maximizeButton = makeToolButton(isMaximized() ? 'Exit full window' : 'Maximize', 'Toggle full-window view (Esc to exit)', function () {
+			document.body.classList.toggle('mrd-maximized');
+			maximizeButton.textContent = isMaximized() ? 'Exit full window' : 'Maximize';
+			requestAnimationFrame(fit);
+		});
+
+		const toolbar = document.createElement('div');
+		toolbar.className = 'mrd-viewport-toolbar';
+		toolbar.append(
+			makeToolButton('\u2212', 'Zoom out', function () { zoomBy(1 / 1.2, frame.clientWidth / 2, frame.clientHeight / 2); }),
+			zoomLabel,
+			makeToolButton('+', 'Zoom in', function () { zoomBy(1.2, frame.clientWidth / 2, frame.clientHeight / 2); }),
+			makeToolButton('Fit', 'Fit image to window', fit),
+			makeToolButton('1:1', 'Actual size', actualSize),
+			maximizeButton
+		);
+
+		img.addEventListener('load', refit);
+		if (img.complete && img.naturalWidth) {
+			requestAnimationFrame(fit);
+		}
+
+		activeViewport = { refit: refit };
+		container.append(toolbar, frame);
+		return container;
+	}
+
 	function renderSelectedTile(tile, statusText?) {
 		selectedIndex = tile ? tile.image_index : null;
 		document.querySelectorAll<HTMLElement>('.tile').forEach(function (node) {
@@ -440,17 +605,15 @@
 			root.appendChild(notice(statusText, 'warning'));
 		}
 
-		const frame = document.createElement('div');
-		frame.className = 'selected-image';
 		if (tile.png_base64) {
-			const img = document.createElement('img');
-			img.src = 'data:image/png;base64,' + tile.png_base64;
-			img.alt = 'Selected MRD image item ' + valueOrUnknown(tile.image_index);
-			frame.appendChild(img);
+			root.appendChild(createImageViewport(tile));
 		} else {
+			activeViewport = null;
+			const frame = document.createElement('div');
+			frame.className = 'selected-image';
 			frame.textContent = tile.render_error || 'No image payload available.';
+			root.appendChild(frame);
 		}
-		root.appendChild(frame);
 
 		const fields = document.createElement('dl');
 		const head = tile.head || {};
@@ -511,6 +674,21 @@
 			handleImageLoaded(message);
 		} else if (message.type === 'imageError' && message.requestId === pendingRequestId) {
 			renderSelectedError(message.error || 'Unable to load selected image.');
+		}
+	});
+
+	window.addEventListener('resize', function () {
+		if (activeViewport) {
+			activeViewport.refit();
+		}
+	});
+
+	document.addEventListener('keydown', function (event) {
+		if (event.key === 'Escape' && isMaximized()) {
+			document.body.classList.remove('mrd-maximized');
+			if (activeViewport) {
+				requestAnimationFrame(activeViewport.refit);
+			}
 		}
 	});
 

@@ -146,17 +146,17 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 			<div class="stats" id="stats"></div>
 		</header>
 		<main class="main">
-			<section class="panel">
+			<section class="panel" id="mosaic-panel">
 				<h2 class="panel-title">Mosaic</h2>
 				<div id="notices"></div>
 				<div class="mosaic" id="mosaic"></div>
 			</section>
 			<aside class="side">
-				<section class="panel">
+				<section class="panel" id="selected-panel">
 					<h2 class="panel-title">Selected Tile</h2>
 					<div class="detail" id="detail"></div>
 				</section>
-				<section class="panel">
+				<section class="panel" id="metadata-panel">
 					<h2 class="panel-title">Metadata</h2>
 					<div class="tabs" role="tablist" aria-label="Metadata views">
 						<button class="tab" type="button" role="tab" aria-selected="true" aria-controls="metadata-summary" data-tab="summary">Summary</button>
