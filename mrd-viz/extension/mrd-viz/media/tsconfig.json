@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"module": "ESNext",
+		"target": "ES2020",
+		"moduleResolution": "Bundler",
+		"lib": [
+			"ES2020",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"types": [
+			"vscode-webview"
+		],
+		"strict": true,
+		"noImplicitAny": false,
+		"strictNullChecks": false,
+		"noEmit": true,
+		"skipLibCheck": true
+	},
+	"include": [
+		"viewer.ts"
+	]
+}

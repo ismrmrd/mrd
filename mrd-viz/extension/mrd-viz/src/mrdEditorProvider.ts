@@ -35,7 +35,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 	): Promise<void> {
 		webviewPanel.webview.options = {
 			enableScripts: true,
-			localResourceRoots: [],
+			localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')],
 		};
 
 		if (document.uri.scheme !== 'file') {
@@ -109,7 +109,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 
 			this.outputChannel.appendLine(JSON.stringify(payload, redactingPayloadReplacer, 2));
 			appendIfPresent(this.outputChannel, 'stderr', stderr);
-			webviewPanel.webview.html = getMrdViewerHtml(webviewPanel.webview, payload);
+			webviewPanel.webview.html = getMrdViewerHtml(webviewPanel.webview, payload, this.context.extensionUri);
 		} catch (error) {
 			if (token.isCancellationRequested || abortController.signal.aborted) {
 				return;
