@@ -11,6 +11,7 @@
 	const payload = bootstrap.payload || {};
 	const config = bootstrap.config || {};
 	let selectedIndex = null;
+	let selectedTileKey = null;
 	let requestSequence = 0;
 	let pendingRequestId = null;
 	let pendingRequestIndex = null;
@@ -388,11 +389,13 @@
 			return;
 		}
 
-		tiles.forEach(function (tile) {
+		tiles.forEach(function (tile, tileIndex) {
+			tile.mosaicKey = tileIndex;
 			const button = document.createElement('button');
 			button.className = 'tile';
 			button.type = 'button';
 			button.dataset.imageIndex = String(tile.image_index);
+			button.dataset.tileKey = String(tileIndex);
 			button.setAttribute('aria-selected', 'false');
 
 			if (tile.png_base64) {
@@ -559,6 +562,7 @@
 		if (!tile) {
 			selectedImageIndex = null;
 			selectedTileThumb = null;
+			selectedTileKey = null;
 			selectedSliceDims = [];
 			selectedSliceCoords = [];
 			renderSelectedTile(null);
@@ -567,6 +571,7 @@
 
 		selectedImageIndex = Number(tile.image_index);
 		selectedTileThumb = tile;
+		selectedTileKey = tile.mosaicKey != null ? String(tile.mosaicKey) : null;
 		selectedSliceDims = Array.isArray(tile.slice_dims) ? tile.slice_dims : [];
 		selectedSliceCoords = defaultSliceCoords(selectedSliceDims, tile.source_plane);
 		loadSelectedImage();
@@ -836,7 +841,7 @@
 	function renderSelectedTile(tile, statusText?) {
 		selectedIndex = tile ? tile.image_index : null;
 		document.querySelectorAll<HTMLElement>('.tile').forEach(function (node) {
-			node.setAttribute('aria-selected', String(tile && String(tile.image_index) === node.dataset.imageIndex));
+			node.setAttribute('aria-selected', String(selectedTileKey !== null && node.dataset.tileKey === selectedTileKey));
 		});
 
 		const root = document.getElementById('detail');
