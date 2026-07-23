@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 import { MrdVizBackendError, runOpenFile, type BackendRunnerOptions } from './backendRunner';
-import { resolveBackend } from './backendResolver';
+import { invalidateBackendCache, resolveBackend } from './backendResolver';
 import { redactingPayloadReplacer } from './contracts';
 import { getMrdBackendMissingHtml, getMrdErrorHtml, getMrdLoadingHtml, getMrdViewerHtml } from './webviewHtml';
 import { appendIfPresent, bindViewerMessageHandling } from './viewerController';
@@ -47,6 +47,14 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 			return;
 		}
 
+		await this.renderDocument(document, webviewPanel, token);
+	}
+
+	private async renderDocument(
+		document: MrdDocument,
+		webviewPanel: vscode.WebviewPanel,
+		token: vscode.CancellationToken,
+	): Promise<void> {
 		webviewPanel.webview.html = getMrdLoadingHtml(webviewPanel.webview, document.uri);
 
 		const configuration = vscode.workspace.getConfiguration('mrdViz');
@@ -59,8 +67,16 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 		}
 		if (!resolution.ok) {
 			this.outputChannel.appendLine('');
-			this.outputChannel.appendLine(`No MRD Viz backend found. Tried: ${resolution.tried.join('; ')}`);
-			this.bindBackendSetupCommands(webviewPanel);
+			this.outputChannel.appendLine('No MRD Viz backend found. Tried:');
+			for (const attempt of resolution.tried) {
+				this.outputChannel.appendLine(`  - ${attempt.source}`);
+				if (attempt.detail) {
+					for (const line of attempt.detail.split('\n')) {
+						this.outputChannel.appendLine(`      ${line}`);
+					}
+				}
+			}
+			this.bindBackendSetupCommands(document, webviewPanel, token);
 			webviewPanel.webview.html = getMrdBackendMissingHtml(webviewPanel.webview, resolution.tried);
 			return;
 		}
@@ -115,11 +131,24 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 		}
 	}
 
-	private bindBackendSetupCommands(webviewPanel: vscode.WebviewPanel): void {
+	private bindBackendSetupCommands(
+		document: MrdDocument,
+		webviewPanel: vscode.WebviewPanel,
+		token: vscode.CancellationToken,
+	): void {
 		const subscription = webviewPanel.webview.onDidReceiveMessage(async (message: unknown) => {
-			if (isCommandMessage(message) && BACKEND_SETUP_COMMANDS.has(message.command)) {
-				await vscode.commands.executeCommand(message.command);
+			if (!isCommandMessage(message) || !BACKEND_SETUP_COMMANDS.has(message.command)) {
+				return;
 			}
+			// Handle the setup action once, then re-resolve: a successful interpreter selection
+			// or provisioning run should recover the viewer in place without a manual reload.
+			subscription.dispose();
+			await vscode.commands.executeCommand(message.command);
+			if (token.isCancellationRequested) {
+				return;
+			}
+			invalidateBackendCache();
+			await this.renderDocument(document, webviewPanel, token);
 		});
 		webviewPanel.onDidDispose(() => subscription.dispose());
 	}

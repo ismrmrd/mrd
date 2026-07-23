@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process';
+import { execFile, type ExecFileException } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -10,9 +10,16 @@ export interface ResolvedBackend {
 	source: string;
 }
 
+/** A candidate that was probed but rejected, plus the reason its `--version` probe failed. */
+export interface BackendAttempt {
+	source: string;
+	/** Human-readable failure reason (captured probe stderr, or the spawn error). */
+	detail?: string;
+}
+
 export type BackendResolution =
 	| { ok: true; backend: ResolvedBackend }
-	| { ok: false; tried: string[] };
+	| { ok: false; tried: BackendAttempt[] };
 
 let cachedBackend: ResolvedBackend | undefined;
 
@@ -30,13 +37,14 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 		return { ok: true, backend: cachedBackend };
 	}
 
-	const tried: string[] = [];
+	const tried: BackendAttempt[] = [];
 	for (const candidate of backendCandidates(context)) {
-		if (await validateBackend(candidate, validationTimeoutMs)) {
+		const probe = await validateBackend(candidate, validationTimeoutMs);
+		if (probe.ok) {
 			cachedBackend = candidate;
 			return { ok: true, backend: candidate };
 		}
-		tried.push(candidate.source);
+		tried.push({ source: candidate.source, detail: probe.detail });
 	}
 
 	return { ok: false, tried };
@@ -81,16 +89,58 @@ function* backendCandidates(context: vscode.ExtensionContext): Generator<Resolve
 	}
 }
 
-function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise<boolean> {
+interface ProbeResult {
+	ok: boolean;
+	/** Failure reason when `ok` is false. */
+	detail?: string;
+}
+
+function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise<ProbeResult> {
 	const timeout = Math.min(Math.max(timeoutMs, 1000), 15000);
 	return new Promise(resolve => {
 		execFile(
 			candidate.command,
 			[...candidate.baseArgs, '--version'],
 			{ timeout, windowsHide: true },
-			error => resolve(!error),
+			(error, _stdout, stderr) => {
+				if (!error) {
+					resolve({ ok: true });
+					return;
+				}
+				resolve({ ok: false, detail: describeProbeFailure(error, stderr) });
+			},
 		);
 	});
+}
+
+/**
+ * Turn a failed `--version` probe into a concise, user-facing reason. The captured stderr is
+ * preferred because it carries the actionable message (e.g. a `GLIBC_2.38 not found` linker
+ * error, or a `ModuleNotFoundError: No module named 'mrd_viz'`); the spawn error is a fallback
+ * for cases with no output, such as a missing command (ENOENT) or a probe timeout.
+ */
+function describeProbeFailure(error: ExecFileException, stderr: string): string {
+	const trimmedStderr = stderr.trim();
+	if (trimmedStderr) {
+		return truncateForDisplay(collapseToLastLines(trimmedStderr, 4));
+	}
+	if (error.code === 'ENOENT') {
+		return 'command not found';
+	}
+	if (error.killed) {
+		return 'timed out before responding';
+	}
+	return truncateForDisplay(error.message.trim() || 'probe failed');
+}
+
+function collapseToLastLines(text: string, maxLines: number): string {
+	const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+	return lines.slice(-maxLines).join('\n');
+}
+
+function truncateForDisplay(text: string): string {
+	const limit = 600;
+	return text.length > limit ? `${text.slice(0, limit)}\u2026` : text;
 }
 
 function pythonExecutableRelative(): string {
@@ -104,8 +154,18 @@ function bundledBinaryPath(context: vscode.ExtensionContext): string | undefined
 }
 
 function managedVenvPython(context: vscode.ExtensionContext): string | undefined {
-	const candidate = path.join(context.globalStorageUri.fsPath, 'backend-venv', pythonExecutableRelative());
+	const candidate = managedVenvPythonPath(context);
 	return existsSync(candidate) ? candidate : undefined;
+}
+
+/** Directory where the managed backend virtual environment is (or would be) provisioned. */
+export function managedVenvDirectory(context: vscode.ExtensionContext): string {
+	return path.join(context.globalStorageUri.fsPath, 'backend-venv');
+}
+
+/** Path to the interpreter inside the managed backend virtual environment (may not exist yet). */
+export function managedVenvPythonPath(context: vscode.ExtensionContext): string {
+	return path.join(managedVenvDirectory(context), pythonExecutableRelative());
 }
 
 function developmentVenvPython(context: vscode.ExtensionContext): string | undefined {

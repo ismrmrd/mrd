@@ -1,7 +1,10 @@
+import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
-import { invalidateBackendCache } from './backendResolver';
+import { invalidateBackendCache, managedVenvDirectory, managedVenvPythonPath } from './backendResolver';
 import { MrdEditorProvider, MRD_VIEW_TYPE } from './mrdEditorProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -16,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('mrd-viz.setUpBackend', () => setUpBackend()),
+		vscode.commands.registerCommand('mrd-viz.setUpBackend', () => setUpBackend(context, outputChannel)),
 		vscode.commands.registerCommand('mrd-viz.selectInterpreter', () => selectInterpreter()),
 		vscode.workspace.onDidChangeConfiguration(event => {
 			if (event.affectsConfiguration('mrdViz.pythonPath')) {
@@ -95,13 +98,20 @@ async function pickTargetUri(resource?: vscode.Uri, selectedResources?: vscode.U
 	return selectedFiles?.[0];
 }
 
-async function setUpBackend(): Promise<void> {
-	const action = await vscode.window.showInformationMessage(
-		'MRD Viz needs a Python 3.12 environment with the "mrd_viz" package installed. Point MRD Viz at that interpreter, or open this workspace in the MRD Viz dev container.',
-		'Select Python Interpreter\u2026',
+async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<void> {
+	const proceed = await vscode.window.showInformationMessage(
+		'Set up the MRD Viz backend automatically? This creates a private Python virtual environment in the extension\u2019s storage and installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.',
+		{ modal: true },
+		'Install',
 	);
-	if (action) {
-		await selectInterpreter();
+	if (proceed !== 'Install') {
+		return;
+	}
+
+	const installed = await provisionManagedBackend(context, outputChannel);
+	if (installed) {
+		invalidateBackendCache();
+		void vscode.window.showInformationMessage('MRD Viz backend installed.');
 	}
 }
 
@@ -118,7 +128,119 @@ async function selectInterpreter(): Promise<void> {
 
 	await vscode.workspace.getConfiguration('mrdViz').update('pythonPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
 	invalidateBackendCache();
-	void vscode.window.showInformationMessage('MRD Viz Python interpreter updated. Re-open the .mrd file to load it.');
+	void vscode.window.showInformationMessage('MRD Viz Python interpreter updated.');
+}
+
+/**
+ * Provision the managed backend virtual environment (resolver candidate #3) in global storage:
+ * create a venv from a discovered Python 3.12+ interpreter and `pip install` the backend. Returns
+ * true only if every step succeeds; failures are surfaced to the user and the output channel.
+ */
+async function provisionManagedBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<boolean> {
+	const basePython = await findProvisioningPython();
+	if (!basePython) {
+		void vscode.window.showErrorMessage(
+			'MRD Viz could not find a Python 3.12+ interpreter on PATH to build the backend environment. Install Python 3.12, or use "Select Python Interpreter\u2026" to point at an existing environment.',
+		);
+		return false;
+	}
+
+	const venvDir = managedVenvDirectory(context);
+	const venvPython = managedVenvPythonPath(context);
+	const installTarget = repoBackendInstallTarget(context) ?? 'mrd-viz';
+
+	return vscode.window.withProgress(
+		{ location: vscode.ProgressLocation.Notification, title: 'Setting up MRD Viz backend', cancellable: false },
+		async progress => {
+			try {
+				await mkdir(path.dirname(venvDir), { recursive: true });
+
+				progress.report({ message: 'Creating virtual environment\u2026' });
+				await runProvisioningStep(basePython, ['-m', 'venv', venvDir], outputChannel);
+
+				progress.report({ message: 'Upgrading pip\u2026' });
+				await runProvisioningStep(venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip'], outputChannel);
+
+				progress.report({ message: 'Installing the mrd_viz backend\u2026' });
+				const installArgs = installTarget === 'mrd-viz'
+					? ['-m', 'pip', 'install', 'mrd-viz']
+					: ['-m', 'pip', 'install', '-e', installTarget];
+				await runProvisioningStep(venvPython, installArgs, outputChannel);
+
+				return true;
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				outputChannel.appendLine(`Backend setup failed: ${message}`);
+				outputChannel.show(true);
+				void vscode.window.showErrorMessage(
+					`MRD Viz backend setup failed: ${message}. See the MRD Viz output channel for details, or use "Select Python Interpreter\u2026" instead.`,
+				);
+				return false;
+			}
+		},
+	);
+}
+
+/** Locate a Python 3.12+ interpreter on PATH suitable for building the backend venv. */
+async function findProvisioningPython(): Promise<string | undefined> {
+	for (const command of ['python3.12', 'python3', 'python']) {
+		if (await isPython312OrNewer(command)) {
+			return command;
+		}
+	}
+	return undefined;
+}
+
+function isPython312OrNewer(command: string): Promise<boolean> {
+	return new Promise(resolve => {
+		execFile(
+			command,
+			['-c', 'import sys; print(sys.version_info[0], sys.version_info[1])'],
+			{ timeout: 10000, windowsHide: true },
+			(error, stdout) => {
+				if (error) {
+					resolve(false);
+					return;
+				}
+				const match = /^(\d+)\s+(\d+)/.exec(stdout.trim());
+				if (!match) {
+					resolve(false);
+					return;
+				}
+				const [major, minor] = [Number(match[1]), Number(match[2])];
+				resolve(major === 3 && minor >= 12);
+			},
+		);
+	});
+}
+
+/** When running from the repo checkout, prefer an editable install of the local backend. */
+function repoBackendInstallTarget(context: vscode.ExtensionContext): string | undefined {
+	const backendDir = path.resolve(context.extensionUri.fsPath, '..', '..', 'backend');
+	return existsSync(path.join(backendDir, 'pyproject.toml')) ? backendDir : undefined;
+}
+
+function runProvisioningStep(command: string, args: string[], outputChannel: vscode.OutputChannel): Promise<void> {
+	outputChannel.appendLine(`Running: ${command} ${args.join(' ')}`);
+	return new Promise((resolve, reject) => {
+		execFile(command, args, { timeout: 600000, windowsHide: true, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+			appendIfPresent(outputChannel, 'stdout', stdout);
+			appendIfPresent(outputChannel, 'stderr', stderr);
+			if (error) {
+				const detail = (stderr.trim().split(/\r?\n/).pop() || error.message).trim();
+				reject(new Error(detail));
+				return;
+			}
+			resolve();
+		});
+	});
+}
+
+function appendIfPresent(outputChannel: vscode.OutputChannel, label: string, text: string): void {
+	const trimmed = text.trim();
+	if (trimmed) {
+		outputChannel.appendLine(`${label}: ${trimmed}`);
+	}
 }
 
 function isMrdFile(filePath: string): boolean {

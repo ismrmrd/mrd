@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 
+import { type BackendAttempt } from './backendResolver';
 import { redactingPayloadReplacer, type MrdOpenPayload } from './contracts';
 
 // Maximum number of full-resolution images (base64 PNG payloads) the webview keeps in its
@@ -16,10 +17,16 @@ export function getMrdErrorHtml(webview: vscode.Webview, title: string, detail: 
 	return getMrdStateHtml(webview, title, detail, targetPath, 'error');
 }
 
-export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: string[]): string {
+export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: BackendAttempt[]): string {
 	const nonce = getNonce();
 	const cspSource = webview.cspSource;
-	const triedItems = tried.map(entry => `<li>${escapeHtml(entry)}</li>`).join('');
+	const triedItems = tried.map(attempt => {
+		const source = `<span class="candidate">${escapeHtml(attempt.source)}</span>`;
+		const detail = attempt.detail
+			? `<pre class="reason">${escapeHtml(attempt.detail)}</pre>`
+			: '<div class="reason muted">No diagnostic output was captured.</div>';
+		return `<li>${source}${detail}</li>`;
+	}).join('');
 
 	return `<!doctype html>
 <html lang="en">
@@ -37,12 +44,41 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: string[
 			font-family: var(--vscode-font-family);
 			font-size: var(--vscode-font-size);
 		}
-		main { display: grid; align-content: start; gap: 12px; min-height: 100vh; padding: 24px; max-width: 760px; }
+		main { display: grid; align-content: start; gap: 12px; min-height: 100vh; padding: 24px; max-width: 820px; }
 		h1 { margin: 0; font-size: 15px; font-weight: 650; }
+		h2 { margin: 12px 0 0; font-size: 13px; font-weight: 600; }
 		p { margin: 0; color: var(--vscode-descriptionForeground); line-height: 1.45; }
 		code { font-family: var(--vscode-editor-font-family); }
-		ul { margin: 4px 0; padding-left: 18px; color: var(--vscode-descriptionForeground); }
-		li { overflow-wrap: anywhere; }
+		ul.candidates { margin: 4px 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+		ul.candidates > li {
+			padding: 8px 10px;
+			border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border, transparent));
+			border-radius: 4px;
+			background: var(--vscode-textBlockQuote-background, transparent);
+		}
+		.candidate { display: block; font-weight: 600; overflow-wrap: anywhere; }
+		.reason {
+			margin: 6px 0 0;
+			padding: 6px 8px;
+			border-radius: 3px;
+			background: var(--vscode-textCodeBlock-background, rgba(127,127,127,0.1));
+			color: var(--vscode-errorForeground, var(--vscode-descriptionForeground));
+			font-family: var(--vscode-editor-font-family);
+			font-size: 12px;
+			white-space: pre-wrap;
+			overflow-wrap: anywhere;
+		}
+		.reason.muted { color: var(--vscode-descriptionForeground); background: none; padding: 0; margin-top: 4px; }
+		pre.setup {
+			margin: 4px 0 0;
+			padding: 10px 12px;
+			border-radius: 4px;
+			background: var(--vscode-textCodeBlock-background, rgba(127,127,127,0.1));
+			font-family: var(--vscode-editor-font-family);
+			font-size: 12px;
+			white-space: pre-wrap;
+			overflow-wrap: anywhere;
+		}
 		.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 		button {
 			padding: 6px 12px;
@@ -61,12 +97,22 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: string[
 <body>
 	<main>
 		<h1>MRD Viz backend not found</h1>
-		<p>MRD Viz needs a Python 3.12 environment with the <code>mrd_viz</code> package installed, but none of these candidates worked:</p>
-		<ul>${triedItems}</ul>
+		<p>MRD Viz needs a Python 3.12 environment with the <code>mrd_viz</code> package installed, or the bundled standalone backend. Each candidate below was probed with <code>--version</code> and failed for the reason shown:</p>
+		<ul class="candidates">${triedItems}</ul>
+
 		<div class="actions">
-			<button type="button" id="setup">Set Up Backend…</button>
-			<button type="button" id="select" class="secondary">Select Python Interpreter…</button>
+			<button type="button" id="select">Select Python Interpreter…</button>
+			<button type="button" id="setup" class="secondary">Set Up Backend Automatically…</button>
 		</div>
+
+		<h2>Point MRD Viz at a Python environment</h2>
+		<p>Create an environment that has the <code>mrd_viz</code> package, then set <code>mrdViz.pythonPath</code> to its interpreter:</p>
+		<pre class="setup">python3 -m venv ~/.mrd-viz-venv
+~/.mrd-viz-venv/bin/pip install mrd-viz   # or, from a checkout: pip install -e path/to/mrd/mrd-viz/backend
+
+# then set mrdViz.pythonPath to:
+~/.mrd-viz-venv/bin/python</pre>
+		<p>Use <b>Select Python Interpreter…</b> above to browse to that interpreter (it writes <code>mrdViz.pythonPath</code> for you). The viewer reloads automatically once a working backend is found.</p>
 		<p>You can also open this workspace in the MRD Viz dev container, which provisions the backend for you.</p>
 	</main>
 	<script nonce="${nonce}">
