@@ -83,3 +83,46 @@ def test_cli_clean_image_error_exits_one(generated_mrd_pair: tuple[Path, Path]) 
     assert result.returncode == 1
     assert payload["ok"] is False
     assert "not found" in payload["error"]
+
+
+def test_cli_image_accepts_slice_options(generated_mrd_pair: tuple[Path, Path]) -> None:
+    _, recon_path = generated_mrd_pair
+
+    result, payload = run_cli("image", recon_path, "--index", 0, "--slice", "0:0", "--slice", "1:0")
+
+    assert result.returncode == 0
+    assert payload["image"]["renderable"] is True
+    assert "slice_dims" in payload["image"]
+    assert isinstance(payload["image"]["source_plane"], dict)
+
+
+def test_cli_image_rejects_malformed_slice(generated_mrd_pair: tuple[Path, Path]) -> None:
+    _, recon_path = generated_mrd_pair
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(SRC_ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+    result = subprocess.run(
+        [sys.executable, "-m", "mrd_viz.cli", "image", str(recon_path), "--index", "0", "--slice", "bogus"],
+        cwd=BACKEND_ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 2
+    assert "AXIS:INDEX" in result.stderr
+
+
+def test_cli_open_explode_slices_emits_tiles(generated_mrd_pair: tuple[Path, Path]) -> None:
+    _, recon_path = generated_mrd_pair
+
+    default_result, default_payload = run_cli("open", recon_path, "--max-thumbnails", 64)
+    exploded_result, exploded_payload = run_cli("open", recon_path, "--max-thumbnails", 64, "--explode-slices")
+
+    assert default_result.returncode == 0
+    assert exploded_result.returncode == 0
+    default_tiles = default_payload["mosaic"]["thumbnails"]
+    exploded_tiles = exploded_payload["mosaic"]["thumbnails"]
+    assert len(exploded_tiles) >= len(default_tiles)
+

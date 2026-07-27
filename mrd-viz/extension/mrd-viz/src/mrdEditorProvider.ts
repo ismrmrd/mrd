@@ -4,7 +4,8 @@ import * as vscode from 'vscode';
 import { MrdVizBackendError, runOpenFile, type BackendRunnerOptions } from './backendRunner';
 import { invalidateBackendCache, resolveBackend } from './backendResolver';
 import { redactingPayloadReplacer } from './contracts';
-import { getMrdBackendMissingHtml, getMrdErrorHtml, getMrdLoadingHtml, getMrdViewerHtml } from './webviewHtml';
+import { getMrdBackendMissingHtml, getMrdViewerHtml } from './webviewHtml';
+import { getMrdErrorHtml, getMrdLoadingHtml } from './stateHtml';
 import { appendIfPresent, bindViewerMessageHandling } from './viewerController';
 
 export const MRD_VIEW_TYPE = 'mrd-viz.mrdFile';
@@ -34,7 +35,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 	): Promise<void> {
 		webviewPanel.webview.options = {
 			enableScripts: true,
-			localResourceRoots: [],
+			localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, 'media')],
 		};
 
 		if (document.uri.scheme !== 'file') {
@@ -108,7 +109,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 
 			this.outputChannel.appendLine(JSON.stringify(payload, redactingPayloadReplacer, 2));
 			appendIfPresent(this.outputChannel, 'stderr', stderr);
-			webviewPanel.webview.html = getMrdViewerHtml(webviewPanel.webview, payload);
+			webviewPanel.webview.html = getMrdViewerHtml(webviewPanel.webview, payload, this.context.extensionUri);
 		} catch (error) {
 			if (token.isCancellationRequested || abortController.signal.aborted) {
 				return;

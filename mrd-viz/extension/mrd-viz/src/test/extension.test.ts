@@ -5,7 +5,9 @@ import * as vscode from 'vscode';
 
 import { getOpenWithMrdEditorArgs } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
-import { getMrdBackendMissingHtml, getMrdErrorHtml } from '../webviewHtml';
+import { getMrdBackendMissingHtml } from '../webviewHtml';
+import { getMrdErrorHtml } from '../stateHtml';
+import { isViewerToExtensionMessage } from '../contracts';
 
 interface CommandContribution {
 	command: string;
@@ -93,6 +95,22 @@ suite('MRD Viz Extension', () => {
 		assert.ok(html.includes('No diagnostic output was captured.'));
 		assert.ok(html.includes('mrd-viz.setUpBackend'));
 		assert.ok(html.includes('mrd-viz.selectInterpreter'));
+	});
+
+	test('validates loadImage messages including optional slice coordinates', () => {
+		assert.ok(isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 0 }));
+		assert.ok(isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: [0, 1] }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: [0, -1] }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: 'nope' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: -1 }));
+	});
+
+	test('validates setMosaicMode messages with a known mode', () => {
+		assert.ok(isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3', mode: 'images' }));
+		assert.ok(isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3', mode: 'slices' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'setMosaicMode', requestId: '3', mode: 'volumes' }));
+		assert.ok(!isViewerToExtensionMessage({ type: 'nope', requestId: '3', mode: 'images' }));
 	});
 });
 

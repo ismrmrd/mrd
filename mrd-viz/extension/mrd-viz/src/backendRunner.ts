@@ -25,13 +25,14 @@ export interface OpenFileResult {
 	stderr: string;
 }
 
-export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal): Promise<OpenFileResult> {
+export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal, explodeSlices = false): Promise<OpenFileResult> {
 	const commandArguments = [
 		...options.baseArgs,
 		'open',
 		filePath,
 		'--max-thumbnails',
 		String(options.maxThumbnails),
+		...(explodeSlices ? ['--explode-slices'] : []),
 	];
 	const result = await execBackend(options.command, commandArguments, options.timeoutMs, signal);
 	return { payload: parseOpenPayload(result.stdout, result.stderr), stderr: result.stderr };
@@ -42,16 +43,31 @@ export interface ImageResult {
 	stderr: string;
 }
 
-export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions, signal?: AbortSignal): Promise<ImageResult> {
+export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions, signal?: AbortSignal, sliceCoords?: number[]): Promise<ImageResult> {
 	const commandArguments = [
 		...options.baseArgs,
 		'image',
 		filePath,
 		'--index',
 		String(imageIndex),
+		...sliceArgs(sliceCoords),
 	];
 	const result = await execBackend(options.command, commandArguments, options.timeoutMs, signal);
 	return { payload: parseImagePayload(result.stdout, result.stderr), stderr: result.stderr };
+}
+
+function sliceArgs(sliceCoords?: number[]): string[] {
+	if (!sliceCoords || sliceCoords.length === 0) {
+		return [];
+	}
+
+	const args: string[] = [];
+	sliceCoords.forEach((coord, axis) => {
+		if (Number.isInteger(coord) && coord >= 0) {
+			args.push('--slice', `${axis}:${coord}`);
+		}
+	});
+	return args;
 }
 
 function execBackend(command: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
