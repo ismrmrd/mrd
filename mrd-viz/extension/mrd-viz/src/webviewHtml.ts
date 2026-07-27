@@ -97,7 +97,7 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: Backend
 <body>
 	<main>
 		<h1>MRD Viz backend not found</h1>
-		<p>MRD Viz needs a Python 3.12 environment with the <code>mrd_viz</code> package installed, or the bundled standalone backend. Each candidate below was probed with <code>--version</code> and failed for the reason shown:</p>
+		<p>MRD Viz needs a Python 3.12+ environment with the <code>mrd_viz</code> package installed, or the bundled standalone backend. Each candidate below was probed with <code>--version</code> and failed for the reason shown:</p>
 		<ul class="candidates">${triedItems}</ul>
 
 		<div class="actions">

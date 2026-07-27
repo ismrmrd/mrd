@@ -13,8 +13,10 @@ export interface ResolvedBackend {
 /** A candidate that was probed but rejected, plus the reason its `--version` probe failed. */
 export interface BackendAttempt {
 	source: string;
-	/** Human-readable failure reason (captured probe stderr, or the spawn error). */
+	/** Concise, webview-friendly failure reason (last lines of probe stderr, or the spawn error). */
 	detail?: string;
+	/** Complete captured probe output, logged in full to the output channel (never truncated). */
+	detailFull?: string;
 }
 
 export type BackendResolution =
@@ -44,7 +46,7 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 			cachedBackend = candidate;
 			return { ok: true, backend: candidate };
 		}
-		tried.push({ source: candidate.source, detail: probe.detail });
+		tried.push({ source: candidate.source, detail: probe.detail, detailFull: probe.detailFull });
 	}
 
 	return { ok: false, tried };
@@ -91,8 +93,10 @@ function* backendCandidates(context: vscode.ExtensionContext): Generator<Resolve
 
 interface ProbeResult {
 	ok: boolean;
-	/** Failure reason when `ok` is false. */
+	/** Concise failure reason for the webview when `ok` is false. */
 	detail?: string;
+	/** Complete captured output for the output channel when `ok` is false. */
+	detailFull?: string;
 }
 
 function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise<ProbeResult> {
@@ -107,7 +111,7 @@ function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise
 					resolve({ ok: true });
 					return;
 				}
-				resolve({ ok: false, detail: describeProbeFailure(error, stderr) });
+				resolve({ ok: false, detail: describeProbeFailure(error, stderr), detailFull: fullProbeFailure(error, stderr) });
 			},
 		);
 	});
@@ -131,6 +135,24 @@ function describeProbeFailure(error: ExecFileException, stderr: string): string 
 		return 'timed out before responding';
 	}
 	return truncateForDisplay(error.message.trim() || 'probe failed');
+}
+
+/**
+ * Like {@link describeProbeFailure} but without collapsing or truncation, so the complete probe
+ * output can be written to the output channel where a linker/module error may span many lines.
+ */
+function fullProbeFailure(error: ExecFileException, stderr: string): string {
+	const trimmedStderr = stderr.trim();
+	if (trimmedStderr) {
+		return trimmedStderr;
+	}
+	if (error.code === 'ENOENT') {
+		return 'command not found';
+	}
+	if (error.killed) {
+		return 'timed out before responding';
+	}
+	return error.message.trim() || 'probe failed';
 }
 
 function collapseToLastLines(text: string, maxLines: number): string {

@@ -70,8 +70,9 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 			this.outputChannel.appendLine('No MRD Viz backend found. Tried:');
 			for (const attempt of resolution.tried) {
 				this.outputChannel.appendLine(`  - ${attempt.source}`);
-				if (attempt.detail) {
-					for (const line of attempt.detail.split('\n')) {
+				const detail = attempt.detailFull ?? attempt.detail;
+				if (detail) {
+					for (const line of detail.split('\n')) {
 						this.outputChannel.appendLine(`      ${line}`);
 					}
 				}

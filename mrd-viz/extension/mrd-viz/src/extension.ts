@@ -126,7 +126,17 @@ async function selectInterpreter(): Promise<void> {
 		return;
 	}
 
-	await vscode.workspace.getConfiguration('mrdViz').update('pythonPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
+	const config = vscode.workspace.getConfiguration('mrdViz');
+	await config.update('pythonPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
+	// Clear any narrower-scoped values (e.g. a dev container's workspace-level setting) that would
+	// otherwise shadow the interpreter the user just picked and block recovery via the guided flow.
+	const inspected = config.inspect<string>('pythonPath');
+	if (inspected?.workspaceFolderValue !== undefined) {
+		await config.update('pythonPath', undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+	}
+	if (inspected?.workspaceValue !== undefined) {
+		await config.update('pythonPath', undefined, vscode.ConfigurationTarget.Workspace);
+	}
 	invalidateBackendCache();
 	void vscode.window.showInformationMessage('MRD Viz Python interpreter updated.');
 }
@@ -140,7 +150,7 @@ async function provisionManagedBackend(context: vscode.ExtensionContext, outputC
 	const basePython = await findProvisioningPython();
 	if (!basePython) {
 		void vscode.window.showErrorMessage(
-			'MRD Viz could not find a Python 3.12+ interpreter on PATH to build the backend environment. Install Python 3.12, or use "Select Python Interpreter\u2026" to point at an existing environment.',
+			'MRD Viz could not find a Python 3.12+ interpreter on PATH to build the backend environment. Install Python 3.12 or newer, or use "Select Python Interpreter\u2026" to point at an existing environment.',
 		);
 		return false;
 	}
