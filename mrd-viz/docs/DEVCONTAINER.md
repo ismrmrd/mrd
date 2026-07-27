@@ -12,17 +12,19 @@ Run MRD Viz inside a reproducible dev container: Python 3.12 + the `mrd_viz` bac
 1. Open the `mrd` repo in VS Code.
 2. Command Palette → **Dev Containers: Reopen in Container** → pick **"MRD Viz extension"**.
    - The other option, **"mrd"**, is the full-repo toolchain container (conda + MATLAB + C++) and is not needed just to view `.mrd` files.
-3. Wait for the build. `postCreate` installs the `just` and `azcopy` CLIs.
+3. Wait for the build. `postCreate` installs the `just` and `azcopy` CLIs, then best-effort provisions the backend virtualenv at `~/.venvs/mrd-viz` (needs PyPI access; the banner it prints says whether it succeeded).
 
 ## 2. One-time setup
 
-From the integrated terminal (now connected to the container):
+`postCreate` already provisions the backend virtualenv at `~/.venvs/mrd-viz` and `mrdViz.pythonPath` points at it, so opening a `.mrd` file works out of the box. To build and install the **MRD Viz extension** itself — and to (re)run the backend install if the automatic step was skipped or failed on a restricted network — run from the container's integrated terminal:
 
 ```bash
 just mrd-viz-container-setup
 ```
 
-This creates a backend virtualenv at `~/.venvs/mrd-viz`, installs the `mrd_viz` backend into it, builds the extension `.vsix`, and installs it in this window. `mrdViz.pythonPath` is already pointed at that venv, so no further configuration is needed. Reload the window if the extension does not activate immediately.
+This (re)creates the backend virtualenv, installs the `mrd_viz` backend into it, builds the extension `.vsix`, and installs it in this window. Reload the window if the extension does not activate immediately.
+
+> If the `postCreate` banner reported that automatic backend setup did **not** complete (e.g. a blocked network), running `just mrd-viz-container-setup` is required — see [Restricted / corporate networks](#restricted--corporate-networks) below.
 
 ## 3. Pull `.mrd` data from Azure
 
