@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # postCreate for the MRD Viz dev container.
-# Installs the generic CLI tools the workflow needs. Project provisioning
-# (backend + extension) is a one-time `just container-setup` run by the user.
+# Installs the generic CLI tools the workflow needs, then best-effort provisions
+# the backend virtualenv so the container is turnkey for a first run. Building and
+# installing the extension VSIX stays a one-time `just mrd-viz-container-setup`
+# step (it needs the npm registry, which is what fails on restricted networks).
 set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # Resolve the container architecture so the Node and azcopy downloads match it.
 arch="$(uname -m)"
@@ -41,15 +45,57 @@ if ! command -v azcopy >/dev/null 2>&1; then
 	rm -rf /tmp/azcopy.tar.gz /tmp/${azcopy_glob}
 fi
 
-cat <<'EOF'
+# Backend provisioning (best-effort, non-fatal). The dev container points
+# mrdViz.pythonPath at this venv, so create it and install the mrd_viz backend
+# now for a turnkey first run. This only needs PyPI (mrd-python/numpy/pillow),
+# which is typically reachable even where the npm registry is blocked; the guard
+# keeps a failure from aborting container creation and falls back to the manual
+# step in the banner below.
+venv="$HOME/.venvs/mrd-viz"
+backend_dir="$repo_root/mrd-viz/backend"
+backend_ready=0
+if [ -x "$venv/bin/python" ] && "$venv/bin/python" -m mrd_viz.cli --version >/dev/null 2>&1; then
+	backend_ready=1
+elif [ -d "$backend_dir" ]; then
+	echo ">> Provisioning MRD Viz backend virtualenv: $venv"
+	if python3 -m venv "$venv" \
+		&& "$venv/bin/python" -m pip install --upgrade pip \
+		&& "$venv/bin/python" -m pip install -e "$backend_dir"; then
+		backend_ready=1
+	else
+		echo ">> WARNING: automatic backend setup failed (often a blocked/restricted network)." >&2
+		rm -rf "$venv"
+	fi
+fi
+
+if [ "$backend_ready" -eq 1 ]; then
+	cat <<'EOF'
 
 ============================================================
- MRD Viz dev container is ready.
+ MRD Viz dev container is ready. Backend is installed and
+ mrdViz.pythonPath points at ~/.venvs/mrd-viz, so opening a
+ .mrd file should work out of the box.
 
- Next step (run once):
+ If the MRD Viz extension itself is not installed yet, run:
+     just mrd-viz-container-setup
+ (builds + installs the extension VSIX; needs npm registry
+  access - see mrd-viz/docs/DEVCONTAINER.md for restricted
+  networks).
+============================================================
+EOF
+else
+	cat <<'EOF'
+
+============================================================
+ MRD Viz dev container is ready, but automatic backend setup
+ did not complete (often a blocked/restricted network).
+
+ Finish setup by running:
      just mrd-viz-container-setup
 
  That creates the backend virtualenv, installs mrd_viz, and
  builds + installs the MRD Viz extension in this window.
+ See mrd-viz/docs/DEVCONTAINER.md for restricted-network tips.
 ============================================================
 EOF
+fi

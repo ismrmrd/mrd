@@ -3,7 +3,8 @@ import { execFile } from 'node:child_process';
 import { isMrdImageResponsePayload, isMrdOpenPayload, type MrdImageResponsePayload, type MrdOpenPayload } from './contracts';
 
 export interface BackendRunnerOptions {
-	pythonPath: string;
+	command: string;
+	baseArgs: string[];
 	maxThumbnails: number;
 	timeoutMs: number;
 }
@@ -24,16 +25,16 @@ export interface OpenFileResult {
 	stderr: string;
 }
 
-export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal): Promise<OpenFileResult> {
+export async function runOpenFile(filePath: string, options: BackendRunnerOptions, signal?: AbortSignal, explodeSlices = false): Promise<OpenFileResult> {
 	const commandArguments = [
-		'-m',
-		'mrd_viz.cli',
+		...options.baseArgs,
 		'open',
 		filePath,
 		'--max-thumbnails',
 		String(options.maxThumbnails),
+		...(explodeSlices ? ['--explode-slices'] : []),
 	];
-	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs, signal);
+	const result = await execBackend(options.command, commandArguments, options.timeoutMs, signal);
 	return { payload: parseOpenPayload(result.stdout, result.stderr), stderr: result.stderr };
 }
 
@@ -42,23 +43,37 @@ export interface ImageResult {
 	stderr: string;
 }
 
-export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions, signal?: AbortSignal): Promise<ImageResult> {
+export async function runImage(filePath: string, imageIndex: number, options: BackendRunnerOptions, signal?: AbortSignal, sliceCoords?: number[]): Promise<ImageResult> {
 	const commandArguments = [
-		'-m',
-		'mrd_viz.cli',
+		...options.baseArgs,
 		'image',
 		filePath,
 		'--index',
 		String(imageIndex),
+		...sliceArgs(sliceCoords),
 	];
-	const result = await execPython(options.pythonPath, commandArguments, options.timeoutMs, signal);
+	const result = await execBackend(options.command, commandArguments, options.timeoutMs, signal);
 	return { payload: parseImagePayload(result.stdout, result.stderr), stderr: result.stderr };
 }
 
-function execPython(pythonPath: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
+function sliceArgs(sliceCoords?: number[]): string[] {
+	if (!sliceCoords || sliceCoords.length === 0) {
+		return [];
+	}
+
+	const args: string[] = [];
+	sliceCoords.forEach((coord, axis) => {
+		if (Number.isInteger(coord) && coord >= 0) {
+			args.push('--slice', `${axis}:${coord}`);
+		}
+	});
+	return args;
+}
+
+function execBackend(command: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
 	return new Promise((resolve, reject) => {
 		execFile(
-			pythonPath,
+			command,
 			commandArguments,
 			{
 				maxBuffer: 64 * 1024 * 1024,

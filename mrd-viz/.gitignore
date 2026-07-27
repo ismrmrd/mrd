@@ -2,9 +2,13 @@
 backend/.venv/
 backend/src/*.egg-info/
 backend/src/**/__pycache__/
+backend/build/
+backend/dist/
 extension/mrd-viz/node_modules/
 extension/mrd-viz/out/
 extension/mrd-viz/.vscode-test/
 # Local npm registry override (e.g. a corporate feed on restricted networks).
 extension/mrd-viz/.npmrc
+# CI-staged standalone backend binary (built by the release workflow).
+extension/mrd-viz/media/backend/
 *.vsix

@@ -6,11 +6,19 @@ export interface MrdStreamSummary {
 	other_count?: number;
 }
 
+export interface MrdSliceDim {
+	axis: number;
+	name: string;
+	size: number;
+}
+
 export interface MrdMosaicTile {
 	image_index?: number;
 	stream_index?: number;
 	stream_item_type?: string;
 	data_shape?: number[];
+	slice_dims?: MrdSliceDim[];
+	tile_title?: string;
 	dtype?: string;
 	png_base64?: string | null;
 	rendered_shape?: number[] | null;
@@ -81,10 +89,19 @@ export interface MrdImageResponsePayload {
 	[key: string]: unknown;
 }
 
+export type MrdMosaicMode = 'images' | 'slices';
+
 export interface LoadImageRequestMessage {
 	type: 'loadImage';
 	requestId: string;
 	imageIndex: number;
+	sliceCoords?: number[];
+}
+
+export interface SetMosaicModeRequestMessage {
+	type: 'setMosaicMode';
+	requestId: string;
+	mode: MrdMosaicMode;
 }
 
 export interface ImageLoadedMessage {
@@ -100,9 +117,25 @@ export interface ImageErrorMessage {
 	error: string;
 }
 
-export type ViewerToExtensionMessage = LoadImageRequestMessage;
+export interface MosaicUpdatedMessage {
+	type: 'mosaicUpdated';
+	requestId: string;
+	payload: MrdOpenPayload;
+}
 
-export type ExtensionToViewerMessage = ImageLoadedMessage | ImageErrorMessage;
+export interface MosaicErrorMessage {
+	type: 'mosaicError';
+	requestId: string;
+	error: string;
+}
+
+export type ViewerToExtensionMessage = LoadImageRequestMessage | SetMosaicModeRequestMessage;
+
+export type ExtensionToViewerMessage =
+	| ImageLoadedMessage
+	| ImageErrorMessage
+	| MosaicUpdatedMessage
+	| MosaicErrorMessage;
 
 export function isMrdImageResponsePayload(value: unknown): value is MrdImageResponsePayload {
 	return typeof value === 'object'
@@ -116,11 +149,31 @@ export function isViewerToExtensionMessage(value: unknown): value is ViewerToExt
 		return false;
 	}
 
-	const message = value as { type?: unknown; requestId?: unknown; imageIndex?: unknown };
-	const imageIndex = message.imageIndex;
-	return message.type === 'loadImage'
-		&& typeof message.requestId === 'string'
-		&& typeof imageIndex === 'number'
-		&& Number.isInteger(imageIndex)
-		&& imageIndex >= 0;
+	const message = value as { type?: unknown; requestId?: unknown; imageIndex?: unknown; sliceCoords?: unknown; mode?: unknown };
+	if (typeof message.requestId !== 'string') {
+		return false;
+	}
+
+	if (message.type === 'loadImage') {
+		const imageIndex = message.imageIndex;
+		return typeof imageIndex === 'number'
+			&& Number.isInteger(imageIndex)
+			&& imageIndex >= 0
+			&& isOptionalSliceCoords(message.sliceCoords);
+	}
+
+	if (message.type === 'setMosaicMode') {
+		return message.mode === 'images' || message.mode === 'slices';
+	}
+
+	return false;
+}
+
+function isSliceCoords(value: unknown): value is number[] {
+	return Array.isArray(value)
+		&& value.every(entry => typeof entry === 'number' && Number.isInteger(entry) && entry >= 0);
+}
+
+function isOptionalSliceCoords(value: unknown): value is number[] | undefined {
+	return value === undefined || isSliceCoords(value);
 }

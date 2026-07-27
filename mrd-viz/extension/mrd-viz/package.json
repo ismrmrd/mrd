@@ -23,6 +23,16 @@
         "command": "mrd-viz.openFile",
         "title": "Open File",
         "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.setUpBackend",
+        "title": "Set Up Backend",
+        "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.selectInterpreter",
+        "title": "Select Python Interpreter",
+        "category": "MRD Viz"
       }
     ],
     "customEditors": [
@@ -71,16 +81,21 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && npm run check:webview && npm run build:webview",
+    "check:webview": "tsc --noEmit -p media",
+    "build:webview": "esbuild media/viewer.ts --bundle --format=iife --outfile=media/viewer.js --target=es2020",
     "watch": "tsc -watch -p ./",
+    "watch:webview": "esbuild media/viewer.ts --bundle --format=iife --outfile=media/viewer.js --target=es2020 --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test"
   },
   "devDependencies": {
     "@types/vscode": "^1.120.0",
+    "@types/vscode-webview": "^1.57.5",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "esbuild": "^0.24.2",
     "typescript-eslint": "^8.56.1",
     "eslint": "^9.39.3",
     "typescript": "^5.9.3",
