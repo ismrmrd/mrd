@@ -90,9 +90,15 @@ function setMosaicNotice(text, kind) {
 	if (!noticesEl) {
 		return;
 	}
-	noticesEl.textContent = '';
+	// Manage only our own status node so backend error/warning notices from renderShell() survive.
+	const existing = document.getElementById('mosaic-status');
+	if (existing) {
+		existing.remove();
+	}
 	if (text) {
-		noticesEl.appendChild(notice(text, kind));
+		const node = notice(text, kind);
+		node.id = 'mosaic-status';
+		noticesEl.appendChild(node);
 	}
 }
 

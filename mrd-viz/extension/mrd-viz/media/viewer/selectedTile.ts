@@ -65,6 +65,7 @@ export function renderSelectedTile(tile, statusText?) {
 	const root = document.getElementById('detail');
 	root.textContent = '';
 	if (!tile) {
+		state.activeViewport = null;
 		const empty = document.createElement('div');
 		empty.className = 'empty';
 		empty.textContent = 'No tile selected.';
@@ -151,6 +152,7 @@ function buildSelectedSliceControls() {
 }
 
 export function renderSelectedError(error) {
+	state.activeViewport = null;
 	const root = document.getElementById('detail');
 	root.textContent = '';
 	root.appendChild(notice(error, 'error'));

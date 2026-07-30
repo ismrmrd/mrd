@@ -661,6 +661,7 @@
     const root = document.getElementById("detail");
     root.textContent = "";
     if (!tile) {
+      state.activeViewport = null;
       const empty = document.createElement("div");
       empty.className = "empty";
       empty.textContent = "No tile selected.";
@@ -736,6 +737,7 @@
     return rendered ? wrap : null;
   }
   function renderSelectedError(error) {
+    state.activeViewport = null;
     const root = document.getElementById("detail");
     root.textContent = "";
     root.appendChild(notice(error, "error"));
@@ -814,9 +816,14 @@
     if (!noticesEl) {
       return;
     }
-    noticesEl.textContent = "";
+    const existing = document.getElementById("mosaic-status");
+    if (existing) {
+      existing.remove();
+    }
     if (text) {
-      noticesEl.appendChild(notice(text, kind));
+      const node = notice(text, kind);
+      node.id = "mosaic-status";
+      noticesEl.appendChild(node);
     }
   }
   function makeMosaicModeButton(mode, label, title) {
