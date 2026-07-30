@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
@@ -141,10 +141,20 @@ async function selectInterpreter(): Promise<void> {
 	void vscode.window.showInformationMessage('MRD Viz Python interpreter updated.');
 }
 
+/** A provisioning step that failed, tagged with the human-readable phase for clear reporting. */
+class BackendSetupError extends Error {
+	constructor(readonly step: string, detail: string) {
+		super(detail);
+		this.name = 'BackendSetupError';
+	}
+}
+
 /**
  * Provision the managed backend virtual environment (resolver candidate #3) in global storage:
  * create a venv from a discovered Python 3.12+ interpreter and `pip install` the backend. Returns
- * true only if every step succeeds; failures are surfaced to the user and the output channel.
+ * true only if every step succeeds; on any failure the half-provisioned venv is removed (so a
+ * stale interpreter can't satisfy the resolver probe and then fail at `import mrd_viz`) and the
+ * cause is surfaced to the user and the output channel.
  */
 async function provisionManagedBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<boolean> {
 	const basePython = await findProvisioningPython();
@@ -166,29 +176,65 @@ async function provisionManagedBackend(context: vscode.ExtensionContext, outputC
 				await mkdir(path.dirname(venvDir), { recursive: true });
 
 				progress.report({ message: 'Creating virtual environment\u2026' });
-				await runProvisioningStep(basePython, ['-m', 'venv', venvDir], outputChannel);
+				await runProvisioningStep('creating the virtual environment', basePython, ['-m', 'venv', venvDir], outputChannel);
 
 				progress.report({ message: 'Upgrading pip\u2026' });
-				await runProvisioningStep(venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip'], outputChannel);
+				await runProvisioningStep('upgrading pip', venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip'], outputChannel);
 
 				progress.report({ message: 'Installing the mrd_viz backend\u2026' });
 				const installArgs = installTarget === 'mrd-viz'
 					? ['-m', 'pip', 'install', 'mrd-viz']
 					: ['-m', 'pip', 'install', '-e', installTarget];
-				await runProvisioningStep(venvPython, installArgs, outputChannel);
+				await runProvisioningStep('installing the mrd_viz backend', venvPython, installArgs, outputChannel);
 
 				return true;
 			} catch (error) {
-				const message = error instanceof Error ? error.message : String(error);
-				outputChannel.appendLine(`Backend setup failed: ${message}`);
-				outputChannel.show(true);
-				void vscode.window.showErrorMessage(
-					`MRD Viz backend setup failed: ${message}. See the MRD Viz output channel for details, or use "Select Python Interpreter\u2026" instead.`,
-				);
+				await reportProvisioningFailure(error, venvDir, outputChannel);
 				return false;
 			}
 		},
 	);
+}
+
+/**
+ * Log the failure, remove the incomplete venv, and show a user-facing message that names the
+ * step that failed and (when recognizable) hints at the cause.
+ */
+async function reportProvisioningFailure(error: unknown, venvDir: string, outputChannel: vscode.OutputChannel): Promise<void> {
+	const step = error instanceof BackendSetupError ? error.step : undefined;
+	const detail = error instanceof Error ? error.message : String(error);
+	const where = step ? ` while ${step}` : '';
+
+	outputChannel.appendLine(`Backend setup failed${where}: ${detail}`);
+	await removeIncompleteVenv(venvDir, outputChannel);
+	outputChannel.show(true);
+
+	const hint = classifyProvisioningFailure(detail);
+	void vscode.window.showErrorMessage(
+		`MRD Viz backend setup failed${where}: ${detail}.${hint} See the MRD Viz output channel for details, or use "Select Python Interpreter\u2026" instead.`,
+	);
+}
+
+/** Remove a partially built venv so retries start clean and the resolver skips a broken candidate. */
+async function removeIncompleteVenv(venvDir: string, outputChannel: vscode.OutputChannel): Promise<void> {
+	try {
+		await rm(venvDir, { recursive: true, force: true });
+		outputChannel.appendLine(`Removed incomplete backend environment: ${venvDir}`);
+	} catch (cleanupError) {
+		const detail = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+		outputChannel.appendLine(`Warning: could not remove incomplete backend environment at ${venvDir}: ${detail}`);
+	}
+}
+
+/** Map a raw failure detail to a short, actionable hint appended to the error notification. */
+function classifyProvisioningFailure(detail: string): string {
+	if (/no matching distribution|could not find a version|404|not found on pypi/i.test(detail)) {
+		return ' The mrd_viz package could not be found in the configured package index.';
+	}
+	if (/ssl|tls|proxy|connection|timed out|network|getaddrinfo|econn|temporary failure/i.test(detail)) {
+		return ' This looks like a network/proxy problem reaching the package index.';
+	}
+	return '';
 }
 
 /** Locate a Python 3.12+ interpreter on PATH suitable for building the backend venv. */
@@ -230,7 +276,7 @@ function repoBackendInstallTarget(context: vscode.ExtensionContext): string | un
 	return existsSync(path.join(backendDir, 'pyproject.toml')) ? backendDir : undefined;
 }
 
-function runProvisioningStep(command: string, args: string[], outputChannel: vscode.OutputChannel): Promise<void> {
+function runProvisioningStep(step: string, command: string, args: string[], outputChannel: vscode.OutputChannel): Promise<void> {
 	outputChannel.appendLine(`Running: ${command} ${args.join(' ')}`);
 	return new Promise((resolve, reject) => {
 		execFile(command, args, { timeout: 600000, windowsHide: true, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
@@ -238,7 +284,7 @@ function runProvisioningStep(command: string, args: string[], outputChannel: vsc
 			appendIfPresent(outputChannel, 'stderr', stderr);
 			if (error) {
 				const detail = (stderr.trim().split(/\r?\n/).pop() || error.message).trim();
-				reject(new Error(detail));
+				reject(new BackendSetupError(step, detail));
 				return;
 			}
 			resolve();
