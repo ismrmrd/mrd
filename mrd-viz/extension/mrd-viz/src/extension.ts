@@ -219,8 +219,7 @@ async function reportProvisioningFailure(error: unknown, venvDir: string, output
 async function removeIncompleteVenv(venvDir: string, outputChannel: vscode.OutputChannel): Promise<void> {
 	try {
 		await rm(venvDir, { recursive: true, force: true });
-		outputChannel.appendLine(`Removed incomplete backend environment: ${venvDir}`);
-	} catch (cleanupError) {
+		outputChannel.appendLine(`Cleaned up incomplete backend environment (if present): ${venvDir}`);
 		const detail = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
 		outputChannel.appendLine(`Warning: could not remove incomplete backend environment at ${venvDir}: ${detail}`);
 	}
