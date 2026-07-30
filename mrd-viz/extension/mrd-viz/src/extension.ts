@@ -229,7 +229,7 @@ async function removeIncompleteVenv(venvDir: string, outputChannel: vscode.Outpu
 /** Map a raw failure detail to a short, actionable hint appended to the error notification. */
 function classifyProvisioningFailure(detail: string): string {
 	if (/no matching distribution|could not find a version|404|not found on pypi/i.test(detail)) {
-		return ' The mrd_viz package could not be found in the configured package index.';
+		return ' The mrd-viz package could not be found in the configured package index.';
 	}
 	if (/ssl|tls|proxy|connection|timed out|network|getaddrinfo|econn|temporary failure/i.test(detail)) {
 		return ' This looks like a network/proxy problem reaching the package index.';
