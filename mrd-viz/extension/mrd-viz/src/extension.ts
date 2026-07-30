@@ -220,6 +220,7 @@ async function removeIncompleteVenv(venvDir: string, outputChannel: vscode.Outpu
 	try {
 		await rm(venvDir, { recursive: true, force: true });
 		outputChannel.appendLine(`Cleaned up incomplete backend environment (if present): ${venvDir}`);
+	} catch (cleanupError) {
 		const detail = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
 		outputChannel.appendLine(`Warning: could not remove incomplete backend environment at ${venvDir}: ${detail}`);
 	}
