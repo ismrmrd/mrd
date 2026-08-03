@@ -1,0 +1,9 @@
+# Generated esbuild webview bundle (built by `npm run build:webview`,
+# and regenerated automatically on `vsce package` via the vscode:prepublish hook).
+media/viewer.js
+media/*.map
+
+# Local build / dependency output
+node_modules/
+out/
+*.vsix
