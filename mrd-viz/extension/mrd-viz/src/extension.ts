@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('mrd-viz.setUpBackend', () => setUpBackend(context, outputChannel)),
 		vscode.commands.registerCommand('mrd-viz.selectInterpreter', () => selectInterpreter()),
 		vscode.workspace.onDidChangeConfiguration(event => {
-			if (event.affectsConfiguration('mrdViz.pythonPath')) {
+			if (event.affectsConfiguration('mrdViz.backendPath') || event.affectsConfiguration('mrdViz.pythonPath')) {
 				invalidateBackendCache();
 			}
 		}),
@@ -110,6 +110,11 @@ async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vsc
 
 	const installed = await provisionManagedBackend(context, outputChannel);
 	if (installed) {
+		// Persist the managed venv as the configured backend (machine-scoped) so it becomes a
+		// first-class override the resolver reads directly, rather than an implicit candidate.
+		await vscode.workspace.getConfiguration('mrdViz').update(
+			'backendPath', managedVenvPythonPath(context), vscode.ConfigurationTarget.Global,
+		);
 		invalidateBackendCache();
 		void vscode.window.showInformationMessage('MRD Viz backend installed.');
 	}
@@ -126,19 +131,13 @@ async function selectInterpreter(): Promise<void> {
 		return;
 	}
 
+	// backendPath is machine-scoped, so this writes to the context-appropriate machine settings
+	// (host user settings, or the dev container's remote settings) and cannot leak across that
+	// boundary or be committed to a workspace — no narrower-scope clearing needed.
 	const config = vscode.workspace.getConfiguration('mrdViz');
-	await config.update('pythonPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
-	// Clear any narrower-scoped values (e.g. a dev container's workspace-level setting) that would
-	// otherwise shadow the interpreter the user just picked and block recovery via the guided flow.
-	const inspected = config.inspect<string>('pythonPath');
-	if (inspected?.workspaceFolderValue !== undefined) {
-		await config.update('pythonPath', undefined, vscode.ConfigurationTarget.WorkspaceFolder);
-	}
-	if (inspected?.workspaceValue !== undefined) {
-		await config.update('pythonPath', undefined, vscode.ConfigurationTarget.Workspace);
-	}
+	await config.update('backendPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
 	invalidateBackendCache();
-	void vscode.window.showInformationMessage('MRD Viz Python interpreter updated.');
+	void vscode.window.showInformationMessage('MRD Viz backend interpreter updated.');
 }
 
 /** A provisioning step that failed, tagged with the human-readable phase for clear reporting. */
@@ -150,11 +149,12 @@ class BackendSetupError extends Error {
 }
 
 /**
- * Provision the managed backend virtual environment (resolver candidate #3) in global storage:
- * create a venv from a discovered Python 3.12+ interpreter and `pip install` the backend. Returns
- * true only if every step succeeds; on any failure the half-provisioned venv is removed (so a
- * stale interpreter can't satisfy the resolver probe and then fail at `import mrd_viz`) and the
- * cause is surfaced to the user and the output channel.
+ * Provision the managed backend virtual environment in global storage: create a venv from a
+ * discovered Python 3.12+ interpreter and `pip install` the backend. The caller persists the venv
+ * interpreter to `mrdViz.backendPath` on success. Returns true only if every step succeeds; on any
+ * failure the half-provisioned venv is removed (so a stale interpreter can't satisfy the resolver
+ * probe and then fail at `import mrd_viz`) and the cause is surfaced to the user and the output
+ * channel.
  */
 async function provisionManagedBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<boolean> {
 	const basePython = await findProvisioningPython();
