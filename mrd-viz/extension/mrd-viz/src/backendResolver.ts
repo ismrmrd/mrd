@@ -3,16 +3,22 @@ import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
+/** How a backend candidate was selected. Drives tailored failure messaging in the webview. */
+export type BackendKind = 'override' | 'bundled' | 'development';
+
 /** A validated way to invoke the MRD Viz backend: `command` plus fixed leading args. */
 export interface ResolvedBackend {
 	command: string;
 	baseArgs: string[];
 	source: string;
+	kind: BackendKind;
 }
 
 /** A candidate that was probed but rejected, plus the reason its `--version` probe failed. */
 export interface BackendAttempt {
 	source: string;
+	/** Which tier this candidate belonged to, so the UI can distinguish a broken override from a missing binary. */
+	kind?: BackendKind;
 	/** Concise, webview-friendly failure reason (last lines of probe stderr, or the spawn error). */
 	detail?: string;
 	/** Complete captured probe output, logged in full to the output channel (never truncated). */
@@ -39,56 +45,101 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 		return { ok: true, backend: cachedBackend };
 	}
 
+	const candidates = planBackendCandidates({
+		configuredPath: getConfiguredBackendPath(),
+		bundledBinaryPath: bundledBinaryPath(context),
+		developmentVenvPath: developmentVenvPython(context),
+		isDevelopment: context.extensionMode === vscode.ExtensionMode.Development,
+	});
+
 	const tried: BackendAttempt[] = [];
-	for (const candidate of backendCandidates(context)) {
+	for (const candidate of candidates) {
 		const probe = await validateBackend(candidate, validationTimeoutMs);
 		if (probe.ok) {
 			cachedBackend = candidate;
 			return { ok: true, backend: candidate };
 		}
-		tried.push({ source: candidate.source, detail: probe.detail, detailFull: probe.detailFull });
+		tried.push({ source: candidate.source, kind: candidate.kind, detail: probe.detail, detailFull: probe.detailFull });
 	}
 
 	return { ok: false, tried };
 }
 
-export function getConfiguredPythonPath(): string | undefined {
-	const inspected = vscode.workspace.getConfiguration('mrdViz').inspect<string>('pythonPath');
-	const value = inspected?.workspaceFolderValue ?? inspected?.workspaceValue ?? inspected?.globalValue;
-	return value?.trim() || undefined;
+const PYTHON_MODULE_ARGS = ['-m', 'mrd_viz.cli'];
+
+/**
+ * The developer override, if set: the machine-scoped `mrdViz.backendPath`, or an explicitly set
+ * (non-default) legacy `mrdViz.pythonPath` for backward compatibility. Returns undefined when the
+ * user has configured nothing — the signal that this is an end-user install that should use the
+ * bundled backend.
+ */
+export function getConfiguredBackendPath(): string | undefined {
+	const config = vscode.workspace.getConfiguration('mrdViz');
+	const backendPath = config.get<string>('backendPath')?.trim();
+	if (backendPath) {
+		return backendPath;
+	}
+	// Back-compat: honor an explicitly set legacy mrdViz.pythonPath (ignoring any default value).
+	const legacy = config.inspect<string>('pythonPath');
+	const legacyValue = (legacy?.workspaceFolderValue ?? legacy?.workspaceValue ?? legacy?.globalValue)?.trim();
+	return legacyValue || undefined;
 }
 
-function* backendCandidates(context: vscode.ExtensionContext): Generator<ResolvedBackend> {
-	const pythonBaseArgs = ['-m', 'mrd_viz.cli'];
+/** Inputs to {@link planBackendCandidates}; plain data so the ordering logic stays pure and testable. */
+export interface BackendCandidateInputs {
+	/** Developer override path (interpreter or binary), or undefined when unset. */
+	configuredPath?: string;
+	/** Path to the bundled binary if present in the VSIX, else undefined. */
+	bundledBinaryPath?: string;
+	/** Path to the repo `backend/.venv` interpreter if present, else undefined. */
+	developmentVenvPath?: string;
+	/** True when the extension host is the F5 Development host (`ExtensionMode.Development`). */
+	isDevelopment: boolean;
+}
 
-	// 1. Explicit user override.
-	const configured = getConfiguredPythonPath();
-	if (configured) {
-		yield { command: configured, baseArgs: pythonBaseArgs, source: `mrdViz.pythonPath setting (${configured})` };
+/**
+ * Deterministic, two-tier candidate order (see docs/BACKEND_INSTALL_MODES.md):
+ *
+ * - If a developer override is set, it is the ONLY candidate — no silent fallback to the bundled
+ *   binary, so a broken override fails loudly instead of masking a misconfiguration.
+ * - Otherwise (end user / unconfigured) use the bundled binary. In the Development host only, the
+ *   repo `backend/.venv` is tried first so contributors run their live checkout.
+ */
+export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedBackend[] {
+	if (inputs.configuredPath) {
+		return [configuredBackend(inputs.configuredPath)];
 	}
 
-	// 2. Backend binary bundled in the VSIX (populated by the standalone-binary build).
-	const bundledBinary = bundledBinaryPath(context);
-	if (bundledBinary) {
-		yield { command: bundledBinary, baseArgs: [], source: `bundled backend (${bundledBinary})` };
+	const candidates: ResolvedBackend[] = [];
+	if (inputs.isDevelopment && inputs.developmentVenvPath) {
+		candidates.push({
+			command: inputs.developmentVenvPath,
+			baseArgs: PYTHON_MODULE_ARGS,
+			source: `development environment (${inputs.developmentVenvPath})`,
+			kind: 'development',
+		});
 	}
+	if (inputs.bundledBinaryPath) {
+		candidates.push({
+			command: inputs.bundledBinaryPath,
+			baseArgs: [],
+			source: `bundled backend (${inputs.bundledBinaryPath})`,
+			kind: 'bundled',
+		});
+	}
+	return candidates;
+}
 
-	// 3. Managed virtual environment provisioned into global storage.
-	const managedVenv = managedVenvPython(context);
-	if (managedVenv) {
-		yield { command: managedVenv, baseArgs: pythonBaseArgs, source: `managed environment (${managedVenv})` };
-	}
+/** Build the override candidate, treating an `mrd-viz` executable as a binary and anything else as an interpreter. */
+function configuredBackend(configuredPath: string): ResolvedBackend {
+	const baseArgs = looksLikeBackendBinary(configuredPath) ? [] : PYTHON_MODULE_ARGS;
+	return { command: configuredPath, baseArgs, source: `mrdViz.backendPath setting (${configuredPath})`, kind: 'override' };
+}
 
-	// 4. Repo virtual environment (F5 dev host / contributors).
-	const developmentVenv = developmentVenvPython(context);
-	if (developmentVenv) {
-		yield { command: developmentVenv, baseArgs: pythonBaseArgs, source: `development environment (${developmentVenv})` };
-	}
-
-	// 5. A Python interpreter on PATH.
-	for (const command of ['python', 'python3']) {
-		yield { command, baseArgs: pythonBaseArgs, source: `"${command}" on PATH` };
-	}
+/** Whether a configured path points at the standalone backend binary rather than a Python interpreter. */
+function looksLikeBackendBinary(configuredPath: string): boolean {
+	const base = path.basename(configuredPath).toLowerCase();
+	return base === 'mrd-viz' || base === 'mrd-viz.exe';
 }
 
 interface ProbeResult {
@@ -172,11 +223,6 @@ function pythonExecutableRelative(): string {
 function bundledBinaryPath(context: vscode.ExtensionContext): string | undefined {
 	const name = process.platform === 'win32' ? 'mrd-viz.exe' : 'mrd-viz';
 	const candidate = path.join(context.extensionUri.fsPath, 'media', 'backend', name);
-	return existsSync(candidate) ? candidate : undefined;
-}
-
-function managedVenvPython(context: vscode.ExtensionContext): string | undefined {
-	const candidate = managedVenvPythonPath(context);
 	return existsSync(candidate) ? candidate : undefined;
 }
 

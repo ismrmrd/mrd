@@ -50,10 +50,15 @@
     "configuration": {
       "title": "MRD Viz",
       "properties": {
+        "mrdViz.backendPath": {
+          "type": "string",
+          "scope": "machine",
+          "markdownDescription": "Developer override for the MRD Viz backend. Provide a path to a Python interpreter (runs `python -m mrd_viz.cli`) or to a prebuilt `mrd-viz` backend binary. **Leave unset to use the backend bundled with the extension.** Machine-scoped so an absolute path is never committed to a workspace or synced between machines."
+        },
         "mrdViz.pythonPath": {
           "type": "string",
-          "default": "python",
-          "markdownDescription": "Python executable used to run `python -m mrd_viz.cli`. Set this to the backend virtual environment interpreter when needed."
+          "markdownDescription": "Deprecated: use `#mrdViz.backendPath#` instead.",
+          "markdownDeprecationMessage": "Deprecated: use `#mrdViz.backendPath#` instead. An explicitly set value is still honored for backward compatibility."
         },
         "mrdViz.maxThumbnails": {
           "type": "number",
