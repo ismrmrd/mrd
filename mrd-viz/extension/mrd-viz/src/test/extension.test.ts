@@ -1,9 +1,11 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-import { getOpenWithMrdEditorArgs } from '../extension';
+import { classifyProvisioningFailure, getOpenWithMrdEditorArgs, removeIncompleteVenv } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
 import { getMrdBackendMissingHtml } from '../webviewHtml';
 import { getMrdErrorHtml } from '../stateHtml';
@@ -114,7 +116,50 @@ suite('MRD Viz Extension', () => {
 	});
 });
 
+suite('MRD Viz backend provisioning', () => {
+	test('hints at a missing package using the pip distribution name (mrd-viz, not mrd_viz)', () => {
+		const hint = classifyProvisioningFailure('ERROR: No matching distribution found for mrd-viz');
+		assert.match(hint, /mrd-viz package could not be found/);
+		assert.ok(!/mrd_viz/.test(hint), 'the hint should use the pip distribution name mrd-viz, not the import name mrd_viz');
+	});
+
+	test('hints at a network/proxy problem reaching the package index', () => {
+		const hint = classifyProvisioningFailure('Could not fetch URL https://pypi.org/simple/: connection timed out');
+		assert.match(hint, /network\/proxy problem/);
+	});
+
+	test('returns no hint for an unrecognized failure', () => {
+		assert.strictEqual(classifyProvisioningFailure('pip exited with an unexpected error'), '');
+	});
+
+	test('deletes a partially built venv so a later retry starts clean', async () => {
+		const venvDir = await makeFakeVenv();
+		const messages: string[] = [];
+		await removeIncompleteVenv(venvDir, { appendLine: message => messages.push(message) });
+
+		assert.ok(!existsSync(venvDir), 'the incomplete venv directory should be removed');
+		assert.ok(messages.some(message => message.includes('Cleaned up incomplete backend environment')));
+	});
+
+	test('is a no-op (no throw) when the venv directory is already gone', async () => {
+		const missing = path.join(os.tmpdir(), `mrd-viz-missing-${Date.now()}`);
+		const messages: string[] = [];
+		await removeIncompleteVenv(missing, { appendLine: message => messages.push(message) });
+
+		assert.ok(!existsSync(missing));
+		assert.ok(messages.some(message => message.includes('Cleaned up incomplete backend environment')));
+	});
+});
+
 function readPackageJson(): ExtensionPackageJson {
 	const packagePath = path.resolve(__dirname, '..', '..', 'package.json');
 	return JSON.parse(readFileSync(packagePath, 'utf8')) as ExtensionPackageJson;
+}
+
+async function makeFakeVenv(): Promise<string> {
+	const dir = await mkdtemp(path.join(os.tmpdir(), 'mrd-viz-venv-'));
+	await mkdir(path.join(dir, 'bin'), { recursive: true });
+	await writeFile(path.join(dir, 'bin', 'python'), '#!/bin/sh\n');
+	await writeFile(path.join(dir, 'pyvenv.cfg'), 'home = /usr\n');
+	return dir;
 }
