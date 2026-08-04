@@ -2,7 +2,7 @@
 
 How the MRD Viz extension finds a working backend across the four ways it can be installed, which
 Python interpreter actually runs, and the open questions around interpreter-precedence (issue #3).
-The first half documents the **current** behavior; [Target architecture (proposed)](#target-architecture-proposed)
+The first half documents the **current** behavior; [Target architecture (implemented)](#target-architecture-implemented)
 at the end lays out a cleaner, deterministic redesign.
 
 Related runbooks:
@@ -141,9 +141,13 @@ the environment-appropriate scope (Machine/Remote in a container, Global on host
 
 ---
 
-# Target architecture (proposed)
+# Target architecture (implemented)
 
-Everything above documents the **current** state. This section is the proposed redesign.
+> **Status:** implemented in the deterministic-resolution change (`mrdViz.backendPath`, two-tier
+> resolver, machine scope). The first half of this document is retained as historical context for
+> the pre-refactor 5-candidate behavior.
+
+Everything above documents the **pre-refactor** state. This section describes the shipped design.
 
 ## Why the current search is scattered
 
