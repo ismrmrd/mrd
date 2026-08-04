@@ -18,9 +18,10 @@
     "vscode": {
       "settings": {
         // `just container-setup` creates this venv; pointing the extension at it
-        // explicitly avoids the installed-VSIX discovery gap and the python/python3
-        // PATH ambiguity.
-        "mrdViz.pythonPath": "/home/vscode/.venvs/mrd-viz/bin/python",
+        // explicitly (via the developer override) avoids the installed-VSIX discovery
+        // gap and the python/python3 PATH ambiguity. backendPath is machine-scoped, so
+        // this applies as a container remote setting and never leaks back to the host.
+        "mrdViz.backendPath": "/home/vscode/.venvs/mrd-viz/bin/python",
         "python.defaultInterpreterPath": "/home/vscode/.venvs/mrd-viz/bin/python"
       },
       "extensions": [
