@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, rename, rm } from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
@@ -207,6 +207,9 @@ async function reportProvisioningFailure(error: unknown, venvDir: string, output
 
 	outputChannel.appendLine(`Backend setup failed${where}: ${detail}`);
 	await removeIncompleteVenv(venvDir, outputChannel);
+	// The removed (or quarantined) venv may already be the resolver's cached selection, so drop the
+	// cache defensively — otherwise a stale interpreter path could stay cached after we tore it down.
+	invalidateBackendCache();
 	outputChannel.show(true);
 
 	const hint = classifyProvisioningFailure(detail);
@@ -215,19 +218,53 @@ async function reportProvisioningFailure(error: unknown, venvDir: string, output
 	);
 }
 
-/** Remove a partially built venv so retries start clean and the resolver skips a broken candidate. */
-async function removeIncompleteVenv(venvDir: string, outputChannel: vscode.OutputChannel): Promise<void> {
-	try {
-		await rm(venvDir, { recursive: true, force: true });
+/**
+ * Remove a partially built venv so retries start clean and the resolver skips a broken candidate.
+ * `rm` can fail transiently (notably on Windows, where a just-exited pip may still hold a lock), so
+ * retry a few times; if the directory still can't be deleted, rename it out of the way so its
+ * interpreter path no longer exists (the resolver probes that path with `existsSync` and will skip
+ * the candidate), then make a best-effort delete of the renamed directory.
+ */
+export async function removeIncompleteVenv(venvDir: string, outputChannel: Pick<vscode.OutputChannel, 'appendLine'>): Promise<void> {
+	if (await tryRemoveDirectory(venvDir)) {
 		outputChannel.appendLine(`Cleaned up incomplete backend environment (if present): ${venvDir}`);
-	} catch (cleanupError) {
-		const detail = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
-		outputChannel.appendLine(`Warning: could not remove incomplete backend environment at ${venvDir}: ${detail}`);
+		return;
+	}
+
+	const quarantineDir = `${venvDir}.broken-${Date.now()}`;
+	try {
+		await rename(venvDir, quarantineDir);
+		outputChannel.appendLine(`Could not delete the incomplete backend environment; moved it aside to ${quarantineDir} so it will be ignored.`);
+		void tryRemoveDirectory(quarantineDir);
+	} catch (moveError) {
+		const detail = moveError instanceof Error ? moveError.message : String(moveError);
+		outputChannel.appendLine(`Warning: could not remove or move the incomplete backend environment at ${venvDir}: ${detail}`);
 	}
 }
 
+/** Delete a directory tree, retrying a few times to ride out transient locks. Returns whether it is gone. */
+async function tryRemoveDirectory(dir: string): Promise<boolean> {
+	const attempts = 3;
+	for (let attempt = 1; attempt <= attempts; attempt++) {
+		try {
+			await rm(dir, { recursive: true, force: true });
+			return true;
+		} catch {
+			if (attempt === attempts) {
+				return false;
+			}
+			await delay(attempt * 100);
+		}
+	}
+	return false;
+}
+
+function delay(ms: number): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /** Map a raw failure detail to a short, actionable hint appended to the error notification. */
-function classifyProvisioningFailure(detail: string): string {
+export function classifyProvisioningFailure(detail: string): string {
 	if (/no matching distribution|could not find a version|404|not found on pypi/i.test(detail)) {
 		return ' The mrd-viz package could not be found in the configured package index.';
 	}
