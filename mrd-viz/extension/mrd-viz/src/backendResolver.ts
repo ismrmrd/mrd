@@ -1,7 +1,10 @@
-import { execFile, type ExecFileException } from 'node:child_process';
+import { type ExecFileException } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+
+import { PROBE_TIMEOUT_MS_MAX, PROBE_TIMEOUT_MS_MIN, PYTHON_MODULE_ARGS } from './backendConstants';
+import { runProcess } from './subprocess';
 
 /** How a backend candidate was selected. Drives tailored failure messaging in the webview. */
 export type BackendKind = 'override' | 'bundled' | 'development';
@@ -71,7 +74,6 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 	return { ok: false, tried };
 }
 
-const PYTHON_MODULE_ARGS = ['-m', 'mrd_viz.cli'];
 const BACKEND_PATH_SETTING = 'mrdViz.backendPath';
 const LEGACY_PATH_SETTING = 'mrdViz.pythonPath';
 
@@ -82,7 +84,7 @@ const LEGACY_PATH_SETTING = 'mrdViz.pythonPath';
  * configured nothing — the signal that this is an end-user install that should use the bundled
  * backend.
  */
-export function getConfiguredBackendPath(): { path: string; settingKey: string } | undefined {
+function getConfiguredBackendPath(): { path: string; settingKey: string } | undefined {
 	const config = vscode.workspace.getConfiguration('mrdViz');
 	const backendPath = config.get<string>('backendPath')?.trim();
 	if (backendPath) {
@@ -125,7 +127,7 @@ export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedB
 	if (inputs.isDevelopment && inputs.developmentVenvPath) {
 		candidates.push({
 			command: inputs.developmentVenvPath,
-			baseArgs: PYTHON_MODULE_ARGS,
+			baseArgs: [...PYTHON_MODULE_ARGS],
 			source: `development environment (${inputs.developmentVenvPath})`,
 			kind: 'development',
 		});
@@ -143,7 +145,7 @@ export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedB
 
 /** Build the override candidate, treating an `mrd-viz` executable as a binary and anything else as an interpreter. */
 function configuredBackend(configuredPath: string, settingKey: string = BACKEND_PATH_SETTING): ResolvedBackend {
-	const baseArgs = looksLikeBackendBinary(configuredPath) ? [] : PYTHON_MODULE_ARGS;
+	const baseArgs = looksLikeBackendBinary(configuredPath) ? [] : [...PYTHON_MODULE_ARGS];
 	return { command: configuredPath, baseArgs, source: `${settingKey} setting (${configuredPath})`, kind: 'override', settingKey };
 }
 
@@ -161,22 +163,13 @@ interface ProbeResult {
 	detailFull?: string;
 }
 
-function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise<ProbeResult> {
-	const timeout = Math.min(Math.max(timeoutMs, 1000), 15000);
-	return new Promise(resolve => {
-		execFile(
-			candidate.command,
-			[...candidate.baseArgs, '--version'],
-			{ timeout, windowsHide: true },
-			(error, _stdout, stderr) => {
-				if (!error) {
-					resolve({ ok: true });
-					return;
-				}
-				resolve({ ok: false, detail: describeProbeFailure(error, stderr), detailFull: fullProbeFailure(error, stderr) });
-			},
-		);
-	});
+async function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise<ProbeResult> {
+	const timeout = Math.min(Math.max(timeoutMs, PROBE_TIMEOUT_MS_MIN), PROBE_TIMEOUT_MS_MAX);
+	const { error, stderr } = await runProcess(candidate.command, [...candidate.baseArgs, '--version'], { timeoutMs: timeout });
+	if (!error) {
+		return { ok: true };
+	}
+	return { ok: false, detail: describeProbeFailure(error, stderr), detailFull: fullProbeFailure(error, stderr) };
 }
 
 /**

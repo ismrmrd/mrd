@@ -15,13 +15,13 @@ MRD Viz relies on a Python backend (the `mrd_viz` package) to read `.mrd` files.
 - Python 3.12
 - The `mrd_viz` backend installed into an environment the extension can find.
 
-Point the extension at the interpreter with the `mrdViz.pythonPath` setting (see below). During local development the extension also auto-detects a virtual environment at `mrd-viz/backend/.venv`.
+Point the extension at the interpreter with the `mrdViz.backendPath` setting (see below). During local development (the F5 dev host) the extension also auto-detects a virtual environment at `mrd-viz/backend/.venv`.
 
 ## Extension Settings
 
 This extension contributes the following settings:
 
-- `mrdViz.pythonPath`: Python executable used to run `python -m mrd_viz.cli`. Set this to the backend environment's interpreter.
+- `mrdViz.backendPath`: Path to a Python interpreter (runs `python -m mrd_viz.cli`) or a prebuilt `mrd-viz` binary. Leave unset to use the backend bundled with the extension.
 - `mrdViz.maxThumbnails`: Maximum number of image thumbnails requested for the initial view (default `128`).
 - `mrdViz.backendTimeoutMs`: Timeout in milliseconds for a single backend process (default `30000`).
 

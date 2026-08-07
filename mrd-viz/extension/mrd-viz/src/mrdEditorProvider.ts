@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 import { MrdVizBackendError, runOpenFile, type BackendRunnerOptions } from './backendRunner';
+import { BACKEND_TIMEOUT_MS_DEFAULT } from './backendConstants';
 import { invalidateBackendCache, resolveBackend } from './backendResolver';
 import { redactingPayloadReplacer } from './contracts';
 import { getMrdBackendMissingHtml, getMrdViewerHtml } from './webviewHtml';
@@ -59,7 +60,7 @@ export class MrdEditorProvider implements vscode.CustomReadonlyEditorProvider<Mr
 		webviewPanel.webview.html = getMrdLoadingHtml(webviewPanel.webview, document.uri);
 
 		const configuration = vscode.workspace.getConfiguration('mrdViz');
-		const timeoutMs = configuration.get<number>('backendTimeoutMs') ?? 30000;
+		const timeoutMs = configuration.get<number>('backendTimeoutMs') ?? BACKEND_TIMEOUT_MS_DEFAULT;
 		const maxThumbnails = configuration.get<number>('maxThumbnails') ?? 128;
 
 		const resolution = await resolveBackend(this.context, timeoutMs);

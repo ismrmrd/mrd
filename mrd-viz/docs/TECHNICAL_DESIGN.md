@@ -246,7 +246,7 @@ The VS Code extension owns editor registration, process orchestration, and UI pr
 
 - register the custom readonly editor for `.mrd` files
 - expose an explicit `Open in MRD Viewer` command
-- resolve the configured Python executable through `mrdViz.pythonPath`
+- resolve the configured backend through `mrdViz.backendPath`, or fall back to the bundled binary
 - spawn the `mrd-viz` backend CLI with file path and requested operation
 - enforce a stable JSON contract between extension and backend
 - render loading, success, unsupported, and error states in the webview
@@ -503,7 +503,7 @@ The extension should add a small VS Code extension test suite once the custom ed
 
 - activation registers the explicit open command.
 - `.mrd` files can be opened with the `mrd-viz.mrdFile` custom editor view type.
-- `mrdViz.pythonPath` is honored.
+- `mrdViz.backendPath` is honored.
 - backend process errors render the error view rather than crashing the extension host.
 - backend process timeout and cancellation render controlled states.
 - a mocked `open` payload renders a mosaic in the image webview and metadata in the adjacent metadata webview.
@@ -521,7 +521,7 @@ Stage 1 can begin with manual VS Code smoke tests, but the release candidate sho
 - Confirm image count and stream counts match CLI output.
 - Open a known raw `.mrd` file and confirm it shows a raw/acquisition-oriented summary rather than a misleading blank image.
 - Open an invalid file and confirm the error is explicit.
-- Change `mrdViz.pythonPath` to the project `.venv` interpreter and confirm the extension uses it.
+- Change `mrdViz.backendPath` to the project `.venv` interpreter and confirm the extension uses it.
 - Package the extension as a `.vsix` and install it into a separate VS Code instance or profile without local hardcoded paths.
 
 ## Backward Compatibility and Format Risk

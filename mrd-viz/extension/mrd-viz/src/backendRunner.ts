@@ -1,6 +1,6 @@
-import { execFile } from 'node:child_process';
-
 import { isMrdImageResponsePayload, isMrdOpenPayload, type MrdImageResponsePayload, type MrdOpenPayload } from './contracts';
+import { BACKEND_RESPONSE_MAX_BUFFER_BYTES } from './backendConstants';
+import { runProcess } from './subprocess';
 
 export interface BackendRunnerOptions {
 	command: string;
@@ -70,29 +70,16 @@ function sliceArgs(sliceCoords?: number[]): string[] {
 	return args;
 }
 
-function execBackend(command: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
-	return new Promise((resolve, reject) => {
-		execFile(
-			command,
-			commandArguments,
-			{
-				maxBuffer: 64 * 1024 * 1024,
-				timeout: timeoutMs,
-				windowsHide: true,
-				signal,
-			},
-			(error, stdout, stderr) => {
-				const stdoutText = stdout.toString();
-				const stderrText = stderr.toString();
-				if (error && !stdoutText.trim()) {
-					reject(new MrdVizBackendError(error.message, stdoutText, stderrText));
-					return;
-				}
-
-				resolve({ stdout: stdoutText, stderr: stderrText });
-			},
-		);
+async function execBackend(command: string, commandArguments: string[], timeoutMs: number, signal?: AbortSignal): Promise<{ stdout: string; stderr: string }> {
+	const { error, stdout, stderr } = await runProcess(command, commandArguments, {
+		timeoutMs,
+		maxBuffer: BACKEND_RESPONSE_MAX_BUFFER_BYTES,
+		signal,
 	});
+	if (error && !stdout.trim()) {
+		throw new MrdVizBackendError(error.message, stdout, stderr);
+	}
+	return { stdout, stderr };
 }
 
 function parseOpenPayload(stdout: string, stderr: string): MrdOpenPayload {

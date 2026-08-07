@@ -46,7 +46,7 @@ if ! command -v azcopy >/dev/null 2>&1; then
 fi
 
 # Backend provisioning (best-effort, non-fatal). The dev container points
-# mrdViz.pythonPath at this venv, so create it and install the mrd_viz backend
+# mrdViz.backendPath at this venv, so create it and install the mrd_viz backend
 # now for a turnkey first run. This only needs PyPI (mrd-python/numpy/pillow),
 # which is typically reachable even where the npm registry is blocked; the guard
 # keeps a failure from aborting container creation and falls back to the manual
@@ -73,7 +73,7 @@ if [ "$backend_ready" -eq 1 ]; then
 
 ============================================================
  MRD Viz dev container is ready. Backend is installed and
- mrdViz.pythonPath points at ~/.venvs/mrd-viz, so opening a
+ mrdViz.backendPath points at ~/.venvs/mrd-viz, so opening a
  .mrd file should work out of the box.
 
  If the MRD Viz extension itself is not installed yet, run:

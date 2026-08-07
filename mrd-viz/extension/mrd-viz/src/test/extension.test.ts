@@ -84,18 +84,17 @@ suite('MRD Viz Extension', () => {
 	test('renders a guided backend-missing view with escaped candidates and failure reasons', () => {
 		const webview = { cspSource: 'vscode-resource:' } as vscode.Webview;
 		const html = getMrdBackendMissingHtml(webview, [
-			{ source: 'bundled backend (/x/mrd-viz)', detail: "libm.so.6: version `GLIBC_2.38' not found" },
-			{ source: 'mrdViz.pythonPath setting (<x>)', detail: "No module named 'mrd_viz'" },
-			{ source: '"python" on PATH' },
+			{ source: 'development environment (<x>)', kind: 'development', detail: "No module named 'mrd_viz'" },
+			{ source: 'bundled backend (/x/mrd-viz)', kind: 'bundled', detail: "libm.so.6: version `GLIBC_2.38' not found" },
 		]);
 
 		assert.ok(html.includes('MRD Viz backend not found'));
 		assert.ok(html.includes('bundled backend (/x/mrd-viz)'));
-		assert.ok(html.includes('mrdViz.pythonPath setting (&lt;x&gt;)'));
+		// Candidate sources are HTML-escaped.
+		assert.ok(html.includes('development environment (&lt;x&gt;)'));
 		// The captured probe stderr (e.g. the glibc mismatch) is surfaced and escaped.
 		assert.ok(html.includes('GLIBC_2.38'));
 		assert.ok(html.includes('No module named &#39;mrd_viz&#39;') || html.includes("No module named 'mrd_viz'"));
-		assert.ok(html.includes('No diagnostic output was captured.'));
 		assert.ok(html.includes('mrd-viz.setUpBackend'));
 		assert.ok(html.includes('mrd-viz.selectInterpreter'));
 	});
