@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('mrd-viz.setUpBackend', () => setUpBackend(context, outputChannel)),
 		vscode.commands.registerCommand('mrd-viz.selectInterpreter', () => selectInterpreter()),
 		vscode.workspace.onDidChangeConfiguration(event => {
-			if (event.affectsConfiguration('mrdViz.backendPath') || event.affectsConfiguration('mrdViz.pythonPath')) {
+			if (event.affectsConfiguration('mrdViz.backendPath')) {
 				invalidateBackendCache();
 			}
 		}),

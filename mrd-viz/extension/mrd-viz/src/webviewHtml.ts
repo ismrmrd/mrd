@@ -14,13 +14,11 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: Backend
 	const nonce = getNonce();
 	const cspSource = webview.cspSource;
 	// A broken developer override is a different problem from an end-user install whose bundled
-	// backend won't run, so lead with the relevant explanation and primary action. The override may
-	// have come from either setting, so name the one that actually supplied the path.
+	// backend won't run, so lead with the relevant explanation and primary action.
 	const overrideAttempt = tried.find(attempt => attempt.kind === 'override');
 	const developerOverride = overrideAttempt !== undefined;
-	const overrideSetting = escapeHtml(overrideAttempt?.settingKey ?? 'mrdViz.backendPath');
 	const intro = developerOverride
-		? `The backend configured in <code>${overrideSetting}</code> could not be run. It was probed with <code>--version</code> and failed for the reason shown:`
+		? 'The backend configured in <code>mrdViz.backendPath</code> could not be run. It was probed with <code>--version</code> and failed for the reason shown:'
 		: 'MRD Viz could not run its bundled backend on this platform. Each candidate below was probed with <code>--version</code> and failed for the reason shown:';
 	const selectClass = developerOverride ? '' : 'secondary';
 	const setupClass = developerOverride ? 'secondary' : '';
