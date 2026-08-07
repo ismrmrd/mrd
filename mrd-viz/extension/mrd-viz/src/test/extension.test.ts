@@ -112,6 +112,18 @@ suite('MRD Viz Extension', () => {
 		assert.ok(!html.includes('could not run its bundled backend'));
 	});
 
+	test('names the legacy setting on the backend-missing page when the override came from pythonPath', () => {
+		const webview = { cspSource: 'vscode-resource:' } as vscode.Webview;
+		const html = getMrdBackendMissingHtml(webview, [
+			{ source: 'mrdViz.pythonPath setting (/x/python)', kind: 'override', settingKey: 'mrdViz.pythonPath', detail: 'boom' },
+		]);
+
+		assert.ok(html.includes('configured in'));
+		assert.ok(html.includes('mrdViz.pythonPath'));
+		// The intro must not claim the value came from backendPath when it came from the legacy setting.
+		assert.ok(!html.includes('<code>mrdViz.backendPath</code> could not be run'));
+	});
+
 	test('validates loadImage messages including optional slice coordinates', () => {
 		assert.ok(isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 0 }));
 		assert.ok(isViewerToExtensionMessage({ type: 'loadImage', requestId: '1', imageIndex: 2, sliceCoords: [0, 1] }));
@@ -180,6 +192,18 @@ suite('MRD Viz backend resolution order', () => {
 		assert.strictEqual(candidates[0].kind, 'override');
 		assert.strictEqual(candidates[0].command, '/custom/bin/python');
 		assert.deepStrictEqual(candidates[0].baseArgs, ['-m', 'mrd_viz.cli']);
+	});
+
+	test('labels the override source with the legacy setting when it came from mrdViz.pythonPath', () => {
+		const [candidate] = planBackendCandidates({
+			configuredPath: '/legacy/bin/python',
+			configuredSettingKey: 'mrdViz.pythonPath',
+			isDevelopment: false,
+		});
+
+		assert.strictEqual(candidate.kind, 'override');
+		assert.strictEqual(candidate.settingKey, 'mrdViz.pythonPath');
+		assert.ok(candidate.source.includes('mrdViz.pythonPath'));
 	});
 
 	test('an override pointing at the mrd-viz binary runs as a binary (no python -m args)', () => {

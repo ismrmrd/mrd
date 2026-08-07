@@ -2,8 +2,8 @@
 
 How the MRD Viz extension finds a working backend across the four ways it can be installed, which
 Python interpreter actually runs, and the open questions around interpreter-precedence (issue #3).
-The first half documents the **current** behavior; [Target architecture (implemented)](#target-architecture-implemented)
-at the end lays out a cleaner, deterministic redesign.
+The first half documents the **pre-refactor** behavior (historical context); [Target architecture (implemented)](#target-architecture-implemented)
+at the end describes the shipped, deterministic design.
 
 Related runbooks:
 

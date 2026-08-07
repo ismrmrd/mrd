@@ -137,7 +137,7 @@ async function selectInterpreter(): Promise<void> {
 	const config = vscode.workspace.getConfiguration('mrdViz');
 	await config.update('backendPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
 	invalidateBackendCache();
-	void vscode.window.showInformationMessage('MRD Viz backend interpreter updated.');
+	void vscode.window.showInformationMessage('MRD Viz backend updated.');
 }
 
 /** A provisioning step that failed, tagged with the human-readable phase for clear reporting. */

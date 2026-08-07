@@ -12,6 +12,8 @@ export interface ResolvedBackend {
 	baseArgs: string[];
 	source: string;
 	kind: BackendKind;
+	/** For an override candidate, which setting supplied the path (`mrdViz.backendPath` or legacy `mrdViz.pythonPath`). */
+	settingKey?: string;
 }
 
 /** A candidate that was probed but rejected, plus the reason its `--version` probe failed. */
@@ -19,6 +21,8 @@ export interface BackendAttempt {
 	source: string;
 	/** Which tier this candidate belonged to, so the UI can distinguish a broken override from a missing binary. */
 	kind?: BackendKind;
+	/** For an override attempt, the setting that supplied the path, so the UI points at the right one. */
+	settingKey?: string;
 	/** Concise, webview-friendly failure reason (last lines of probe stderr, or the spawn error). */
 	detail?: string;
 	/** Complete captured probe output, logged in full to the output channel (never truncated). */
@@ -45,8 +49,10 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 		return { ok: true, backend: cachedBackend };
 	}
 
+	const configured = getConfiguredBackendPath();
 	const candidates = planBackendCandidates({
-		configuredPath: getConfiguredBackendPath(),
+		configuredPath: configured?.path,
+		configuredSettingKey: configured?.settingKey,
 		bundledBinaryPath: bundledBinaryPath(context),
 		developmentVenvPath: developmentVenvPython(context),
 		isDevelopment: context.extensionMode === vscode.ExtensionMode.Development,
@@ -59,36 +65,41 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 			cachedBackend = candidate;
 			return { ok: true, backend: candidate };
 		}
-		tried.push({ source: candidate.source, kind: candidate.kind, detail: probe.detail, detailFull: probe.detailFull });
+		tried.push({ source: candidate.source, kind: candidate.kind, settingKey: candidate.settingKey, detail: probe.detail, detailFull: probe.detailFull });
 	}
 
 	return { ok: false, tried };
 }
 
 const PYTHON_MODULE_ARGS = ['-m', 'mrd_viz.cli'];
+const BACKEND_PATH_SETTING = 'mrdViz.backendPath';
+const LEGACY_PATH_SETTING = 'mrdViz.pythonPath';
 
 /**
  * The developer override, if set: the machine-scoped `mrdViz.backendPath`, or an explicitly set
- * (non-default) legacy `mrdViz.pythonPath` for backward compatibility. Returns undefined when the
- * user has configured nothing — the signal that this is an end-user install that should use the
- * bundled backend.
+ * (non-default) legacy `mrdViz.pythonPath` for backward compatibility. Returns the path plus which
+ * setting supplied it (so messaging points at the right one), or undefined when the user has
+ * configured nothing — the signal that this is an end-user install that should use the bundled
+ * backend.
  */
-export function getConfiguredBackendPath(): string | undefined {
+export function getConfiguredBackendPath(): { path: string; settingKey: string } | undefined {
 	const config = vscode.workspace.getConfiguration('mrdViz');
 	const backendPath = config.get<string>('backendPath')?.trim();
 	if (backendPath) {
-		return backendPath;
+		return { path: backendPath, settingKey: BACKEND_PATH_SETTING };
 	}
 	// Back-compat: honor an explicitly set legacy mrdViz.pythonPath (ignoring any default value).
 	const legacy = config.inspect<string>('pythonPath');
 	const legacyValue = (legacy?.workspaceFolderValue ?? legacy?.workspaceValue ?? legacy?.globalValue)?.trim();
-	return legacyValue || undefined;
+	return legacyValue ? { path: legacyValue, settingKey: LEGACY_PATH_SETTING } : undefined;
 }
 
 /** Inputs to {@link planBackendCandidates}; plain data so the ordering logic stays pure and testable. */
 export interface BackendCandidateInputs {
 	/** Developer override path (interpreter or binary), or undefined when unset. */
 	configuredPath?: string;
+	/** Which setting supplied `configuredPath` (`mrdViz.backendPath` or legacy `mrdViz.pythonPath`). */
+	configuredSettingKey?: string;
 	/** Path to the bundled binary if present in the VSIX, else undefined. */
 	bundledBinaryPath?: string;
 	/** Path to the repo `backend/.venv` interpreter if present, else undefined. */
@@ -107,7 +118,7 @@ export interface BackendCandidateInputs {
  */
 export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedBackend[] {
 	if (inputs.configuredPath) {
-		return [configuredBackend(inputs.configuredPath)];
+		return [configuredBackend(inputs.configuredPath, inputs.configuredSettingKey)];
 	}
 
 	const candidates: ResolvedBackend[] = [];
@@ -131,9 +142,9 @@ export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedB
 }
 
 /** Build the override candidate, treating an `mrd-viz` executable as a binary and anything else as an interpreter. */
-function configuredBackend(configuredPath: string): ResolvedBackend {
+function configuredBackend(configuredPath: string, settingKey: string = BACKEND_PATH_SETTING): ResolvedBackend {
 	const baseArgs = looksLikeBackendBinary(configuredPath) ? [] : PYTHON_MODULE_ARGS;
-	return { command: configuredPath, baseArgs, source: `mrdViz.backendPath setting (${configuredPath})`, kind: 'override' };
+	return { command: configuredPath, baseArgs, source: `${settingKey} setting (${configuredPath})`, kind: 'override', settingKey };
 }
 
 /** Whether a configured path points at the standalone backend binary rather than a Python interpreter. */
