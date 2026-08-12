@@ -1,11 +1,18 @@
-import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, rename, rm } from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
+import {
+	PROVISIONING_LOG_MAX_BUFFER_BYTES,
+	PROVISIONING_PYTHON_CANDIDATES,
+	PROVISIONING_STEP_TIMEOUT_MS,
+	PYPI_PACKAGE_NAME,
+	PYTHON_VERSION_PROBE_TIMEOUT_MS,
+} from './backendConstants';
 import { invalidateBackendCache, managedVenvDirectory, managedVenvPythonPath } from './backendResolver';
 import { MrdEditorProvider, MRD_VIEW_TYPE } from './mrdEditorProvider';
+import { runProcess } from './subprocess';
 
 export function activate(context: vscode.ExtensionContext) {
 	const outputChannel = vscode.window.createOutputChannel('MRD Viz');
@@ -22,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('mrd-viz.setUpBackend', () => setUpBackend(context, outputChannel)),
 		vscode.commands.registerCommand('mrd-viz.selectInterpreter', () => selectInterpreter()),
 		vscode.workspace.onDidChangeConfiguration(event => {
-			if (event.affectsConfiguration('mrdViz.pythonPath')) {
+			if (event.affectsConfiguration('mrdViz.backendPath')) {
 				invalidateBackendCache();
 			}
 		}),
@@ -99,19 +106,30 @@ async function pickTargetUri(resource?: vscode.Uri, selectedResources?: vscode.U
 }
 
 async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<void> {
+	// If a managed backend is already provisioned, this rebuilds it from scratch, so confirm the
+	// reinstall rather than silently clobbering a working environment.
+	const alreadyInstalled = existsSync(managedVenvPythonPath(context));
+	const confirmLabel = alreadyInstalled ? 'Reinstall' : 'Install';
 	const proceed = await vscode.window.showInformationMessage(
-		'Set up the MRD Viz backend automatically? This creates a private Python virtual environment in the extension\u2019s storage and installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.',
+		alreadyInstalled
+			? 'An MRD Viz backend is already installed in the extension\u2019s storage. Reinstall it? This deletes and rebuilds the private Python virtual environment and re-installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.'
+			: 'Set up the MRD Viz backend automatically? This creates a private Python virtual environment in the extension\u2019s storage and installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.',
 		{ modal: true },
-		'Install',
+		confirmLabel,
 	);
-	if (proceed !== 'Install') {
+	if (proceed !== confirmLabel) {
 		return;
 	}
 
 	const installed = await provisionManagedBackend(context, outputChannel);
 	if (installed) {
+		// Persist the managed venv as the configured backend (machine-scoped) so it becomes a
+		// first-class override the resolver reads directly, rather than an implicit candidate.
+		await vscode.workspace.getConfiguration('mrdViz').update(
+			'backendPath', managedVenvPythonPath(context), vscode.ConfigurationTarget.Global,
+		);
 		invalidateBackendCache();
-		void vscode.window.showInformationMessage('MRD Viz backend installed.');
+		void vscode.window.showInformationMessage(alreadyInstalled ? 'MRD Viz backend reinstalled.' : 'MRD Viz backend installed.');
 	}
 }
 
@@ -126,19 +144,13 @@ async function selectInterpreter(): Promise<void> {
 		return;
 	}
 
+	// backendPath is machine-scoped, so this writes to the context-appropriate machine settings
+	// (host user settings, or the dev container's remote settings) and cannot leak across that
+	// boundary or be committed to a workspace — no narrower-scope clearing needed.
 	const config = vscode.workspace.getConfiguration('mrdViz');
-	await config.update('pythonPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
-	// Clear any narrower-scoped values (e.g. a dev container's workspace-level setting) that would
-	// otherwise shadow the interpreter the user just picked and block recovery via the guided flow.
-	const inspected = config.inspect<string>('pythonPath');
-	if (inspected?.workspaceFolderValue !== undefined) {
-		await config.update('pythonPath', undefined, vscode.ConfigurationTarget.WorkspaceFolder);
-	}
-	if (inspected?.workspaceValue !== undefined) {
-		await config.update('pythonPath', undefined, vscode.ConfigurationTarget.Workspace);
-	}
+	await config.update('backendPath', picked[0].fsPath, vscode.ConfigurationTarget.Global);
 	invalidateBackendCache();
-	void vscode.window.showInformationMessage('MRD Viz Python interpreter updated.');
+	void vscode.window.showInformationMessage('MRD Viz backend updated.');
 }
 
 /** A provisioning step that failed, tagged with the human-readable phase for clear reporting. */
@@ -149,12 +161,16 @@ class BackendSetupError extends Error {
 	}
 }
 
+/** Flags applied to every pip call: silence the version-check notice and never block on a prompt. */
+const PIP_FLAGS = ['--disable-pip-version-check', '--no-input'];
+
 /**
- * Provision the managed backend virtual environment (resolver candidate #3) in global storage:
- * create a venv from a discovered Python 3.12+ interpreter and `pip install` the backend. Returns
- * true only if every step succeeds; on any failure the half-provisioned venv is removed (so a
- * stale interpreter can't satisfy the resolver probe and then fail at `import mrd_viz`) and the
- * cause is surfaced to the user and the output channel.
+ * Provision the managed backend virtual environment in global storage: create a venv from a
+ * discovered Python 3.12+ interpreter and `pip install` the backend. The caller persists the venv
+ * interpreter to `mrdViz.backendPath` on success. Returns true only if every step succeeds; on any
+ * failure the half-provisioned venv is removed (so a stale interpreter can't satisfy the resolver
+ * probe and then fail at `import mrd_viz`) and the cause is surfaced to the user and the output
+ * channel.
  */
 async function provisionManagedBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<boolean> {
 	const basePython = await findProvisioningPython();
@@ -167,7 +183,7 @@ async function provisionManagedBackend(context: vscode.ExtensionContext, outputC
 
 	const venvDir = managedVenvDirectory(context);
 	const venvPython = managedVenvPythonPath(context);
-	const installTarget = repoBackendInstallTarget(context) ?? 'mrd-viz';
+	const installTarget = repoBackendInstallTarget(context) ?? PYPI_PACKAGE_NAME;
 
 	return vscode.window.withProgress(
 		{ location: vscode.ProgressLocation.Notification, title: 'Setting up MRD Viz backend', cancellable: false },
@@ -179,12 +195,15 @@ async function provisionManagedBackend(context: vscode.ExtensionContext, outputC
 				await runProvisioningStep('creating the virtual environment', basePython, ['-m', 'venv', venvDir], outputChannel);
 
 				progress.report({ message: 'Upgrading pip\u2026' });
-				await runProvisioningStep('upgrading pip', venvPython, ['-m', 'pip', 'install', '--upgrade', 'pip'], outputChannel);
+				await runProvisioningStep('upgrading pip', venvPython, ['-m', 'pip', 'install', ...PIP_FLAGS, '--upgrade', 'pip'], outputChannel);
 
 				progress.report({ message: 'Installing the mrd_viz backend\u2026' });
-				const installArgs = installTarget === 'mrd-viz'
-					? ['-m', 'pip', 'install', 'mrd-viz']
-					: ['-m', 'pip', 'install', '-e', installTarget];
+				// TODO(publish-pypi): the PYPI_PACKAGE_NAME branch only resolves once the backend is
+				// published to PyPI; until then setup succeeds only from a repo checkout (editable
+				// install) and otherwise fails loudly with the package-not-found hint.
+				const installArgs = installTarget === PYPI_PACKAGE_NAME
+					? ['-m', 'pip', 'install', ...PIP_FLAGS, PYPI_PACKAGE_NAME]
+					: ['-m', 'pip', 'install', ...PIP_FLAGS, '-e', installTarget];
 				await runProvisioningStep('installing the mrd_viz backend', venvPython, installArgs, outputChannel);
 
 				return true;
@@ -276,7 +295,7 @@ export function classifyProvisioningFailure(detail: string): string {
 
 /** Locate a Python 3.12+ interpreter on PATH suitable for building the backend venv. */
 async function findProvisioningPython(): Promise<string | undefined> {
-	for (const command of ['python3.12', 'python3', 'python']) {
+	for (const command of PROVISIONING_PYTHON_CANDIDATES) {
 		if (await isPython312OrNewer(command)) {
 			return command;
 		}
@@ -284,27 +303,21 @@ async function findProvisioningPython(): Promise<string | undefined> {
 	return undefined;
 }
 
-function isPython312OrNewer(command: string): Promise<boolean> {
-	return new Promise(resolve => {
-		execFile(
-			command,
-			['-c', 'import sys; print(sys.version_info[0], sys.version_info[1])'],
-			{ timeout: 10000, windowsHide: true },
-			(error, stdout) => {
-				if (error) {
-					resolve(false);
-					return;
-				}
-				const match = /^(\d+)\s+(\d+)/.exec(stdout.trim());
-				if (!match) {
-					resolve(false);
-					return;
-				}
-				const [major, minor] = [Number(match[1]), Number(match[2])];
-				resolve(major === 3 && minor >= 12);
-			},
-		);
-	});
+async function isPython312OrNewer(command: string): Promise<boolean> {
+	const { error, stdout } = await runProcess(
+		command,
+		['-c', 'import sys; print(sys.version_info[0], sys.version_info[1])'],
+		{ timeoutMs: PYTHON_VERSION_PROBE_TIMEOUT_MS },
+	);
+	if (error) {
+		return false;
+	}
+	const match = /^(\d+)\s+(\d+)/.exec(stdout.trim());
+	if (!match) {
+		return false;
+	}
+	const [major, minor] = [Number(match[1]), Number(match[2])];
+	return major === 3 && minor >= 12;
 }
 
 /** When running from the repo checkout, prefer an editable install of the local backend. */
@@ -313,20 +326,18 @@ function repoBackendInstallTarget(context: vscode.ExtensionContext): string | un
 	return existsSync(path.join(backendDir, 'pyproject.toml')) ? backendDir : undefined;
 }
 
-function runProvisioningStep(step: string, command: string, args: string[], outputChannel: vscode.OutputChannel): Promise<void> {
+async function runProvisioningStep(step: string, command: string, args: string[], outputChannel: vscode.OutputChannel): Promise<void> {
 	outputChannel.appendLine(`Running: ${command} ${args.join(' ')}`);
-	return new Promise((resolve, reject) => {
-		execFile(command, args, { timeout: 600000, windowsHide: true, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
-			appendIfPresent(outputChannel, 'stdout', stdout);
-			appendIfPresent(outputChannel, 'stderr', stderr);
-			if (error) {
-				const detail = (stderr.trim().split(/\r?\n/).pop() || error.message).trim();
-				reject(new BackendSetupError(step, detail));
-				return;
-			}
-			resolve();
-		});
+	const { error, stdout, stderr } = await runProcess(command, args, {
+		timeoutMs: PROVISIONING_STEP_TIMEOUT_MS,
+		maxBuffer: PROVISIONING_LOG_MAX_BUFFER_BYTES,
 	});
+	appendIfPresent(outputChannel, 'stdout', stdout);
+	appendIfPresent(outputChannel, 'stderr', stderr);
+	if (error) {
+		const detail = (stderr.trim().split(/\r?\n/).pop() || error.message).trim();
+		throw new BackendSetupError(step, detail);
+	}
 }
 
 function appendIfPresent(outputChannel: vscode.OutputChannel, label: string, text: string): void {

@@ -96,7 +96,7 @@ You can also install from the UI: **Extensions view → Views and More Actions (
 
 ## 6. Set Up the Backend (Required to Open Files)
 
-Installing the VSIX makes the extension available in every window, but rendering `.mrd` files needs the `mrd_viz` Python backend on the machine. The repo-relative `.venv` auto-detection only works when running from source (the F5 dev host) — an **installed** extension must be pointed at the interpreter explicitly via `mrdViz.pythonPath`.
+Installing the VSIX makes the extension available in every window, but rendering `.mrd` files needs the `mrd_viz` Python backend on the machine. The repo-relative `.venv` auto-detection only works when running from source (the F5 dev host), and a locally built VSIX doesn't bundle the backend binary — so an **installed** extension must be pointed at the interpreter explicitly via `mrdViz.backendPath`.
 
 You only need **steps 1–3** of the [Official Extension Development Runbook](OFFICIAL_EXT_DEV_RUNBOOK.md); they are reproduced here for convenience.
 
@@ -146,17 +146,17 @@ The printed path is the value you need next:
 
 ### 6c. Point the extension at that interpreter
 
-Set `mrdViz.pythonPath` to the path from 6b — via **Settings → search "mrdViz: Python Path"**, or in `settings.json`:
+Set `mrdViz.backendPath` to the path from 6b — via **Settings → search "mrdViz: Backend Path"**, or in `settings.json`:
 
 ```json
 {
-  "mrdViz.pythonPath": "<repo-root>/mrd-viz/backend/.venv/bin/python"
+  "mrdViz.backendPath": "<repo-root>/mrd-viz/backend/.venv/bin/python"
 }
 ```
 
-> **Why set this explicitly?** If `mrdViz.pythonPath` is empty, the extension falls back to a bare `python` on `PATH`. On machines that only have `python3` (common on Linux/macOS), that lookup fails and you get a backend error even though Python is installed. Pointing `mrdViz.pythonPath` at the venv interpreter avoids the `python` vs `python3` ambiguity entirely.
+> **Why set this explicitly?** A locally built VSIX doesn't bundle the backend binary, and there is no `python`/`python3`-on-`PATH` fallback, so an installed extension has no backend until `mrdViz.backendPath` points at an interpreter that has `mrd_viz`.
 
-> **Set this in User settings, not Workspace settings, if you also use the dev container.** A workspace `.vscode/settings.json` is bind-mounted into the dev container, so a host path set there (e.g. a Windows `...\.venv\Scripts\python.exe`) leaks into the container and overrides its Linux interpreter — producing a `spawn ... ENOENT` backend error. The dev container sets its own `mrdViz.pythonPath`; keeping the host value in **User** settings prevents the two from colliding.
+> **`mrdViz.backendPath` is machine-scoped**, so it can't be set in a committed workspace `.vscode/settings.json` and never leaks into the dev container (the container sets its own value in its remote settings). This closes the old `spawn ... ENOENT` class of errors.
 
 ### 6d. Open a file
 
@@ -180,5 +180,5 @@ code --uninstall-extension ismrmrd.mrd-viz
 ## Notes
 
 - **Publisher / icon:** `publisher` is set to `ismrmrd` so packaging succeeds; an `icon` is optional (only a warning). Both matter only when publishing to the Marketplace, which is out of scope for local installs.
-- **Backend requirement:** installing the VSIX makes the extension available everywhere, but rendering requires the `mrd_viz` Python backend and `mrdViz.pythonPath` pointed at its interpreter (section 6). Distributing/provisioning the backend automatically is tracked separately.
+- **Backend requirement:** installing the VSIX makes the extension available everywhere, but rendering requires the `mrd_viz` Python backend and `mrdViz.backendPath` pointed at its interpreter (section 6). Distributing/provisioning the backend automatically is tracked separately.
 - **Relation to publishing:** to later publish to the Marketplace, register the `ismrmrd` publisher and run `vsce publish`; the packaging config here (`.vscodeignore`, manifest metadata) is the same foundation.

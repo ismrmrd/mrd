@@ -14,13 +14,24 @@
   // which is blocked on some corporate networks. Project provisioning (backend +
   // the MRD Viz extension) is a one-time `just container-setup` you run afterwards.
   "postCreateCommand": "bash .devcontainer/mrd-viz/postCreate.sh",
+  // Ordered package-index candidates (Microsoft-internal mirror first, public
+  // registry as fallback). `.devcontainer/mrd-viz/select-pkg-index.sh` picks the
+  // first reachable one and exports PIP_INDEX_URL / npm_config_registry, so the
+  // internal feed lives here — not in a hidden dotfile — and external contributors
+  // fall back to the public registry automatically. Override either list, or set
+  // PIP_INDEX_URL / npm_config_registry directly, to force a specific feed.
+  "remoteEnv": {
+    "MRD_PIP_INDEX_URLS": "https://packagefeedproxy.microsoft.io/pypi/simple/ https://pypi.org/simple/",
+    "MRD_NPM_REGISTRIES": "https://packagefeedproxy.microsoft.io/npm/ https://registry.npmjs.org/"
+  },
   "customizations": {
     "vscode": {
       "settings": {
         // `just container-setup` creates this venv; pointing the extension at it
-        // explicitly avoids the installed-VSIX discovery gap and the python/python3
-        // PATH ambiguity.
-        "mrdViz.pythonPath": "/home/vscode/.venvs/mrd-viz/bin/python",
+        // explicitly (via the developer override) avoids the installed-VSIX discovery
+        // gap and the python/python3 PATH ambiguity. backendPath is machine-scoped, so
+        // this applies as a container remote setting and never leaks back to the host.
+        "mrdViz.backendPath": "/home/vscode/.venvs/mrd-viz/bin/python",
         "python.defaultInterpreterPath": "/home/vscode/.venvs/mrd-viz/bin/python"
       },
       "extensions": [

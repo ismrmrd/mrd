@@ -13,6 +13,15 @@ const MAX_IMAGE_CACHE_ENTRIES = 32;
 export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: BackendAttempt[]): string {
 	const nonce = getNonce();
 	const cspSource = webview.cspSource;
+	// A broken developer override is a different problem from an end-user install whose bundled
+	// backend won't run, so lead with the relevant explanation and primary action.
+	const overrideAttempt = tried.find(attempt => attempt.kind === 'override');
+	const developerOverride = overrideAttempt !== undefined;
+	const intro = developerOverride
+		? 'The backend configured in <code>mrdViz.backendPath</code> could not be run. It was probed with <code>--version</code> and failed for the reason shown:'
+		: 'MRD Viz could not run its bundled backend on this platform. Each candidate below was probed with <code>--version</code> and failed for the reason shown:';
+	const selectClass = developerOverride ? '' : 'secondary';
+	const setupClass = developerOverride ? 'secondary' : '';
 	const triedItems = tried.map(attempt => {
 		const source = `<span class="candidate">${escapeHtml(attempt.source)}</span>`;
 		const detail = attempt.detail
@@ -90,22 +99,23 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: Backend
 <body>
 	<main>
 		<h1>MRD Viz backend not found</h1>
-		<p>MRD Viz needs a Python 3.12+ environment with the <code>mrd_viz</code> package installed, or the bundled standalone backend. Each candidate below was probed with <code>--version</code> and failed for the reason shown:</p>
+		<p>${intro}</p>
 		<ul class="candidates">${triedItems}</ul>
 
 		<div class="actions">
-			<button type="button" id="select">Select Python Interpreter…</button>
-			<button type="button" id="setup" class="secondary">Set Up Backend Automatically…</button>
+			<button type="button" id="select" class="${selectClass}">Select Python Interpreter…</button>
+			<button type="button" id="setup" class="${setupClass}">Set Up Backend Automatically…</button>
 		</div>
 
 		<h2>Point MRD Viz at a Python environment</h2>
-		<p>Create an environment that has the <code>mrd_viz</code> package, then set <code>mrdViz.pythonPath</code> to its interpreter:</p>
+		<p>Create an environment that has the <code>mrd_viz</code> package, then set <code>mrdViz.backendPath</code> to its interpreter (or to a prebuilt <code>mrd-viz</code> binary):</p>
 		<pre class="setup">python3 -m venv ~/.mrd-viz-venv
-~/.mrd-viz-venv/bin/pip install mrd-viz   # or, from a checkout: pip install -e path/to/mrd/mrd-viz/backend
+# install the backend from your mrd checkout (mrd-viz is not published to PyPI):
+~/.mrd-viz-venv/bin/pip install -e path/to/mrd/mrd-viz/backend
 
-# then set mrdViz.pythonPath to:
+# then set mrdViz.backendPath to:
 ~/.mrd-viz-venv/bin/python</pre>
-		<p>Use <b>Select Python Interpreter…</b> above to browse to that interpreter (it writes <code>mrdViz.pythonPath</code> for you). The viewer reloads automatically once a working backend is found.</p>
+		<p>Use <b>Select Python Interpreter…</b> above to browse to that interpreter (it writes <code>mrdViz.backendPath</code> for you), or <b>Set Up Backend Automatically…</b> to build a managed environment. The viewer reloads automatically once a working backend is found.</p>
 		<p>You can also open this workspace in the MRD Viz dev container, which provisions the backend for you.</p>
 	</main>
 	<script nonce="${nonce}">

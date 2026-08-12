@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 
 import { classifyProvisioningFailure, getOpenWithMrdEditorArgs, removeIncompleteVenv } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
+import { planBackendCandidates } from '../backendResolver';
 import { getMrdBackendMissingHtml } from '../webviewHtml';
 import { getMrdErrorHtml } from '../stateHtml';
 import { isViewerToExtensionMessage } from '../contracts';
@@ -83,20 +84,31 @@ suite('MRD Viz Extension', () => {
 	test('renders a guided backend-missing view with escaped candidates and failure reasons', () => {
 		const webview = { cspSource: 'vscode-resource:' } as vscode.Webview;
 		const html = getMrdBackendMissingHtml(webview, [
-			{ source: 'bundled backend (/x/mrd-viz)', detail: "libm.so.6: version `GLIBC_2.38' not found" },
-			{ source: 'mrdViz.pythonPath setting (<x>)', detail: "No module named 'mrd_viz'" },
-			{ source: '"python" on PATH' },
+			{ source: 'development environment (<x>)', kind: 'development', detail: "No module named 'mrd_viz'" },
+			{ source: 'bundled backend (/x/mrd-viz)', kind: 'bundled', detail: "libm.so.6: version `GLIBC_2.38' not found" },
 		]);
 
 		assert.ok(html.includes('MRD Viz backend not found'));
 		assert.ok(html.includes('bundled backend (/x/mrd-viz)'));
-		assert.ok(html.includes('mrdViz.pythonPath setting (&lt;x&gt;)'));
+		// Candidate sources are HTML-escaped.
+		assert.ok(html.includes('development environment (&lt;x&gt;)'));
 		// The captured probe stderr (e.g. the glibc mismatch) is surfaced and escaped.
 		assert.ok(html.includes('GLIBC_2.38'));
 		assert.ok(html.includes('No module named &#39;mrd_viz&#39;') || html.includes("No module named 'mrd_viz'"));
-		assert.ok(html.includes('No diagnostic output was captured.'));
 		assert.ok(html.includes('mrd-viz.setUpBackend'));
 		assert.ok(html.includes('mrd-viz.selectInterpreter'));
+	});
+
+	test('tailors the backend-missing view when a developer override is broken', () => {
+		const webview = { cspSource: 'vscode-resource:' } as vscode.Webview;
+		const html = getMrdBackendMissingHtml(webview, [
+			{ source: 'mrdViz.backendPath setting (/x/python)', kind: 'override', detail: "No module named 'mrd_viz'" },
+		]);
+
+		// The override wording leads instead of the bundled-backend wording.
+		assert.ok(html.includes('configured in'));
+		assert.ok(html.includes('mrdViz.backendPath'));
+		assert.ok(!html.includes('could not run its bundled backend'));
 	});
 
 	test('validates loadImage messages including optional slice coordinates', () => {
@@ -148,6 +160,56 @@ suite('MRD Viz backend provisioning', () => {
 
 		assert.ok(!existsSync(missing));
 		assert.ok(messages.some(message => message.includes('Cleaned up incomplete backend environment')));
+	});
+});
+
+suite('MRD Viz backend resolution order', () => {
+	const bundled = '/ext/media/backend/mrd-viz';
+	const devVenv = '/repo/backend/.venv/bin/python';
+
+	test('a configured override is the only candidate (no silent fallback to the bundled binary)', () => {
+		const candidates = planBackendCandidates({
+			configuredPath: '/custom/bin/python',
+			bundledBinaryPath: bundled,
+			developmentVenvPath: devVenv,
+			isDevelopment: true,
+		});
+
+		assert.strictEqual(candidates.length, 1);
+		assert.strictEqual(candidates[0].kind, 'override');
+		assert.strictEqual(candidates[0].command, '/custom/bin/python');
+		assert.deepStrictEqual(candidates[0].baseArgs, ['-m', 'mrd_viz.cli']);
+	});
+
+	test('an override pointing at the mrd-viz binary runs as a binary (no python -m args)', () => {
+		const [candidate] = planBackendCandidates({ configuredPath: '/opt/mrd-viz', isDevelopment: false });
+
+		assert.strictEqual(candidate.kind, 'override');
+		assert.deepStrictEqual(candidate.baseArgs, []);
+	});
+
+	test('an unconfigured production install uses only the bundled binary', () => {
+		const candidates = planBackendCandidates({
+			bundledBinaryPath: bundled,
+			developmentVenvPath: devVenv,
+			isDevelopment: false,
+		});
+
+		assert.deepStrictEqual(candidates.map(candidate => candidate.kind), ['bundled']);
+	});
+
+	test('the development host tries the repo venv before the bundled binary', () => {
+		const candidates = planBackendCandidates({
+			bundledBinaryPath: bundled,
+			developmentVenvPath: devVenv,
+			isDevelopment: true,
+		});
+
+		assert.deepStrictEqual(candidates.map(candidate => candidate.kind), ['development', 'bundled']);
+	});
+
+	test('yields no candidates when nothing is configured, bundled, or available', () => {
+		assert.deepStrictEqual(planBackendCandidates({ isDevelopment: false }), []);
 	});
 });
 
