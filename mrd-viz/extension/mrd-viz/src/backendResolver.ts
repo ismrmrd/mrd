@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 
-import { PROBE_TIMEOUT_MS_MAX, PROBE_TIMEOUT_MS_MIN, PYTHON_MODULE_ARGS } from './backendConstants';
+import { BACKEND_BINARY_NAME, PROBE_TIMEOUT_MS_MAX, PROBE_TIMEOUT_MS_MIN, PYTHON_MODULE_ARGS } from './backendConstants';
 import { runProcess } from './subprocess';
 
 /** How a backend candidate was selected. Drives tailored failure messaging in the webview. */
@@ -54,6 +54,13 @@ export async function resolveBackend(context: vscode.ExtensionContext, validatio
 		developmentVenvPath: developmentVenvPython(context),
 		isDevelopment: context.extensionMode === vscode.ExtensionMode.Development,
 	});
+
+	// No override and no bundled binary for this platform means there is nothing to probe and no way
+	// the extension can work. Surface that explicitly rather than returning an empty `tried` list the
+	// webview cannot explain.
+	if (candidates.length === 0) {
+		return { ok: false, tried: [noBackendAvailableAttempt()] };
+	}
 
 	const tried: BackendAttempt[] = [];
 	for (const candidate of candidates) {
@@ -124,6 +131,18 @@ export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedB
 	return candidates;
 }
 
+/**
+ * The failure surfaced when {@link planBackendCandidates} yields nothing: no `mrdViz.backendPath`
+ * override and no bundled binary shipped for this platform. Gives the webview a concrete, actionable
+ * message (and its setup buttons) instead of an empty attempt list.
+ */
+function noBackendAvailableAttempt(): BackendAttempt {
+	return {
+		source: 'no backend available',
+		detail: `No ${BACKEND_PATH_SETTING} is set and no bundled backend was shipped for this platform (${process.platform}-${process.arch}). Use “Set Up Backend Automatically…” or “Select Python Interpreter…” below to provide one.`,
+	};
+}
+
 /** Build the override candidate, treating an `mrd-viz` executable as a binary and anything else as an interpreter. */
 function configuredBackend(configuredPath: string): ResolvedBackend {
 	const baseArgs = looksLikeBackendBinary(configuredPath) ? [] : [...PYTHON_MODULE_ARGS];
@@ -133,7 +152,7 @@ function configuredBackend(configuredPath: string): ResolvedBackend {
 /** Whether a configured path points at the standalone backend binary rather than a Python interpreter. */
 function looksLikeBackendBinary(configuredPath: string): boolean {
 	const base = path.basename(configuredPath).toLowerCase();
-	return base === 'mrd-viz' || base === 'mrd-viz.exe';
+	return base === BACKEND_BINARY_NAME || base === `${BACKEND_BINARY_NAME}.exe`;
 }
 
 interface ProbeResult {
@@ -206,7 +225,7 @@ function pythonExecutableRelative(): string {
 }
 
 function bundledBinaryPath(context: vscode.ExtensionContext): string | undefined {
-	const name = process.platform === 'win32' ? 'mrd-viz.exe' : 'mrd-viz';
+	const name = process.platform === 'win32' ? `${BACKEND_BINARY_NAME}.exe` : BACKEND_BINARY_NAME;
 	const candidate = path.join(context.extensionUri.fsPath, 'media', 'backend', name);
 	return existsSync(candidate) ? candidate : undefined;
 }

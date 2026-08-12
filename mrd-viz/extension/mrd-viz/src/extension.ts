@@ -106,12 +106,18 @@ async function pickTargetUri(resource?: vscode.Uri, selectedResources?: vscode.U
 }
 
 async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<void> {
+	// If a managed backend is already provisioned, this rebuilds it from scratch, so confirm the
+	// reinstall rather than silently clobbering a working environment.
+	const alreadyInstalled = existsSync(managedVenvPythonPath(context));
+	const confirmLabel = alreadyInstalled ? 'Reinstall' : 'Install';
 	const proceed = await vscode.window.showInformationMessage(
-		'Set up the MRD Viz backend automatically? This creates a private Python virtual environment in the extension\u2019s storage and installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.',
+		alreadyInstalled
+			? 'An MRD Viz backend is already installed in the extension\u2019s storage. Reinstall it? This deletes and rebuilds the private Python virtual environment and re-installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.'
+			: 'Set up the MRD Viz backend automatically? This creates a private Python virtual environment in the extension\u2019s storage and installs the "mrd_viz" package with pip. It needs a Python 3.12+ interpreter on PATH and network access.',
 		{ modal: true },
-		'Install',
+		confirmLabel,
 	);
-	if (proceed !== 'Install') {
+	if (proceed !== confirmLabel) {
 		return;
 	}
 
@@ -123,7 +129,7 @@ async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vsc
 			'backendPath', managedVenvPythonPath(context), vscode.ConfigurationTarget.Global,
 		);
 		invalidateBackendCache();
-		void vscode.window.showInformationMessage('MRD Viz backend installed.');
+		void vscode.window.showInformationMessage(alreadyInstalled ? 'MRD Viz backend reinstalled.' : 'MRD Viz backend installed.');
 	}
 }
 

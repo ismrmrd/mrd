@@ -26,5 +26,12 @@ export const PYTHON_MODULE_ARGS = ['-m', 'mrd_viz.cli'] as const;
 /** The pip distribution name for the backend (not yet published to PyPI). */
 export const PYPI_PACKAGE_NAME = 'mrd-viz';
 
+/**
+ * Base name of the standalone backend binary (the PyInstaller output bundled in the VSIX at
+ * `media/backend/`). Kept here so a rename of the backend/binary touches one place rather than
+ * scattered string literals in the resolver.
+ */
+export const BACKEND_BINARY_NAME = 'mrd-viz';
+
 /** Interpreter commands tried, in order, when discovering a Python to build the managed venv. */
 export const PROVISIONING_PYTHON_CANDIDATES = ['python3.12', 'python3', 'python'] as const;
