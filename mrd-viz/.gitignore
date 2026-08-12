@@ -12,3 +12,10 @@ extension/mrd-viz/.npmrc
 # CI-staged standalone backend binary (built by the release workflow).
 extension/mrd-viz/media/backend/
 *.vsix
+
+# WIP internal docs kept untracked until ready for review.
+docs/BACKEND_INSTALL_MODES.md
+docs/BACKEND_RESOLUTION_IMPLEMENTATION_PLAN.md
+docs/EXTENSION_RELEASE_RUNBOOK.md
+docs/OFFICIAL_EXT_DEV_RUNBOOK.md
+docs/PACKAGING_AND_INSTALL_RUNBOOK.md
