@@ -57,6 +57,9 @@ backend_ready=0
 if [ -x "$venv/bin/python" ] && "$venv/bin/python" -m mrd_viz.cli --version >/dev/null 2>&1; then
 	backend_ready=1
 elif [ -d "$backend_dir" ]; then
+	# Point pip at the first reachable index (internal mirror, else public PyPI).
+	# shellcheck source=./select-pkg-index.sh
+	source "$repo_root/.devcontainer/mrd-viz/select-pkg-index.sh"
 	echo ">> Provisioning MRD Viz backend virtualenv: $venv"
 	if python3 -m venv "$venv" \
 		&& "$venv/bin/python" -m pip install --upgrade pip \

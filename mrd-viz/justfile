@@ -31,6 +31,9 @@
 container-setup:
     #!/usr/bin/env bash
     set -euo pipefail
+    # Point pip and npm at the first reachable index (internal mirror, else public).
+    # shellcheck source=../.devcontainer/mrd-viz/select-pkg-index.sh
+    source ../.devcontainer/mrd-viz/select-pkg-index.sh
     venv="$HOME/.venvs/mrd-viz"
     echo ">> Creating backend virtualenv: $venv"
     python -m venv "$venv"

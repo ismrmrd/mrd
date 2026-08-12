@@ -41,20 +41,37 @@ Double-click any `.mrd` file, or run **MRD Viz: Open File** from the Command Pal
 
 ## Restricted / corporate networks
 
-Some corporate networks block direct access to the **public npm registry** (`registry.npmjs.org`) and require an internal mirror instead. Symptom: the container build or `just mrd-viz-container-setup` fails with an `npm` **TLS handshake failure** to `registry.npmjs.org`. (PyPI is typically unaffected, so the backend install still works.)
+Some corporate networks block direct access to the **public npm registry** (`registry.npmjs.org`) **and the public PyPI** (`pypi.org` / `files.pythonhosted.org`), requiring an internal mirror instead. Symptoms: the container build, `postCreate`, or `just mrd-viz-container-setup` fails with an `npm` **TLS handshake failure**, or `pip` fails with `SSL: SSLV3_ALERT_HANDSHAKE_FAILURE` while resolving packages.
 
-To fix it, point the container's npm at your organization's feed with a **git-ignored** `.npmrc`:
+### Automatic handling (default)
 
-1. Find your feed on the host: `npm config get registry`.
-2. Create `mrd-viz/extension/mrd-viz/.npmrc` (git-ignored) with:
+Both blockers are handled for you by [`.devcontainer/mrd-viz/select-pkg-index.sh`](../../.devcontainer/mrd-viz/select-pkg-index.sh), which `postCreate` and `just mrd-viz-container-setup` source before any `pip`/`npm` call. It walks an ordered **candidate ladder** — the Microsoft-internal mirror first, the public registry as fallback — probes each, and exports `PIP_INDEX_URL` / `npm_config_registry` to the first that responds:
 
-   ```ini
-   registry=https://your-org-feed.example/npm/
-   ```
+- **Microsoft-internal devs** (on the corp network) get the internal mirror automatically.
+- **External contributors** (internal mirror unreachable) fall back to the public registry automatically.
 
-3. Run `just mrd-viz-container-setup` again.
+The candidate lists live in [`.devcontainer/mrd-viz/devcontainer.json`](../../.devcontainer/mrd-viz/devcontainer.json) under `remoteEnv`, so the internal feed is discoverable in a committed file rather than a hidden dotfile:
 
-If your feed requires authentication, add the appropriate `_authToken`/credential-provider lines (same as your host `.npmrc`). This file is git-ignored so the internal URL is never committed.
+```jsonc
+"remoteEnv": {
+  "MRD_PIP_INDEX_URLS": "https://packagefeedproxy.microsoft.io/pypi/simple/ https://pypi.org/simple/",
+  "MRD_NPM_REGISTRIES": "https://packagefeedproxy.microsoft.io/npm/ https://registry.npmjs.org/"
+}
+```
+
+### Manual override
+
+If probing picks the wrong feed, or you run the setup outside the container, force a feed by exporting the vars pip and npm read natively, then re-run `just mrd-viz-container-setup`:
+
+```bash
+export PIP_INDEX_URL="https://packagefeedproxy.microsoft.io/pypi/simple/"
+export npm_config_registry="https://packagefeedproxy.microsoft.io/npm/"
+```
+
+The setup scripts print these exact `export` lines if no candidate is reachable. An explicit `PIP_INDEX_URL` / `npm_config_registry` always wins over the ladder. Find your own feed URLs on the host with `pip config get global.index-url` and `npm config get registry`. If a feed requires authentication, add the appropriate credential (e.g. a git-ignored `~/.netrc`, or `_authToken` in a git-ignored user `~/.npmrc`) — never commit credentials.
+
+> A git-ignored project `.npmrc` (`mrd-viz/extension/mrd-viz/.npmrc` with `registry=…`) still works and takes precedence for npm, but is no longer required now that the ladder exports `npm_config_registry` automatically.
+
 
 ## Backend error: a host path or `spawn ... ENOENT`
 
