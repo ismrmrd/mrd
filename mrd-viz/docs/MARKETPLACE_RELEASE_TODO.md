@@ -28,9 +28,9 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
 ## 2. Manifest completeness
 
 - [ ] **Add an `icon`** (128×128 PNG) to the manifest and bundle it in the VSIX.
-  - [ ] Drop source art at `mrd-viz/extension/mrd-viz/media/icon-src.png`.
-  - [ ] Resize to exactly 128×128 → `media/icon.png`.
-  - [ ] Add `"icon": "media/icon.png"` to `package.json`.
+  - [x] Drop source art at `mrd-viz/extension/mrd-viz/media/icon-src.png`.
+  - [x] Resize to exactly 128×128 → `media/icon.png`.
+  - [x] Add `"icon": "media/icon.png"` to `package.json`.
 - [ ] **Verify README renders standalone** — [`README.md`](../extension/mrd-viz/README.md) becomes
   the Marketplace detail page; ensure any image links are absolute.
 - [ ] **Confirm LICENSE is included** in the VSIX (check
