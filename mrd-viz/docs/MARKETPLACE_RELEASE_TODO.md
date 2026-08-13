@@ -33,8 +33,8 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
   - [x] Add `"icon": "media/icon.png"` to `package.json`.
 - [ ] **Verify README renders standalone** — [`README.md`](../extension/mrd-viz/README.md) becomes
   the Marketplace detail page; ensure any image links are absolute.
-- [ ] **Confirm LICENSE is included** in the VSIX (check
-  [`.vscodeignore`](../extension/mrd-viz/.vscodeignore); `license: MIT` is declared).
+- [x] **Confirm LICENSE is included** in the VSIX — copied the repo MIT license to
+  `extension/mrd-viz/LICENSE.txt`; confirmed present in the packaged VSIX via `vsce` file list.
 - [ ] _(Optional)_ Add `keywords`, refine `categories` (currently `["Other"]`), and a
   `galleryBanner` for discoverability.
 
@@ -51,10 +51,12 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
 
 ## 4. Validation loop (local, no publish)
 
-- [ ] `vsce package --target win32-x64` — validate manifest + produce VSIX without publishing.
-- [ ] `vsce ls` — confirm icon, LICENSE, README, and staged backend binary are included and
-  `node_modules` is excluded.
-- [ ] Install the VSIX locally (`code --install-extension`) and smoke-test opening a `.mrd` file.
+- [x] `vsce package` — validated manifest + produced VSIX without publishing. Confirmed
+  `icon.png` and `LICENSE.txt` are included and `icon-src.png` is excluded.
+- [x] Install the VSIX locally (`code --install-extension`) — installed as
+  `ismrmrd.mrd-viz@0.0.1`; verify listing appearance in the Extensions view.
+- [ ] Smoke-test opening a `.mrd` file with a bundled backend binary (local package omits the
+  PyInstaller binary; requires a CI build or a local backend build).
 - [ ] Only after the above: `vsce publish --packagePath <file>.vsix` (real publish; gated on §1).
 
 ## 5. Compliance sign-off (see runbook §5)
@@ -73,3 +75,5 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
 
 - 2026-08-13 — Branch `mrd-viz-release` created for release prep. Publisher owner confirmed as
   `ismrmrd` (community identity, not personal or `microsoft`).
+- 2026-08-13 — Added 128×128 `icon.png`, wired into manifest, added `LICENSE.txt`. Local
+  `vsce package` + install validated (icon present, source art excluded).
