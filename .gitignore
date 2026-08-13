@@ -8,4 +8,8 @@ mrd-viz/data/
 *.bin
 *.png
 
+# MRD Viz extension icon assets are intentionally tracked despite the *.png rule.
+!mrd-viz/extension/mrd-viz/media/icon.png
+!mrd-viz/extension/mrd-viz/media/icon-src.png
+
 *.pyc
