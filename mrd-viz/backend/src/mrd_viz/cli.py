@@ -18,6 +18,12 @@ def _package_version() -> str:
         return "unknown"
 
 
+# _coords_from_pairs builds a dense tuple spanning up to the largest supplied axis, so an
+# out-of-range AXIS (e.g. --slice 1000000000:0) would attempt an enormous allocation before
+# any JSON error handling runs. MRD arrays are low-dimensional; cap AXIS well above that.
+_MAX_SLICE_AXIS = 31
+
+
 def _slice_pair(value: str) -> tuple[int, int]:
     axis_str, sep, index_str = value.partition(":")
     if not sep:
@@ -29,6 +35,8 @@ def _slice_pair(value: str) -> tuple[int, int]:
         raise argparse.ArgumentTypeError(f"--slice expects integer AXIS:INDEX, got {value!r}") from exc
     if axis < 0 or index < 0:
         raise argparse.ArgumentTypeError(f"--slice AXIS and INDEX must be non-negative, got {value!r}")
+    if axis > _MAX_SLICE_AXIS:
+        raise argparse.ArgumentTypeError(f"--slice AXIS must be <= {_MAX_SLICE_AXIS}, got {value!r}")
     return axis, index
 
 

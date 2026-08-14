@@ -9,7 +9,7 @@ export function renderMosaic() {
 	const root = document.getElementById('mosaic');
 	root.textContent = '';
 	removeMosaicModeControls();
-	const tiles = (payload.mosaic && payload.mosaic.thumbnails) || [];
+	const tiles = currentTiles();
 	if (!tiles.length) {
 		const empty = document.createElement('div');
 		empty.className = 'empty';
@@ -64,7 +64,11 @@ export function renderMosaic() {
 }
 
 function currentTiles() {
-	return (payload.mosaic && payload.mosaic.thumbnails) || [];
+	// The host forwards backend output; guard against a non-array `thumbnails` (e.g. from an
+	// incompatible or corrupted backend) so `.length`/`.forEach` below cannot throw and blank
+	// the editor.
+	const tiles = payload.mosaic && payload.mosaic.thumbnails;
+	return Array.isArray(tiles) ? tiles : [];
 }
 
 function removeMosaicModeControls() {
