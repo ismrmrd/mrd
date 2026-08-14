@@ -40,12 +40,14 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
 
 ## 3. Workflow wiring
 
-- [ ] **Add a `publish` job** after `release` in
+- [x] **Add a `publish` job** after `release` in
   [`mrd_viz_release.yml`](../../.github/workflows/mrd_viz_release.yml) that runs
   `vsce publish --packagePath` on each **pre-built** platform VSIX (do not rebuild). One publish
   call per `--target`.
-- [ ] Guard the job so it is a no-op until the `VSCE_PAT` secret exists.
-- [ ] _(Optional)_ Mirror to **Open VSX** via `ovsx publish` (separate account/token).
+- [x] Guard the job so it is a no-op until the `VSCE_PAT` secret exists (skips with a warning if
+  the secret is empty).
+- [ ] _(Optional)_ Mirror to **Open VSX** via `ovsx publish` (separate account/token) — TODO left
+  in the workflow.
 - [ ] **Update PR trigger branch** — the workflow currently filters on `carter-mrd-viz`; point it
   at `main` (or the release branch) once merged.
 
@@ -77,3 +79,5 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
   `ismrmrd` (community identity, not personal or `microsoft`).
 - 2026-08-13 — Added 128×128 `icon.png`, wired into manifest, added `LICENSE.txt`. Local
   `vsce package` + install validated (icon present, source art excluded).
+- 2026-08-14 — Scaffolded guarded `publish-marketplace` job in the release workflow (runs on
+  `mrd-viz-v*` tag push after `release`; skips if `VSCE_PAT` unset).
