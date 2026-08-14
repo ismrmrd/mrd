@@ -1,5 +1,12 @@
 # Marketplace Release TODO
 
+> **Handoff note (2026-08-14):** Release prep to date was done on the `mrd-viz-release` branch.
+> The mechanical/manifest work is complete and validated locally; what remains is (a) creating the
+> `ismrmrd` Marketplace publisher + credential, (b) adding the `VSCE_PAT` secret, and (c) the
+> compliance sign-off in §5. Once the secret exists, publishing is fully automated on a tag push
+> — see [§6 "How the Marketplace publish job works"](#6-how-the-marketplace-publish-job-works)
+> for the exact activation steps. Owner sections marked _(Owner: Carter)_ need a new owner.
+
 Tracking checklist for publishing the **MRD Viz** VS Code extension to the VS Code Marketplace
 (Channel B). Worked on the `mrd-viz-release` branch.
 
@@ -70,6 +77,69 @@ Legend: `[ ]` not started · `[~]` in progress · `[x]` done · `[blocked]` wait
   backend.
 - [blocked] Q7 — approved credential storage for a non-Microsoft-org repo.
 - [blocked] Q8 — code signing / notarization of native backend binaries.
+
+---
+
+## 6. How the Marketplace publish job works
+
+This section documents the `publish-marketplace` job added to
+[`mrd_viz_release.yml`](../../.github/workflows/mrd_viz_release.yml) so the next owner can activate
+it without reverse-engineering the workflow.
+
+### What it is
+
+It is **a job inside the existing release workflow**, not a separate GitHub Action and not
+something that runs on branch pushes. The whole release workflow only does the release/publish
+path when a **git tag matching `mrd-viz-v*`** is pushed.
+
+### When it runs
+
+On a `mrd-viz-v*` tag push, the jobs run in this order:
+
+```text
+tag mrd-viz-v*  →  build (linux-x64, win32-x64, darwin-arm64 VSIXs)
+                 →  release (attaches VSIXs to a GitHub Release)
+                 →  publish-marketplace (this job)
+```
+
+`publish-marketplace` has `needs: [build, release]` and `if: startsWith(github.ref, 'refs/tags/')`,
+so it only runs on a tag and only after the GitHub Release succeeds.
+
+### What it does
+
+- Downloads the **already-built** platform VSIX artifacts (does **not** rebuild — this preserves
+  the PyInstaller backend binary that was staged during `build`).
+- Runs `npx @vscode/vsce publish --packagePath <vsix>` once per platform VSIX.
+- Reads the Marketplace credential from the `VSCE_PAT` environment variable, which is wired to the
+  `secrets.VSCE_PAT` GitHub Actions secret.
+
+### Guarded / fail-safe behavior
+
+If the `VSCE_PAT` secret is **not** set, the job prints a warning and exits successfully
+(`exit 0`) instead of failing. This means tagging a release today is safe and will simply skip the
+Marketplace step until the credential is in place. **No code change is required to activate it —
+just add the secret.**
+
+### Steps to activate (for the next owner)
+
+1. Complete §1 (create the `ismrmrd` Marketplace publisher and generate an Azure DevOps PAT with
+   the Marketplace → Manage scope) and get compliance sign-off (§5, esp. Q7).
+2. In the GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**,
+   name it `VSCE_PAT`, paste the PAT value.
+3. Bump `version` in [`package.json`](../extension/mrd-viz/package.json) and update the release
+   notes in [`README.md`](../extension/mrd-viz/README.md) / `CHANGELOG.md`.
+4. Tag and push: `git tag mrd-viz-v0.0.1 && git push origin mrd-viz-v0.0.1`.
+5. Watch the Actions run: `build` → `release` → `publish-marketplace`. The extension appears on the
+   Marketplace within a few minutes of the publish step succeeding.
+
+### Rollback / safety notes
+
+- A bad publish cannot be deleted, only superseded by a higher version or unpublished by the
+  publisher. Prefer a pre-release version (e.g. `0.0.1`) for the first real publish.
+- To test the credential without a public publish, run `vsce publish` from a throwaway
+  publisher/PAT, or validate the packaging path locally with `vsce package` (see §4).
+- Open VSX mirroring is intentionally **not** wired up (a TODO is left in the workflow); it needs a
+  separate account and `OVSX_PAT` secret.
 
 ---
 
