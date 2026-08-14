@@ -2,12 +2,12 @@ name: MRD Viz
 
 on:
   pull_request:
-    branches: [carter-mrd-viz]
+    branches: [main]
     paths:
       - "mrd-viz/**"
       - ".github/workflows/mrd_viz.yml"
   push:
-    branches: [carter-mrd-viz]
+    branches: [main]
     paths:
       - "mrd-viz/**"
       - ".github/workflows/mrd_viz.yml"

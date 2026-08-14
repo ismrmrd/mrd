@@ -2,7 +2,7 @@ name: MRD Viz Release
 
 on:
   pull_request:
-    branches: [carter-mrd-viz]
+    branches: [main]
     paths:
       - "mrd-viz/extension/**"
       - "mrd-viz/backend/**"
@@ -91,7 +91,9 @@ jobs:
         working-directory: mrd-viz/extension/mrd-viz
         run: |
           npm ci
-          npx --yes @vscode/vsce package --target ${{ matrix.target }}
+          # Pin vsce to an exact version so packaging is reproducible and an upstream
+          # compromise cannot silently execute in this artifact-producing job.
+          npx --yes @vscode/vsce@3.9.2 package --target ${{ matrix.target }}
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
@@ -114,7 +116,9 @@ jobs:
           path: dist
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        # Pinned to a full commit SHA rather than the mutable v2 tag: this job holds
+        # contents: write and publishes release artifacts.
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           files: dist/**/*.vsix
           generate_release_notes: true
@@ -157,7 +161,7 @@ jobs:
           published=0
           for vsix in dist/**/*.vsix; do
             echo "Publishing ${vsix}"
-            npx --yes @vscode/vsce publish --packagePath "${vsix}"
+            npx --yes @vscode/vsce@3.9.2 publish --packagePath "${vsix}"
             published=$((published + 1))
           done
           if [ "${published}" -eq 0 ]; then
