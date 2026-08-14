@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "publisher": "ismrmrd",
   "license": "MIT",
+  "icon": "media/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ismrmrd/mrd.git"

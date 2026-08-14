@@ -11,3 +11,4 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 package-lock.json
+media/icon-src.png
