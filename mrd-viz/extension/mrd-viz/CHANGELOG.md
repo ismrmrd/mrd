@@ -6,4 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Initial release
+- Added guided backend setup options:
+  - managed backend provisioning from the extension
+  - local wheel installation path for release bundles
+- Improved backend-missing guidance in the custom editor
+- Added `MRD Viz: Open Workflow View (D3 Scaffold)` placeholder panel for workflow-level UX iteration

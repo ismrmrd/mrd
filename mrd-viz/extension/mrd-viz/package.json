@@ -5,7 +5,6 @@
   "version": "0.0.1",
   "publisher": "ismrmrd",
   "license": "MIT",
-  "icon": "media/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ismrmrd/mrd.git"
@@ -34,6 +33,11 @@
         "command": "mrd-viz.selectInterpreter",
         "title": "Select Python Interpreter",
         "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.openWorkflowView",
+        "title": "Open Workflow View (D3 Scaffold)",
+        "category": "MRD Viz"
       }
     ],
     "customEditors": [
@@ -51,10 +55,10 @@
     "configuration": {
       "title": "MRD Viz",
       "properties": {
-        "mrdViz.backendPath": {
+        "mrdViz.pythonPath": {
           "type": "string",
-          "scope": "machine",
-          "markdownDescription": "Developer override for the MRD Viz backend. Provide a path to a Python interpreter (runs `python -m mrd_viz.cli`) or to a prebuilt `mrd-viz` backend binary. **Leave unset to use the backend bundled with the extension.** Machine-scoped so an absolute path is never committed to a workspace or synced between machines."
+          "default": "python",
+          "markdownDescription": "Python executable used to run `python -m mrd_viz.cli`. Set this to the backend virtual environment interpreter when needed."
         },
         "mrdViz.maxThumbnails": {
           "type": "number",
@@ -82,21 +86,16 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./ && npm run check:webview && npm run build:webview",
-    "check:webview": "tsc --noEmit -p media",
-    "build:webview": "esbuild media/viewer.ts --bundle --format=iife --outfile=media/viewer.js --target=es2020",
+    "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "watch:webview": "esbuild media/viewer.ts --bundle --format=iife --outfile=media/viewer.js --target=es2020 --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test"
   },
   "devDependencies": {
     "@types/vscode": "^1.120.0",
-    "@types/vscode-webview": "^1.57.5",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "esbuild": "^0.24.2",
     "typescript-eslint": "^8.56.1",
     "eslint": "^9.39.3",
     "typescript": "^5.9.3",

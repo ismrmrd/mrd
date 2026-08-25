@@ -10,24 +10,27 @@ A Visual Studio Code extension for inspecting [MRD](https://github.com/ismrmrd/m
 
 ## Requirements
 
-MRD Viz relies on a Python backend (the `mrd_viz` package) to read `.mrd` files. You need:
+MRD Viz relies on a Python backend (the `mrd_viz` package) to read `.mrd` files.
 
 - Python 3.12
-- The `mrd_viz` backend installed into an environment the extension can find.
+- A reachable `mrd_viz` backend (managed setup, local wheel, or pre-installed interpreter)
 
-Point the extension at the interpreter with the `mrdViz.backendPath` setting (see below). During local development (the F5 dev host) the extension also auto-detects a virtual environment at `mrd-viz/backend/.venv`.
+You can run **MRD Viz: Set Up Backend** to create a managed backend automatically. If you already have an environment, point `mrdViz.pythonPath` at that interpreter (see below). During local development the extension also auto-detects a virtual environment at `mrd-viz/backend/.venv`.
 
 ## Extension Settings
 
 This extension contributes the following settings:
 
-- `mrdViz.backendPath`: Path to a Python interpreter (runs `python -m mrd_viz.cli`) or a prebuilt `mrd-viz` binary. Leave unset to use the backend bundled with the extension.
+- `mrdViz.pythonPath`: Python executable used to run `python -m mrd_viz.cli`. Set this to the backend environment's interpreter.
 - `mrdViz.maxThumbnails`: Maximum number of image thumbnails requested for the initial view (default `128`).
 - `mrdViz.backendTimeoutMs`: Timeout in milliseconds for a single backend process (default `30000`).
 
 ## Commands
 
 - `MRD Viz: Open File` — open the selected or picked `.mrd` file in MRD Viz.
+- `MRD Viz: Set Up Backend` — provision a managed backend or install from a local wheel.
+- `MRD Viz: Select Python Interpreter` — set `mrdViz.pythonPath` manually.
+- `MRD Viz: Open Workflow View (D3 Scaffold)` — open the workflow-level placeholder panel for upcoming D3 UX.
 
 ## Known Issues
 
