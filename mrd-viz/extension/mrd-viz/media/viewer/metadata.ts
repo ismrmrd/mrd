@@ -3,6 +3,7 @@
 
 import { payload } from './state';
 import { stat, notice, section, addField, valueOrUnknown, formatList } from './dom';
+import { buildMetadataGroups } from './metadataGroups';
 
 function metadata() {
 	return payload.metadata || {};
@@ -129,6 +130,7 @@ export function renderShell() {
 }
 
 function renderMetadata() {
+	renderGroupedMetadata();
 	renderSummaryMetadata();
 	renderOrganizationMetadata();
 	renderStreamMetadata();
@@ -146,6 +148,47 @@ function activateTab(name) {
 	});
 	document.querySelectorAll<HTMLElement>('.tab-panel').forEach(function (panel) {
 		panel.setAttribute('aria-hidden', String(panel.id !== 'metadata-' + name));
+	});
+}
+
+function renderGroupedMetadata() {
+	const root = document.getElementById('metadata-groups');
+	root.textContent = '';
+	const groups = buildMetadataGroups(payload);
+	if (!groups.length) {
+		appendEmpty(root, 'No grouped metadata is available for this file.');
+		return;
+	}
+
+	groups.forEach(function (group) {
+		const article = document.createElement('article');
+		article.className = 'metadata-group';
+
+		const heading = document.createElement('h3');
+		heading.textContent = group.title;
+		article.appendChild(heading);
+
+		const description = document.createElement('div');
+		description.className = 'metadata-note';
+		description.textContent = group.description;
+		article.appendChild(description);
+
+		if (group.fields.length) {
+			article.appendChild(definitionList(group.fields.map(function (field) {
+				return [field.label, field.value];
+			})));
+		}
+
+		group.tables.forEach(function (metadataTable) {
+			if (!metadataTable.rows.length) {
+				return;
+			}
+			const tableSection = section(metadataTable.title);
+			tableSection.appendChild(table(metadataTable.headers, metadataTable.rows));
+			article.appendChild(tableSection);
+		});
+
+		root.appendChild(article);
 	});
 }
 

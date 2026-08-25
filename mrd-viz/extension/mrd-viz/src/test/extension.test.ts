@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { classifyProvisioningFailure, getOpenWithMrdEditorArgs, removeIncompleteVenv } from '../extension';
 import { MRD_VIEW_TYPE } from '../mrdEditorProvider';
 import { planBackendCandidates } from '../backendResolver';
-import { getMrdBackendMissingHtml } from '../webviewHtml';
+import { getMrdBackendMissingHtml, getMrdViewerHtml } from '../webviewHtml';
 import { getMrdErrorHtml } from '../stateHtml';
 import { isViewerToExtensionMessage } from '../contracts';
 
@@ -71,6 +71,18 @@ suite('MRD Viz Extension', () => {
 			preview: false,
 			viewColumn: vscode.ViewColumn.Active,
 		});
+	});
+
+	test('renders the D3 metadata groups tab in the viewer shell', () => {
+		const webview = {
+			cspSource: 'vscode-resource:',
+			asWebviewUri: (uri: vscode.Uri) => uri,
+		} as vscode.Webview;
+		const html = getMrdViewerHtml(webview, sampleOpenPayload(), vscode.Uri.file('/extension'));
+
+		assert.ok(html.includes('data-tab="groups"'));
+		assert.ok(html.includes('id="metadata-groups"'));
+		assert.ok(html.includes('metadata-summary" role="tabpanel" aria-hidden="true"'));
 	});
 
 	test('escapes backend error details rendered inside the editor', () => {
@@ -224,4 +236,47 @@ async function makeFakeVenv(): Promise<string> {
 	await writeFile(path.join(dir, 'bin', 'python'), '#!/bin/sh\n');
 	await writeFile(path.join(dir, 'pyvenv.cfg'), 'home = /usr\n');
 	return dir;
+}
+
+function sampleOpenPayload() {
+	return {
+		ok: true,
+		schema_version: 1,
+		path: '/tmp/sample.mrd',
+		filename: 'sample.mrd',
+		file_size_bytes: 42,
+		file_class: 'reconstructed',
+		file_class_reliable: true,
+		display_mode: 'mosaic',
+		summary: {
+			encoding_count: 1,
+			encoded_matrix: [64, 64, 1],
+			recon_matrix: [64, 64, 1],
+			encoded_fov_mm: [200, 200, 5],
+			recon_fov_mm: [200, 200, 5],
+		},
+		stream: {
+			item_counts: { ImageFloat: 2 },
+			image_count: 2,
+			acquisition_count: 0,
+			waveform_count: 0,
+			other_count: 0,
+			partial: false,
+		},
+		mosaic: {
+			tile_unit: 'mrd_image_item',
+			thumbnails: [],
+			truncated: false,
+		},
+		metadata: {
+			images: [
+				{ image_index: 0, data_shape: [1, 1, 64, 64], dtype: 'float32', head: { slice: 0, image_type: 5, image_series_index: 1 } },
+				{ image_index: 1, data_shape: [1, 1, 64, 64], dtype: 'float32', head: { slice: 1, image_type: 5, image_series_index: 1 } },
+			],
+			acquisitions: [],
+			waveforms: [],
+			other_items: [],
+		},
+		warnings: [],
+	};
 }

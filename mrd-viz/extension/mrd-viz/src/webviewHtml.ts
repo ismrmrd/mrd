@@ -169,12 +169,14 @@ export function getMrdViewerHtml(webview: vscode.Webview, payload: MrdOpenPayloa
 				<section class="panel" id="metadata-panel">
 					<h2 class="panel-title">Metadata</h2>
 					<div class="tabs" role="tablist" aria-label="Metadata views">
-						<button class="tab" type="button" role="tab" aria-selected="true" aria-controls="metadata-summary" data-tab="summary">Summary</button>
+						<button class="tab" type="button" role="tab" aria-selected="true" aria-controls="metadata-groups" data-tab="groups">Groups</button>
+						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-summary" data-tab="summary">Summary</button>
 						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-organization" data-tab="organization">Organization</button>
 						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-stream" data-tab="stream">Raw Stream</button>
 						<button class="tab" type="button" role="tab" aria-selected="false" aria-controls="metadata-json" data-tab="json">Raw JSON</button>
 					</div>
-					<div class="tab-panel" id="metadata-summary" role="tabpanel" aria-hidden="false"></div>
+					<div class="tab-panel" id="metadata-groups" role="tabpanel" aria-hidden="false"></div>
+					<div class="tab-panel" id="metadata-summary" role="tabpanel" aria-hidden="true"></div>
 					<div class="tab-panel" id="metadata-organization" role="tabpanel" aria-hidden="true"></div>
 					<div class="tab-panel" id="metadata-stream" role="tabpanel" aria-hidden="true"></div>
 					<div class="tab-panel" id="metadata-json" role="tabpanel" aria-hidden="true"><pre class="json" id="json"></pre></div>

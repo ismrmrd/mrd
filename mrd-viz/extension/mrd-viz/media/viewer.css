@@ -410,6 +410,15 @@ li + li { margin-top: 4px; }
 .metadata-section { display: grid; gap: 8px; }
 .metadata-section h3 { margin: 0; font-size: 12px; font-weight: 650; }
 .metadata-note { color: var(--mrd-muted); font-size: 12px; line-height: 1.4; }
+.metadata-group {
+	display: grid;
+	gap: 8px;
+	padding: 9px;
+	border: 1px solid var(--mrd-line);
+	border-radius: 6px;
+	background: var(--mrd-panel-strong);
+}
+.metadata-group h3 { margin: 0; font-size: 12px; font-weight: 650; }
 .metadata-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .metadata-table th,
 .metadata-table td { padding: 4px 6px; border-bottom: 1px solid var(--mrd-line); text-align: left; vertical-align: top; }
