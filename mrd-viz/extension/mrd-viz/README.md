@@ -8,14 +8,11 @@ A Visual Studio Code extension for inspecting [MRD](https://github.com/ismrmrd/m
 - Select a tile to load its full-resolution image on demand.
 - Browse image, acquisition, waveform, and raw-stream metadata, including a raw JSON view.
 
-## Requirements
+## Install
 
-MRD Viz relies on a Python backend (the `mrd_viz` package) to read `.mrd` files. You need:
+Download the VSIX for your platform from the [latest GitHub Release](https://github.com/ismrmrd/mrd/releases/latest), then run **Extensions: Install from VSIX...** in VS Code. Supported platform builds include the backend, so Python setup is not required.
 
-- Python 3.12
-- The `mrd_viz` backend installed into an environment the extension can find.
-
-Point the extension at the interpreter with the `mrdViz.backendPath` setting (see below). During local development (the F5 dev host) the extension also auto-detects a virtual environment at `mrd-viz/backend/.venv`.
+On a platform without a bundled build, run **MRD Viz: Set Up Backend** or point `mrdViz.backendPath` at a Python 3.12 environment containing `mrd_viz`.
 
 ## Extension Settings
 
@@ -28,6 +25,8 @@ This extension contributes the following settings:
 ## Commands
 
 - `MRD Viz: Open File` — open the selected or picked `.mrd` file in MRD Viz.
+- `MRD Viz: Set Up Backend` — provision the managed Python fallback.
+- `MRD Viz: Select Python Interpreter` — select an existing backend environment.
 
 ## Known Issues
 
