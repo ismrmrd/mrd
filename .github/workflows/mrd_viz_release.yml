@@ -1,0 +1,181 @@
+name: MRD Viz Release
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "mrd-viz/extension/**"
+      - "mrd-viz/backend/**"
+      - ".github/workflows/mrd_viz_release.yml"
+  push:
+    tags:
+      - "mrd-viz-v*"
+  workflow_dispatch:
+
+# Least privilege by default; only the release job needs write access to publish.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: linux-x64
+          - os: windows-2022
+            target: win32-x64
+          - os: macos-14
+            target: darwin-arm64
+          # NOTE: darwin-x64 (Intel macOS on the macos-13 runner) is intentionally
+          # dropped. GitHub is winding down the Intel macOS runner pool, so the job
+          # sat in the queue for hours without ever being assigned a runner (0 steps,
+          # cancelled at GitHub's ~24h queue limit). timeout-minutes does not help
+          # because it only counts execution time, not queue time. We do not currently
+          # ship to Intel Macs; those users can still fall back to the managed-venv /
+          # "Select Python Interpreter" path. Re-add this leg (or use a paid macos-13-large
+          # / self-hosted Intel runner) if Intel-Mac bundled-binary support is needed.
+    runs-on: ${{ matrix.os }}
+    # Cap runtime so a stalled leg fails fast instead of hanging for hours.
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mrd-viz/extension/mrd-viz/package-lock.json
+
+      - name: Build standalone backend binary
+        working-directory: mrd-viz/backend
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[package]"
+          # Retry the PyInstaller build once to absorb transient CI-runner flakes.
+          for attempt in 1 2; do
+            if pyinstaller --clean --noconfirm packaging/mrd-viz.spec; then
+              exit 0
+            fi
+            echo "::warning::PyInstaller build attempt ${attempt} failed; retrying..."
+            sleep 5
+          done
+          echo "::error::PyInstaller build failed after 2 attempts."
+          exit 1
+
+      - name: Stage binary into the extension
+        shell: bash
+        run: |
+          dest="mrd-viz/extension/mrd-viz/media/backend"
+          mkdir -p "$dest"
+          cp -r mrd-viz/backend/dist/mrd-viz/. "$dest/"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            "$dest/mrd-viz.exe" --version
+          else
+            chmod +x "$dest/mrd-viz"
+            "$dest/mrd-viz" --version
+          fi
+
+      - name: Package platform VSIX
+        working-directory: mrd-viz/extension/mrd-viz
+        run: |
+          npm ci
+          # Pin vsce to an exact version so packaging is reproducible and an upstream
+          # compromise cannot silently execute in this artifact-producing job.
+          npx --yes @vscode/vsce@3.9.2 package --target ${{ matrix.target }}
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-${{ matrix.target }}
+          path: mrd-viz/extension/mrd-viz/*.vsix
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download platform VSIXs
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Publish release
+        # Pinned to a full commit SHA rather than the mutable v2 tag: this job holds
+        # contents: write and publishes release artifacts.
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          files: dist/**/*.vsix
+          generate_release_notes: true
+
+  publish-marketplace:
+    name: Publish to VS Code Marketplace
+    needs: [build, release]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    # No repo write needed; this job only talks to the Marketplace via the PAT.
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download platform VSIXs
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Publish pre-built VSIXs
+        # vsce reads the PAT from the VSCE_PAT env var. If the secret is not
+        # configured yet, skip gracefully so tagging never hard-fails while the
+        # publisher identity / credential is still being set up.
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        shell: bash
+        run: |
+          if [ -z "${VSCE_PAT}" ]; then
+            echo "::warning::VSCE_PAT secret not set; skipping Marketplace publish."
+            exit 0
+          fi
+          # Publish each pre-built platform VSIX as-is. Do NOT rebuild here —
+          # the bundled backend binary was staged during the build job.
+          shopt -s globstar nullglob
+          published=0
+          for vsix in dist/**/*.vsix; do
+            echo "Publishing ${vsix}"
+            npx --yes @vscode/vsce@3.9.2 publish --packagePath "${vsix}"
+            published=$((published + 1))
+          done
+          if [ "${published}" -eq 0 ]; then
+            echo "::error::No VSIX artifacts found under dist/ to publish."
+            exit 1
+          fi
+          echo "Published ${published} VSIX(es) to the Marketplace."
+
+# TODO: optionally mirror the same pre-built VSIXs to Open VSX (VSCodium / Cursor /
+#       code-server) with `ovsx publish -p $OVSX_PAT --packagePath <vsix>`. Needs a
+#       separate Open VSX account + token; add as an OVSX_PAT secret.
+# TODO: optionally sign / notarize the binaries. Not required for the one-dir
+#       build to run under Windows Application Control, but signing removes
+#       SmartScreen / Gatekeeper prompts on first launch.
+# TODO: optionally also publish a generic (no-binary) VSIX as a fallback for
+#       unsupported platforms (uses the resolver's python-interpreter path).
+

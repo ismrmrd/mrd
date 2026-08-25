@@ -105,3 +105,8 @@ validate-with-no-changes: test
 
 @test-docker-images:
     ./docker/test-docker-images.sh
+
+# Provision the MRD Viz dev container (delegates into mrd-viz/justfile so you
+# don't have to `cd mrd-viz` first).
+@mrd-viz-container-setup:
+    cd mrd-viz && just container-setup

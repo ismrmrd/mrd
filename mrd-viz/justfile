@@ -1,0 +1,59 @@
+@default: ci
+
+@backend-install:
+    cd backend && python -m pip install -e ".[test]"
+
+@backend-test: backend-install
+    cd backend && python -m pytest
+
+@extension-install:
+    cd extension/mrd-viz && npm ci
+
+@extension-lint: extension-install
+    cd extension/mrd-viz && npm run lint
+
+@extension-compile: extension-install
+    cd extension/mrd-viz && npm run compile
+
+@extension-test: extension-install
+    cd extension/mrd-viz && npm test
+
+@extension-check: extension-lint extension-compile
+
+@ci: backend-test extension-check
+
+@full-ci: backend-test extension-check extension-test
+
+@extension-package: extension-compile
+    cd extension/mrd-viz && cp ../../../LICENSE LICENSE && trap 'rm -f LICENSE' EXIT && npx --yes @vscode/vsce package
+
+# One-time provisioning inside the MRD Viz dev container: backend venv + extension install.
+container-setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # Point pip and npm at the first reachable index (internal mirror, else public).
+    # shellcheck source=../.devcontainer/mrd-viz/select-pkg-index.sh
+    source ../.devcontainer/mrd-viz/select-pkg-index.sh
+    venv="$HOME/.venvs/mrd-viz"
+    echo ">> Creating backend virtualenv: $venv"
+    python -m venv "$venv"
+    "$venv/bin/python" -m pip install --upgrade pip
+    ( cd backend && "$venv/bin/python" -m pip install -e ".[test]" )
+    echo ">> Building and installing the MRD Viz extension (VSIX)"
+    ( cd extension/mrd-viz && npm ci && cp ../../../LICENSE LICENSE && trap 'rm -f LICENSE' EXIT && npx --yes @vscode/vsce package )
+    vsix="$(ls -t extension/mrd-viz/mrd-viz-*.vsix 2>/dev/null | head -1)"
+    if [ -z "$vsix" ]; then echo ">> ERROR: no VSIX found in extension/mrd-viz (packaging may have failed)." >&2; exit 1; fi
+    code --install-extension "$vsix" --force
+    echo ">> Setup complete. Backend interpreter: $venv/bin/python"
+    echo ">> Reload the window if the extension does not activate immediately."
+
+# Build the standalone backend binary (dist/mrd-viz[.exe]) via PyInstaller.
+@build-binary:
+    cd backend && python -m pip install ".[package]" && pyinstaller --clean --noconfirm packaging/mrd-viz.spec
+
+# Verify a staged D3 one-dir backend and emit its release manifest.
+verify-bundled-backend target:
+    node tools/verify-bundled-backend.mjs "{{target}}"
+
+@test-release-tools:
+    node --test tools/*.test.mjs

@@ -1,0 +1,42 @@
+name: MRD Viz
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "mrd-viz/**"
+      - ".github/workflows/mrd_viz.yml"
+  push:
+    branches: [main]
+    paths:
+      - "mrd-viz/**"
+      - ".github/workflows/mrd_viz.yml"
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: Backend and Extension Checks
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: mrd-viz/extension/mrd-viz/package-lock.json
+
+      - name: Set up just
+        uses: extractions/setup-just@v4
+
+      - name: Run MRD Viz CI
+        working-directory: mrd-viz
+        run: just ci

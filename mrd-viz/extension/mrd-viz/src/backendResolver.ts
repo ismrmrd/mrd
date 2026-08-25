@@ -1,0 +1,246 @@
+import { type ExecFileException } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import * as path from 'node:path';
+import * as vscode from 'vscode';
+
+import { BACKEND_BINARY_NAME, PROBE_TIMEOUT_MS_MAX, PROBE_TIMEOUT_MS_MIN, PYTHON_MODULE_ARGS } from './backendConstants';
+import { runProcess } from './subprocess';
+
+/** How a backend candidate was selected. Drives tailored failure messaging in the webview. */
+export type BackendKind = 'override' | 'bundled' | 'development';
+
+/** A validated way to invoke the MRD Viz backend: `command` plus fixed leading args. */
+export interface ResolvedBackend {
+	command: string;
+	baseArgs: string[];
+	source: string;
+	kind: BackendKind;
+}
+
+/** A candidate that was probed but rejected, plus the reason its `--version` probe failed. */
+export interface BackendAttempt {
+	source: string;
+	/** Which tier this candidate belonged to, so the UI can distinguish a broken override from a missing binary. */
+	kind?: BackendKind;
+	/** Concise, webview-friendly failure reason (last lines of probe stderr, or the spawn error). */
+	detail?: string;
+	/** Complete captured probe output, logged in full to the output channel (never truncated). */
+	detailFull?: string;
+}
+
+export type BackendResolution =
+	| { ok: true; backend: ResolvedBackend }
+	| { ok: false; tried: BackendAttempt[] };
+
+let cachedBackend: ResolvedBackend | undefined;
+
+/** Drop the cached backend so the next resolve re-probes (e.g. after a settings change). */
+export function invalidateBackendCache(): void {
+	cachedBackend = undefined;
+}
+
+/**
+ * Find the first candidate whose `--version` probe succeeds, in priority order.
+ * The result is cached for the session; call {@link invalidateBackendCache} to reset.
+ */
+export async function resolveBackend(context: vscode.ExtensionContext, validationTimeoutMs: number): Promise<BackendResolution> {
+	if (cachedBackend) {
+		return { ok: true, backend: cachedBackend };
+	}
+
+	const candidates = planBackendCandidates({
+		configuredPath: getConfiguredBackendPath(),
+		bundledBinaryPath: bundledBinaryPath(context),
+		developmentVenvPath: developmentVenvPython(context),
+		isDevelopment: context.extensionMode === vscode.ExtensionMode.Development,
+	});
+
+	// No override and no bundled binary for this platform means there is nothing to probe and no way
+	// the extension can work. Surface that explicitly rather than returning an empty `tried` list the
+	// webview cannot explain.
+	if (candidates.length === 0) {
+		return { ok: false, tried: [noBackendAvailableAttempt()] };
+	}
+
+	const tried: BackendAttempt[] = [];
+	for (const candidate of candidates) {
+		const probe = await validateBackend(candidate, validationTimeoutMs);
+		if (probe.ok) {
+			cachedBackend = candidate;
+			return { ok: true, backend: candidate };
+		}
+		tried.push({ source: candidate.source, kind: candidate.kind, detail: probe.detail, detailFull: probe.detailFull });
+	}
+
+	return { ok: false, tried };
+}
+
+const BACKEND_PATH_SETTING = 'mrdViz.backendPath';
+
+/**
+ * The developer override, if set: the machine-scoped `mrdViz.backendPath`. Returns undefined when
+ * the user has configured nothing — the signal that this is an end-user install that should use the
+ * bundled backend.
+ */
+function getConfiguredBackendPath(): string | undefined {
+	return vscode.workspace.getConfiguration('mrdViz').get<string>('backendPath')?.trim() || undefined;
+}
+
+/** Inputs to {@link planBackendCandidates}; plain data so the ordering logic stays pure and testable. */
+export interface BackendCandidateInputs {
+	/** Developer override path (interpreter or binary), or undefined when unset. */
+	configuredPath?: string;
+	/** Path to the bundled binary if present in the VSIX, else undefined. */
+	bundledBinaryPath?: string;
+	/** Path to the repo `backend/.venv` interpreter if present, else undefined. */
+	developmentVenvPath?: string;
+	/** True when the extension host is the F5 Development host (`ExtensionMode.Development`). */
+	isDevelopment: boolean;
+}
+
+/**
+ * Deterministic, two-tier candidate order (see docs/BACKEND_INSTALL_MODES.md):
+ *
+ * - If a developer override is set, it is the ONLY candidate — no silent fallback to the bundled
+ *   binary, so a broken override fails loudly instead of masking a misconfiguration.
+ * - Otherwise (end user / unconfigured) use the bundled binary. In the Development host only, the
+ *   repo `backend/.venv` is tried first so contributors run their live checkout.
+ */
+export function planBackendCandidates(inputs: BackendCandidateInputs): ResolvedBackend[] {
+	if (inputs.configuredPath) {
+		return [configuredBackend(inputs.configuredPath)];
+	}
+
+	const candidates: ResolvedBackend[] = [];
+	if (inputs.isDevelopment && inputs.developmentVenvPath) {
+		candidates.push({
+			command: inputs.developmentVenvPath,
+			baseArgs: [...PYTHON_MODULE_ARGS],
+			source: `development environment (${inputs.developmentVenvPath})`,
+			kind: 'development',
+		});
+	}
+	if (inputs.bundledBinaryPath) {
+		candidates.push({
+			command: inputs.bundledBinaryPath,
+			baseArgs: [],
+			source: `bundled backend (${inputs.bundledBinaryPath})`,
+			kind: 'bundled',
+		});
+	}
+	return candidates;
+}
+
+/**
+ * The failure surfaced when {@link planBackendCandidates} yields nothing: no `mrdViz.backendPath`
+ * override and no bundled binary shipped for this platform. Gives the webview a concrete, actionable
+ * message (and its setup buttons) instead of an empty attempt list.
+ */
+function noBackendAvailableAttempt(): BackendAttempt {
+	return {
+		source: 'no backend available',
+		detail: `No ${BACKEND_PATH_SETTING} is set and no bundled backend was shipped for this platform (${process.platform}-${process.arch}). Use “Set Up Backend Automatically…” or “Select Python Interpreter…” below to provide one.`,
+	};
+}
+
+/** Build the override candidate, treating an `mrd-viz` executable as a binary and anything else as an interpreter. */
+function configuredBackend(configuredPath: string): ResolvedBackend {
+	const baseArgs = looksLikeBackendBinary(configuredPath) ? [] : [...PYTHON_MODULE_ARGS];
+	return { command: configuredPath, baseArgs, source: `${BACKEND_PATH_SETTING} setting (${configuredPath})`, kind: 'override' };
+}
+
+/** Whether a configured path points at the standalone backend binary rather than a Python interpreter. */
+function looksLikeBackendBinary(configuredPath: string): boolean {
+	const base = path.basename(configuredPath).toLowerCase();
+	return base === BACKEND_BINARY_NAME || base === `${BACKEND_BINARY_NAME}.exe`;
+}
+
+interface ProbeResult {
+	ok: boolean;
+	/** Concise failure reason for the webview when `ok` is false. */
+	detail?: string;
+	/** Complete captured output for the output channel when `ok` is false. */
+	detailFull?: string;
+}
+
+async function validateBackend(candidate: ResolvedBackend, timeoutMs: number): Promise<ProbeResult> {
+	const timeout = Math.min(Math.max(timeoutMs, PROBE_TIMEOUT_MS_MIN), PROBE_TIMEOUT_MS_MAX);
+	const { error, stderr } = await runProcess(candidate.command, [...candidate.baseArgs, '--version'], { timeoutMs: timeout });
+	if (!error) {
+		return { ok: true };
+	}
+	return { ok: false, detail: describeProbeFailure(error, stderr), detailFull: fullProbeFailure(error, stderr) };
+}
+
+/**
+ * Turn a failed `--version` probe into a concise, user-facing reason. The captured stderr is
+ * preferred because it carries the actionable message (e.g. a `GLIBC_2.38 not found` linker
+ * error, or a `ModuleNotFoundError: No module named 'mrd_viz'`); the spawn error is a fallback
+ * for cases with no output, such as a missing command (ENOENT) or a probe timeout.
+ */
+function describeProbeFailure(error: ExecFileException, stderr: string): string {
+	const trimmedStderr = stderr.trim();
+	if (trimmedStderr) {
+		return truncateForDisplay(collapseToLastLines(trimmedStderr, 4));
+	}
+	if (error.code === 'ENOENT') {
+		return 'command not found';
+	}
+	if (error.killed) {
+		return 'timed out before responding';
+	}
+	return truncateForDisplay(error.message.trim() || 'probe failed');
+}
+
+/**
+ * Like {@link describeProbeFailure} but without collapsing or truncation, so the complete probe
+ * output can be written to the output channel where a linker/module error may span many lines.
+ */
+function fullProbeFailure(error: ExecFileException, stderr: string): string {
+	const trimmedStderr = stderr.trim();
+	if (trimmedStderr) {
+		return trimmedStderr;
+	}
+	if (error.code === 'ENOENT') {
+		return 'command not found';
+	}
+	if (error.killed) {
+		return 'timed out before responding';
+	}
+	return error.message.trim() || 'probe failed';
+}
+
+function collapseToLastLines(text: string, maxLines: number): string {
+	const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+	return lines.slice(-maxLines).join('\n');
+}
+
+function truncateForDisplay(text: string): string {
+	const limit = 600;
+	return text.length > limit ? `${text.slice(0, limit)}\u2026` : text;
+}
+
+function pythonExecutableRelative(): string {
+	return process.platform === 'win32' ? path.join('Scripts', 'python.exe') : path.join('bin', 'python');
+}
+
+function bundledBinaryPath(context: vscode.ExtensionContext): string | undefined {
+	const name = process.platform === 'win32' ? `${BACKEND_BINARY_NAME}.exe` : BACKEND_BINARY_NAME;
+	const candidate = path.join(context.extensionUri.fsPath, 'media', 'backend', name);
+	return existsSync(candidate) ? candidate : undefined;
+}
+
+/** Directory where the managed backend virtual environment is (or would be) provisioned. */
+export function managedVenvDirectory(context: vscode.ExtensionContext): string {
+	return path.join(context.globalStorageUri.fsPath, 'backend-venv');
+}
+
+/** Path to the interpreter inside the managed backend virtual environment (may not exist yet). */
+export function managedVenvPythonPath(context: vscode.ExtensionContext): string {
+	return path.join(managedVenvDirectory(context), pythonExecutableRelative());
+}
+
+function developmentVenvPython(context: vscode.ExtensionContext): string | undefined {
+	const candidate = path.resolve(context.extensionUri.fsPath, '..', '..', 'backend', '.venv', pythonExecutableRelative());
+	return existsSync(candidate) ? candidate : undefined;
+}

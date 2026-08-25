@@ -1,0 +1,42 @@
+{
+  // Lightweight, extension-specific dev container for MRD Viz (Scenario B).
+  // The other config, ".devcontainer/devcontainer.json" ("mrd"), is the full
+  // repo toolchain (conda + MATLAB + C++) and is a poor fit for just viewing
+  // .mrd files, so this pins Python 3.12 (matching the backend) and stays minimal.
+  "name": "MRD Viz extension",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {}
+  },
+  // postCreate installs Node.js (from nodejs.org), plus the `just` and `azcopy`
+  // CLIs. Node is installed here rather than via the devcontainer `node` feature
+  // because that feature pulls pnpm from the public npm registry at build time,
+  // which is blocked on some corporate networks. Project provisioning (backend +
+  // the MRD Viz extension) is a one-time `just container-setup` you run afterwards.
+  "postCreateCommand": "bash .devcontainer/mrd-viz/postCreate.sh",
+  // Ordered package-index candidates (Microsoft-internal mirror first, public
+  // registry as fallback). `.devcontainer/mrd-viz/select-pkg-index.sh` picks the
+  // first reachable one and exports PIP_INDEX_URL / npm_config_registry, so the
+  // internal feed lives here — not in a hidden dotfile — and external contributors
+  // fall back to the public registry automatically. Override either list, or set
+  // PIP_INDEX_URL / npm_config_registry directly, to force a specific feed.
+  "remoteEnv": {
+    "MRD_PIP_INDEX_URLS": "https://packagefeedproxy.microsoft.io/pypi/simple/ https://pypi.org/simple/",
+    "MRD_NPM_REGISTRIES": "https://packagefeedproxy.microsoft.io/npm/ https://registry.npmjs.org/"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // `just container-setup` creates this venv; pointing the extension at it
+        // explicitly (via the developer override) avoids the installed-VSIX discovery
+        // gap and the python/python3 PATH ambiguity. backendPath is machine-scoped, so
+        // this applies as a container remote setting and never leaks back to the host.
+        "mrdViz.backendPath": "/home/vscode/.venvs/mrd-viz/bin/python",
+        "python.defaultInterpreterPath": "/home/vscode/.venvs/mrd-viz/bin/python"
+      },
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  }
+}
