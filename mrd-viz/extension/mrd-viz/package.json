@@ -34,6 +34,16 @@
         "command": "mrd-viz.selectInterpreter",
         "title": "Select Python Interpreter",
         "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.openStableInstallLink",
+        "title": "Open Stable Install Link",
+        "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.openWorkflowView",
+        "title": "Open Workflow View (D3 Scaffold)",
+        "category": "MRD Viz"
       }
     ],
     "customEditors": [

@@ -11,7 +11,11 @@ import { appendIfPresent, bindViewerMessageHandling } from './viewerController';
 
 export const MRD_VIEW_TYPE = 'mrd-viz.mrdFile';
 
-const BACKEND_SETUP_COMMANDS = new Set(['mrd-viz.setUpBackend', 'mrd-viz.selectInterpreter']);
+const BACKEND_SETUP_COMMANDS = new Set([
+	'mrd-viz.setUpBackend',
+	'mrd-viz.selectInterpreter',
+	'mrd-viz.openStableInstallLink',
+]);
 
 class MrdDocument implements vscode.CustomDocument {
 	constructor(readonly uri: vscode.Uri) {}

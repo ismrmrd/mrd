@@ -103,12 +103,16 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: Backend
 		<ul class="candidates">${triedItems}</ul>
 
 		<div class="actions">
+			<button type="button" id="stable">Open Stable Install Link</button>
 			<button type="button" id="select" class="${selectClass}">Select Python Interpreter…</button>
 			<button type="button" id="setup" class="${setupClass}">Set Up Backend Automatically…</button>
 		</div>
 
-		<h2>Point MRD Viz at a Python environment</h2>
-		<p>Create an environment that has the <code>mrd_viz</code> package, then set <code>mrdViz.backendPath</code> to its interpreter (or to a prebuilt <code>mrd-viz</code> binary):</p>
+		<h2>Recommended: stable release installer (no Python/PyPI steps)</h2>
+		<p>Use <b>Open Stable Install Link</b> to go to the latest MRD release page and install the researcher build artifact. That path is intended to avoid local Python/PyPI setup.</p>
+
+		<h2>Fallback: point MRD Viz at a Python environment</h2>
+		<p>If you are developing or debugging, create an environment that has the <code>mrd_viz</code> package, then set <code>mrdViz.backendPath</code> to its interpreter (or to a prebuilt <code>mrd-viz</code> binary):</p>
 		<pre class="setup">python3 -m venv ~/.mrd-viz-venv
 # install the backend from your mrd checkout (mrd-viz is not published to PyPI):
 ~/.mrd-viz-venv/bin/pip install -e path/to/mrd/mrd-viz/backend
@@ -122,6 +126,7 @@ export function getMrdBackendMissingHtml(webview: vscode.Webview, tried: Backend
 		(function () {
 			const vscode = acquireVsCodeApi();
 			function send(command) { vscode.postMessage({ type: 'command', command: command }); }
+			document.getElementById('stable').addEventListener('click', function () { send('mrd-viz.openStableInstallLink'); });
 			document.getElementById('setup').addEventListener('click', function () { send('mrd-viz.setUpBackend'); });
 			document.getElementById('select').addEventListener('click', function () { send('mrd-viz.selectInterpreter'); });
 		})();

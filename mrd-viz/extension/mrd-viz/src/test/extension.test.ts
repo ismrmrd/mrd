@@ -58,6 +58,8 @@ suite('MRD Viz Extension', () => {
 		assert.ok(commands.includes('mrd-viz.openFile'));
 		assert.ok(commands.includes('mrd-viz.setUpBackend'));
 		assert.ok(commands.includes('mrd-viz.selectInterpreter'));
+		assert.ok(commands.includes('mrd-viz.openStableInstallLink'));
+		assert.ok(commands.includes('mrd-viz.openWorkflowView'));
 	});
 
 	test('routes command opens through the custom editor view type', () => {
@@ -97,6 +99,7 @@ suite('MRD Viz Extension', () => {
 		assert.ok(html.includes('No module named &#39;mrd_viz&#39;') || html.includes("No module named 'mrd_viz'"));
 		assert.ok(html.includes('mrd-viz.setUpBackend'));
 		assert.ok(html.includes('mrd-viz.selectInterpreter'));
+		assert.ok(html.includes('mrd-viz.openStableInstallLink'));
 	});
 
 	test('tailors the backend-missing view when a developer override is broken', () => {

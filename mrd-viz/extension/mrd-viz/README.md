@@ -10,12 +10,13 @@ A Visual Studio Code extension for inspecting [MRD](https://github.com/ismrmrd/m
 
 ## Requirements
 
-MRD Viz relies on a Python backend (the `mrd_viz` package) to read `.mrd` files. You need:
+For researcher onboarding, use the stable release installer flow first:
 
-- Python 3.12
-- The `mrd_viz` backend installed into an environment the extension can find.
+- Open: `https://github.com/ismrmrd/mrd/releases/latest`
+- Install the latest MRD Viz release artifact
 
-Point the extension at the interpreter with the `mrdViz.backendPath` setting (see below). During local development (the F5 dev host) the extension also auto-detects a virtual environment at `mrd-viz/backend/.venv`.
+That path is intended to avoid local Python/PyPI setup.  
+For development/debug fallback, MRD Viz can use a Python backend (the `mrd_viz` package) via `mrdViz.backendPath`. During local development (the F5 dev host) the extension also auto-detects `mrd-viz/backend/.venv`.
 
 ## Extension Settings
 
@@ -28,6 +29,10 @@ This extension contributes the following settings:
 ## Commands
 
 - `MRD Viz: Open File` — open the selected or picked `.mrd` file in MRD Viz.
+- `MRD Viz: Open Stable Install Link` — open the latest MRD release page for the stable installer path.
+- `MRD Viz: Set Up Backend` — choose stable installer, managed local setup, or manual interpreter selection.
+- `MRD Viz: Select Python Interpreter` — set `mrdViz.backendPath` manually.
+- `MRD Viz: Open Workflow View (D3 Scaffold)` — open the first workflow/session-level D3 panel scaffold.
 
 ## Known Issues
 

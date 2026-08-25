@@ -6,4 +6,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
-- Initial release
+- Added a stable install command (`MRD Viz: Open Stable Install Link`) that opens the latest MRD release URL.
+- Updated backend-missing UX to prioritize the stable release install path before Python fallback setup.
+- Added `MRD Viz: Open Workflow View (D3 Scaffold)` as the first workflow/session-level D3 panel scaffold.

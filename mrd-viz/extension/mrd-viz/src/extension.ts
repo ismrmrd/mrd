@@ -13,6 +13,9 @@ import {
 import { invalidateBackendCache, managedVenvDirectory, managedVenvPythonPath } from './backendResolver';
 import { MrdEditorProvider, MRD_VIEW_TYPE } from './mrdEditorProvider';
 import { runProcess } from './subprocess';
+import { showWorkflowScaffoldPanel } from './workflowPanel';
+
+const STABLE_RELEASE_URL = 'https://github.com/ismrmrd/mrd/releases/latest';
 
 export function activate(context: vscode.ExtensionContext) {
 	const outputChannel = vscode.window.createOutputChannel('MRD Viz');
@@ -28,6 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('mrd-viz.setUpBackend', () => setUpBackend(context, outputChannel)),
 		vscode.commands.registerCommand('mrd-viz.selectInterpreter', () => selectInterpreter()),
+		vscode.commands.registerCommand('mrd-viz.openStableInstallLink', () => openStableInstallLink()),
+		vscode.commands.registerCommand('mrd-viz.openWorkflowView', () => showWorkflowScaffoldPanel()),
 		vscode.workspace.onDidChangeConfiguration(event => {
 			if (event.affectsConfiguration('mrdViz.backendPath')) {
 				invalidateBackendCache();
@@ -106,6 +111,46 @@ async function pickTargetUri(resource?: vscode.Uri, selectedResources?: vscode.U
 }
 
 async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<void> {
+	const quickPick = await vscode.window.showQuickPick(
+		[
+			{
+				label: 'Use stable release installer (recommended)',
+				description: 'No Python/PyPI setup steps. Open the latest GitHub release install link.',
+				action: 'stable' as const,
+			},
+			{
+				label: 'Set up backend automatically here',
+				description: 'Creates a managed Python environment and installs mrd-viz.',
+				action: 'managed' as const,
+			},
+			{
+				label: 'Select backend interpreter manually',
+				description: 'Point mrdViz.backendPath at an existing backend environment.',
+				action: 'manual' as const,
+			},
+		],
+		{
+			placeHolder: 'Choose backend setup mode',
+			ignoreFocusOut: true,
+		},
+	);
+	if (!quickPick) {
+		return;
+	}
+
+	if (quickPick.action === 'stable') {
+		await openStableInstallLink();
+		return;
+	}
+	if (quickPick.action === 'manual') {
+		await selectInterpreter();
+		return;
+	}
+
+	await setUpManagedBackend(context, outputChannel);
+}
+
+async function setUpManagedBackend(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<void> {
 	// If a managed backend is already provisioned, this rebuilds it from scratch, so confirm the
 	// reinstall rather than silently clobbering a working environment.
 	const alreadyInstalled = existsSync(managedVenvPythonPath(context));
@@ -131,6 +176,10 @@ async function setUpBackend(context: vscode.ExtensionContext, outputChannel: vsc
 		invalidateBackendCache();
 		void vscode.window.showInformationMessage(alreadyInstalled ? 'MRD Viz backend reinstalled.' : 'MRD Viz backend installed.');
 	}
+}
+
+async function openStableInstallLink(): Promise<void> {
+	await vscode.env.openExternal(vscode.Uri.parse(STABLE_RELEASE_URL));
 }
 
 async function selectInterpreter(): Promise<void> {
@@ -350,4 +399,3 @@ function appendIfPresent(outputChannel: vscode.OutputChannel, label: string, tex
 function isMrdFile(filePath: string): boolean {
 	return filePath.toLowerCase().endsWith('.mrd');
 }
-
