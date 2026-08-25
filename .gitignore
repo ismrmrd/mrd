@@ -2,5 +2,13 @@ cpp/build/
 .vscode/
 *.ipynb
 
+# Local dev-container data landing zone (e.g. azcopy pulls of large .mrd files)
+mrd-viz/data/
+
 *.bin
 *.png
+*.vsix
+
+mrd-viz/extension/mrd-viz/media/backend/
+
+*.pyc

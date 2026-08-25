@@ -1,0 +1,114 @@
+{
+  "name": "mrd-viz",
+  "displayName": "MRD Viz",
+  "description": "MRD file viewer for VS Code",
+  "version": "0.0.1",
+  "publisher": "ismrmrd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ismrmrd/mrd.git"
+  },
+  "engines": {
+    "vscode": "^1.120.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "mrd-viz.openFile",
+        "title": "Open File",
+        "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.setUpBackend",
+        "title": "Set Up Backend",
+        "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.selectInterpreter",
+        "title": "Select Python Interpreter",
+        "category": "MRD Viz"
+      },
+      {
+        "command": "mrd-viz.compareFiles",
+        "title": "Compare Files (D3 scaffolding)",
+        "category": "MRD Viz"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "mrd-viz.mrdFile",
+        "displayName": "MRD Viz",
+        "selector": [
+          {
+            "filenamePattern": "*.mrd"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "configuration": {
+      "title": "MRD Viz",
+      "properties": {
+        "mrdViz.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "markdownDescription": "Python executable used to run `python -m mrd_viz.cli`. Set this to the backend virtual environment interpreter when needed."
+        },
+        "mrdViz.maxThumbnails": {
+          "type": "number",
+          "default": 128,
+          "minimum": 0,
+          "markdownDescription": "Maximum number of MRD image thumbnails requested from the backend for the initial open-file payload."
+        },
+        "mrdViz.backendTimeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "markdownDescription": "Timeout in milliseconds for one short-lived MRD Viz backend process."
+        }
+      }
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "mrd-viz.openFile",
+          "when": "resourceExtname == .mrd",
+          "group": "navigation"
+        },
+        {
+          "command": "mrd-viz.compareFiles",
+          "when": "resourceExtname == .mrd",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.120.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.56.1",
+    "eslint": "^9.39.3",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  },
+  "overrides": {
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.0.5"
+  }
+}
