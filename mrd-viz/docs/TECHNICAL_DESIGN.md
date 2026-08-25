@@ -81,6 +81,17 @@ Out of scope for now:
 
 ## Product Surface
 
+### Functionality and rollout table
+
+| Track | Before | After | Functions / UX created | Rollout priority |
+| --- | --- | --- | --- | --- |
+| D1: backend setup | Installed users had to reason through local Python setup and backend discovery failures manually. | The extension first uses a bundled backend binary when present; when that fails or is unavailable, **Set Up Backend Automatically…** builds a managed virtual environment and stores the machine-scoped `mrdViz.backendPath`. | Backend candidate planning, detailed probe failures, managed `backend-venv`, automatic setup command, interpreter picker, cleanup of partial venvs, and backend-missing guidance in the webview. | First researcher bundle; removes the biggest onboarding blocker. |
+| Release: GitHub Release VSIX | Users needed local build knowledge or development-host setup to try MRD Viz. | Tag pushes build platform-specific VSIX artifacts with staged backend binaries and attach them to a GitHub Release. | `mrd_viz_release.yml` build matrix, PyInstaller backend staging, VSIX artifact upload, release publishing, icon/license packaging, and release docs. | Same PR/release train as D1 so reviewers approve one deployable handoff. |
+| D3: richer metadata grouping | Metadata exists, but users still scan summary panels and raw stream/JSON details for common interpretation patterns. | Metadata should be grouped around file, header, image organization, acquisition examples, waveform/other items, warnings, and searchable/scannable labels. | Planned typed metadata group model and grouped webview sections derived from the existing backend payload without changing the backend contract first. | Start immediately after D1/release; can iterate while researchers test the first bundle. |
+| D2: multi-file / comparison workflow | Users open one `.mrd` file at a time and compare files manually across tabs. | Users should be able to classify and compare related files or batches in one workflow. | Planned multi-file selector, batch classification, side-by-side summary state, and comparison-oriented webview surfaces. | After initial feedback clarifies the common comparison tasks. |
+| Marketplace | Users install from GitHub Release VSIX files. | Users install/update from the VS Code Marketplace once publisher, credential, and compliance work are complete. | Guarded Marketplace publish job, publisher checklist, `VSCE_PAT` activation path, optional Open VSX follow-up. | Later; do not block researcher access through GitHub Releases. |
+| F10: feedback / follow-up loop | Feedback is ad hoc after manual testing. | Researchers can use the D1/release bundle while follow-up UX work continues in parallel. | Release notes, known-issues tracking, focused follow-up PRs for onboarding failures and newly observed MRD variants. | Starts with the first researcher release. |
+
 ### Why a VS Code plugin
 
 `mrd-viz` will be a VS Code plugin because the initial users are technical researchers and operators who already inspect files, notebooks, scripts, and reconstruction outputs inside VS Code. A plugin keeps MRD inspection inside that existing development loop instead of forcing users to switch to a separate command-line-only workflow.

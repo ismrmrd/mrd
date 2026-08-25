@@ -28,6 +28,8 @@ This extension contributes the following settings:
 ## Commands
 
 - `MRD Viz: Open File` — open the selected or picked `.mrd` file in MRD Viz.
+- `MRD Viz: Set Up Backend` — create or rebuild a managed backend environment when the bundled backend is unavailable.
+- `MRD Viz: Select Python Interpreter` — point `mrdViz.backendPath` at an existing backend environment.
 
 ## Known Issues
 
