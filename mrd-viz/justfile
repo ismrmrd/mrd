@@ -50,3 +50,10 @@ container-setup:
 # Build the standalone backend binary (dist/mrd-viz[.exe]) via PyInstaller.
 @build-binary:
     cd backend && python -m pip install ".[package]" && pyinstaller --clean --noconfirm packaging/mrd-viz.spec
+
+# Verify a staged D3 one-dir backend and emit its release manifest.
+verify-bundled-backend target:
+    node tools/verify-bundled-backend.mjs "{{target}}"
+
+@test-release-tools:
+    node --test tools/*.test.mjs
